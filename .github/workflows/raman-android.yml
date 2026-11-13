@@ -65,14 +65,15 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           v=$(sed -n 's/^core.version=//p' dependencies.properties)
-          curl -fsSL "https://raw.githubusercontent.com/hiddify/hiddify-core/v$v/go.mod" -o "$RUNNER_TEMP/core-go.mod"
-          grep -E '^(go|toolchain) ' "$RUNNER_TEMP/core-go.mod"
+          mkdir -p "$RUNNER_TEMP/core-gomod"
+          curl -fsSL "https://raw.githubusercontent.com/hiddify/hiddify-core/v$v/go.mod" -o "$RUNNER_TEMP/core-gomod/go.mod"
+          grep -E '^(go|toolchain) ' "$RUNNER_TEMP/core-gomod/go.mod"
 
       - name: Set up Go
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@v5
         with:
-          go-version-file: ${{ runner.temp }}/core-go.mod
+          go-version-file: ${{ runner.temp }}/core-gomod/go.mod
           cache: false
 
       - name: Set up Java
