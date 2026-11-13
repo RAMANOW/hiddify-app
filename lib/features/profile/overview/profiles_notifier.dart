@@ -13,6 +13,7 @@ import 'package:hiddify/features/profile/model/profile_entity.dart';
 import 'package:hiddify/features/profile/model/profile_sort_enum.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
 import 'package:hiddify/features/profile/notifier/profiles_update_notifier.dart';
+import 'package:hiddify/features/raman/shield/shield_controller.dart';
 import 'package:hiddify/features/settings/data/config_option_repository.dart';
 import 'package:hiddify/utils/utils.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -74,7 +75,11 @@ class ProfilesNotifier extends _$ProfilesNotifier with AppLogger {
   @override
   Stream<List<ProfileEntity>> build() {
     final sort = ref.watch(profilesSortNotifierProvider);
-    return _profilesRepo.watchAll(sort: sort.by, sortMode: sort.mode).map((event) => event.getOrElse((l) => throw l));
+    // Shield's own profile is not one of the user's
+    final shieldId = ref.watch(shieldProfileIdProvider);
+    return _profilesRepo
+        .watchAll(sort: sort.by, sortMode: sort.mode)
+        .map((event) => event.getOrElse((l) => throw l).where((p) => p.id != shieldId).toList());
   }
 
   ProfileRepository get _profilesRepo => ref.read(profileRepositoryProvider).requireValue;

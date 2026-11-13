@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">رامان VPN</string>
+    <string name="disguise_calculator">ماشین‌حساب</string>
+    <string name="disguise_weather">آب‌وهوا</string>
+    <string name="disguise_notes">یادداشت‌ها</string>
+    <string name="disguise_clock">ساعت</string>
 </resources>

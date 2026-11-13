@@ -98,7 +98,7 @@
   "intro": {
     "banner": "ကန့်သတ်ချက်မရှိသော အင်တာနက်အတွက် လိုအပ်သမျှ",
     "termsAndPolicyCaution(rich)": "ဆက်လုပ်ခြင်းဖြင့် ${tap(@:pages.about.termsAndConditions)} ကို သဘောတူပါသည်",
-    "info(rich)": "Raman VPN, based on Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
+    "info(rich)": "Raman VPN. ${tap_source(Open source)} and ${tap_license(License)}"
   },
   "pages": {
     "home": {
@@ -1041,7 +1041,7 @@
       "msg": "စတင်ကြပါစို့။ သင့် VPN ဆာဗာအချက်အလက်ဖြင့် ချိတ်ဆက်မှု ပရိုဖိုင်တစ်ခု ထည့်ပါ။\n\nဆာဗာ မရှိသေးဘူးလား။ ပြဿနာမရှိပါ။ အောက်ပါလမ်းညွှန်တွင် အခမဲ့ တည်ဆောက်ပုံကို ပြထားပါသည်။",
       "helpBtn": {
         "label": "ပြပါ",
-        "url": "https://hiddify.com/manager/"
+        "url": ""
       }
     },
     "unknownDomainsWarning": {

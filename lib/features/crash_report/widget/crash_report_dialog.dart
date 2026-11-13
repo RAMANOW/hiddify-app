@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/core/model/constants.dart';
+import 'package:hiddify/features/raman/raman_strings.dart';
 import 'package:hiddify/core/notification/in_app_notification_controller.dart';
 import 'package:hiddify/features/crash_report/data/diagnostics_exporter.dart';
 import 'package:hiddify/features/crash_report/data/diagnostics_sender.dart';
@@ -70,17 +71,17 @@ class CrashReportDialog extends HookConsumerWidget {
                   t.dialogs.crashReport.sendHiddify,
                   t.dialogs.crashReport.sendHiddifyMsg,
                 ),
-              option(
-                ReportChannel.email,
-                FluentIcons.mail_20_regular,
-                t.dialogs.crashReport.sendEmail,
-                Constants.bugReportEmail,
-              ),
-              option(
-                ReportChannel.telegram,
-                FluentIcons.send_20_regular,
-                t.dialogs.crashReport.sendTelegram,
-                Constants.bugReportTelegramUrl.replaceFirst('https://', ''),
+              // Raman VPN has no report inbox: the user saves or shares the file with whoever
+              // supports them.
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.share_rounded),
+                title: Text(ref.watch(ramanStringsProvider).shareDiagnostics),
+                subtitle: Text(ref.watch(ramanStringsProvider).shareDiagnosticsMsg),
+                onTap: () async {
+                  context.pop();
+                  await shareDiagnostics(ref);
+                },
               ),
             ],
           ),

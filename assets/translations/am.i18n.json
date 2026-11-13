@@ -98,7 +98,7 @@
   "intro": {
     "banner": "ያለ ገደብ ኢንተርኔት ለማግኘት የሚያስፈልግዎ ሁሉ",
     "termsAndPolicyCaution(rich)": "በመቀጠልዎ ${tap(@:pages.about.termsAndConditions)} ተስማምተዋል",
-    "info(rich)": "Raman VPN, based on Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
+    "info(rich)": "Raman VPN. ${tap_source(Open source)} and ${tap_license(License)}"
   },
   "pages": {
     "home": {
@@ -1041,7 +1041,7 @@
       "msg": "እንጀምር። በVPN አገልጋይዎ ዝርዝሮች የግንኙነት መገለጫ ይጨምሩ።\n\nገና አገልጋይ የለዎትም? ችግር የለም። ከታች ያለው መመሪያ በነጻ እንዴት እንደሚያዘጋጁ ያሳያል።",
       "helpBtn": {
         "label": "እንዴት እንደሆነ አሳየኝ",
-        "url": "https://hiddify.com/manager/"
+        "url": ""
       }
     },
     "unknownDomainsWarning": {

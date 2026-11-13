@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="disguise_calculator_bg">#455A64</color>
+    <color name="disguise_weather_bg">#1E88E5</color>
+    <color name="disguise_notes_bg">#FFB300</color>
+    <color name="disguise_clock_bg">#212121</color>
+</resources>

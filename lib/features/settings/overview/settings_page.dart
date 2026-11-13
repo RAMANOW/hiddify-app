@@ -5,6 +5,7 @@ import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
 import 'package:hiddify/core/router/go_router/helper/active_breakpoint_notifier.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
+import 'package:hiddify/features/raman/disguise_icon.dart';
 import 'package:hiddify/features/raman/raman_strings.dart';
 import 'package:hiddify/features/settings/notifier/config_option/config_option_notifier.dart';
 import 'package:hiddify/features/settings/notifier/reset_tunnel/reset_tunnel_notifier.dart';
@@ -150,6 +151,7 @@ class SettingsPage extends HookConsumerWidget {
             icon: Icons.shield_rounded,
             namedLocation: context.namedLocation('ramanTools'),
           ),
+          const DisguiseIconTile(),
           SettingsSection(
             title: t.pages.settings.general.title,
             icon: Icons.layers_rounded,

@@ -98,7 +98,7 @@
   "intro": {
     "banner": "Усё, што трэба для інтэрнэту без абмежаванняў",
     "termsAndPolicyCaution(rich)": "Працягваючы, вы прымаеце: ${tap(@:pages.about.termsAndConditions)}",
-    "info(rich)": "Raman VPN, based on Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
+    "info(rich)": "Raman VPN. ${tap_source(Open source)} and ${tap_license(License)}"
   },
   "pages": {
     "home": {
@@ -1041,7 +1041,7 @@
       "msg": "Пачнём. Дадайце профіль падключэння з данымі вашага VPN-сервера.\n\nУ вас яшчэ няма сервера? Не праблема. Кіраўніцтва ніжэй паказвае, як стварыць яго бясплатна.",
       "helpBtn": {
         "label": "Паказаць, як",
-        "url": "https://hiddify.com/manager/"
+        "url": ""
       }
     },
     "unknownDomainsWarning": {

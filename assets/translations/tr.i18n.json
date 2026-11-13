@@ -98,7 +98,7 @@
   "intro": {
     "banner": "Sınırsız bir internet için ihtiyacınız olan her şey",
     "termsAndPolicyCaution(rich)": "Devam ederek ${tap(@:pages.about.termsAndConditions)} kabul etmiş olursunuz",
-    "info(rich)": "Raman VPN, based on Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
+    "info(rich)": "Raman VPN. ${tap_source(Open source)} and ${tap_license(License)}"
   },
   "pages": {
     "home": {
@@ -1041,7 +1041,7 @@
       "msg": "Başlayalım. VPN sunucu bilgilerinizle bir bağlantı profili ekleyin.\n\nHenüz sunucunuz yok mu? Sorun değil. Aşağıdaki rehber ücretsiz bir tane kurmayı gösteriyor.",
       "helpBtn": {
         "label": "Nasıl yapıldığını göster",
-        "url": "https://hiddify.com/manager/"
+        "url": ""
       }
     },
     "unknownDomainsWarning": {

@@ -98,7 +98,7 @@
   "intro": {
     "banner": "هرآنچه برای اینترنت بدون محدودیت نیاز دارید",
     "termsAndPolicyCaution(rich)": "با ادامه، شما با ${tap(@:pages.about.termsAndConditions)} موافقت می‌کنید",
-    "info(rich)": "رامان VPN، بر پایه‌ی Hiddify. ${tap_source(متن‌باز)} و ${tap_license(مجوز)}"
+    "info(rich)": "رامان VPN. ${tap_source(متن‌باز)} و ${tap_license(مجوز)}"
   },
   "pages": {
     "home": {
@@ -1055,7 +1055,7 @@
       "msg": "بیایید شروع کنیم. یک پروفایل اتصال با جزئیات سرور VPN خود اضافه کنید.\n\nهنوز سرور ندارید؟ مشکلی نیست. راهنمای زیر نشان می‌دهد چطور رایگان یکی بسازید.",
       "helpBtn": {
         "label": "راهنمایی کن",
-        "url": "https://hiddify.com/manager/"
+        "url": ""
       }
     },
     "unknownDomainsWarning": {

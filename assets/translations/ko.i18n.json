@@ -98,7 +98,7 @@
   "intro": {
     "banner": "제한 없는 인터넷에 필요한 모든 것",
     "termsAndPolicyCaution(rich)": "계속하면 ${tap(@:pages.about.termsAndConditions)}에 동의하는 것입니다",
-    "info(rich)": "Raman VPN, based on Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
+    "info(rich)": "Raman VPN. ${tap_source(Open source)} and ${tap_license(License)}"
   },
   "pages": {
     "home": {
@@ -1041,7 +1041,7 @@
       "msg": "시작해 볼까요? VPN 서버 정보가 담긴 연결 프로필을 추가하세요.\n\n아직 서버가 없나요? 괜찮습니다. 아래 안내에서 무료로 서버를 만드는 방법을 볼 수 있습니다.",
       "helpBtn": {
         "label": "방법 보기",
-        "url": "https://hiddify.com/manager/"
+        "url": ""
       }
     },
     "unknownDomainsWarning": {

@@ -102,7 +102,7 @@
   "intro": {
     "banner": "Всё, что Вам нужно для неограниченного доступа в интернет",
     "termsAndPolicyCaution(rich)": "Продолжая, Вы соглашаетесь с ${tap(@:pages.about.termsAndConditions)}",
-    "info(rich)": "Raman VPN, based on Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
+    "info(rich)": "Raman VPN. ${tap_source(Open source)} and ${tap_license(License)}"
   },
   "pages": {
     "home": {
@@ -1063,7 +1063,7 @@
       "msg": "Начнем. Добавьте профиль подключения с данными Вашего VPN-сервера.\n\nЕще нет сервера? Не проблема. Руководство ниже покажет, как бесплатно его настроить.",
       "helpBtn": {
         "label": "Покажите, как",
-        "url": "https://hiddify.com/manager/"
+        "url": ""
       }
     },
     "unknownDomainsWarning": {

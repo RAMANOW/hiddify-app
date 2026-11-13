@@ -98,7 +98,7 @@
   "intro": {
     "banner": "Cheklovsiz internet uchun kerak bo‘lgan hamma narsa",
     "termsAndPolicyCaution(rich)": "Davom etish orqali siz ${tap(@:pages.about.termsAndConditions)} bilan rozi bo‘lasiz",
-    "info(rich)": "Raman VPN, based on Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
+    "info(rich)": "Raman VPN. ${tap_source(Open source)} and ${tap_license(License)}"
   },
   "pages": {
     "home": {
@@ -1041,7 +1041,7 @@
       "msg": "Boshlaymiz. VPN server ma’lumotlari bilan ulanish profilini qo‘shing.\n\nServeringiz yo‘qmi? Muammo emas. Quyidagi qo‘llanma uni bepul qanday sozlashni ko‘rsatadi.",
       "helpBtn": {
         "label": "Qanday qilishni ko‘rsating",
-        "url": "https://hiddify.com/manager/"
+        "url": ""
       }
     },
     "unknownDomainsWarning": {

@@ -140,7 +140,7 @@ class AppList extends _$AppList with AppLogger {
     final body =
         '```\n${const JsonEncoder.withIndent('  ').convert({'addedPkgs': added, 'removedPkgs': removed})}\n```';
     await UriUtils.tryLaunch(
-      Uri.https('github.com', '/hiddify/Android-GFW-Apps/issues/new', {'title': title, 'body': body}),
+      Uri.https('github.com', '/RAMANOW/hiddify-app/issues/new', {'title': title, 'body': body}),
     );
   }
 

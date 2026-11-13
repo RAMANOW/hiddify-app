@@ -98,7 +98,7 @@
   "intro": {
     "banner": "Çäksiz internet üçin zerur bolan hemme zat",
     "termsAndPolicyCaution(rich)": "Dowam etmek bilen siz ${tap(@:pages.about.termsAndConditions)} razy bolýarsyňyz",
-    "info(rich)": "Raman VPN, based on Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
+    "info(rich)": "Raman VPN. ${tap_source(Open source)} and ${tap_license(License)}"
   },
   "pages": {
     "home": {
@@ -1041,7 +1041,7 @@
       "msg": "Başlalyň. VPN serweriňiziň maglumatlary bilen baglanyşyk profilini goşuň.\n\nEntek serweriňiz ýokmy? Zyýany ýok. Aşakdaky gollanma ony mugt nädip gurmalydygyny görkezýär.",
       "helpBtn": {
         "label": "Nädip edilýändigini görkez",
-        "url": "https://hiddify.com/manager/"
+        "url": ""
       }
     },
     "unknownDomainsWarning": {

@@ -98,7 +98,7 @@
   "intro": {
     "banner": "Ҳама чиз барои интернети бе маҳдудият",
     "termsAndPolicyCaution(rich)": "Бо идома додан шумо бо ${tap(@:pages.about.termsAndConditions)} розӣ мешавед",
-    "info(rich)": "Raman VPN, based on Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
+    "info(rich)": "Raman VPN. ${tap_source(Open source)} and ${tap_license(License)}"
   },
   "pages": {
     "home": {
@@ -1041,7 +1041,7 @@
       "msg": "Биёед оғоз кунем. Профили пайвастшавиро бо маълумоти сервери VPN-и худ илова кунед.\n\nҲоло сервер надоред? Мушкиле нест. Дастури поён нишон медиҳад, ки онро чӣ тавр ройгон насб кардан мумкин аст.",
       "helpBtn": {
         "label": "Нишон диҳед",
-        "url": "https://hiddify.com/manager/"
+        "url": ""
       }
     },
     "unknownDomainsWarning": {

@@ -98,7 +98,7 @@
   "intro": {
     "banner": "Այն ամենը, ինչ պետք է անսահմանափակ ինտերնետի համար",
     "termsAndPolicyCaution(rich)": "Շարունակելով՝ դուք համաձայնում եք ${tap(@:pages.about.termsAndConditions)}",
-    "info(rich)": "Raman VPN, based on Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
+    "info(rich)": "Raman VPN. ${tap_source(Open source)} and ${tap_license(License)}"
   },
   "pages": {
     "home": {
@@ -1041,7 +1041,7 @@
       "msg": "Սկսենք։ Ավելացրեք կապի պրոֆիլ ձեր VPN սերվերի տվյալներով։\n\nՍերվեր դեռ չունեք։ Խնդիր չէ։ Ներքևի ուղեցույցը ցույց է տալիս, թե ինչպես այն անվճար ստեղծել։",
       "helpBtn": {
         "label": "Ցույց տվեք՝ ինչպես",
-        "url": "https://hiddify.com/manager/"
+        "url": ""
       }
     },
     "unknownDomainsWarning": {

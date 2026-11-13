@@ -9,7 +9,7 @@ on:
       release-tag:
         description: Publish a GitHub release with this tag (empty = build only)
         type: string
-        default: 'v1.0.0-raman'
+        default: 'v1.1.0-raman'
   push:
     branches: [main]
     tags: ['v*-raman*']
@@ -116,13 +116,14 @@ jobs:
         run: |
           set -euo pipefail
           cat > notes.md <<'EOF'
-          **Raman VPN (رامان VPN)** for Android — based on [Hiddify](https://github.com/hiddify/hiddify-app), licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial.
+          **Raman VPN (رامان VPN)** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial.
 
-          - Smart DNS: tests public resolvers and picks the fastest working one automatically
-          - Network checker: reachability and latency of popular services, with and without the VPN
-          - Iran defaults: region Iran (domestic sites direct), TLS fragment on, Persian
+          - Two tabs: **Raman** (your profiles and configs) and **Shield** (one-tap connect through the Psiphon network, no server needed)
+          - Shield: exit-country picker, use as extra security or unblocker for Raman profiles, per-app split tunneling, share the proxy on the local network
+          - Disguise icon: show the app as Calculator, Weather, Notes or Clock (Settings)
+          - Smart DNS, network checker, Iran defaults
 
-          Install `RamanVPN-Android-universal.apk` if you are not sure which one fits your phone.
+          Install `RamanVPN-Android-universal.apk` if you are not sure which one fits your phone. These APKs are signed with a different key from earlier releases: uninstall the old version first.
           EOF
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" out/*.apk --clobber

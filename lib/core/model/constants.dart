@@ -10,11 +10,14 @@ abstract class Constants {
   static const licenseUrl = "https://github.com/RAMANOW/hiddify-app/blob/main/LICENSE.md";
   static const githubReleasesApiUrl = "https://api.github.com/repos/RAMANOW/hiddify-app/releases";
   static const githubLatestReleaseUrl = "https://github.com/RAMANOW/hiddify-app/releases/latest";
-  static const telegramChannelUrl = "https://t.me/hiddify";
-  static const bugReportEmail = "bug@hiddify.com";
-  static const bugReportTelegramUrl = "https://t.me/hiddify_board";
-  static const privacyPolicyUrl = "https://hiddify.com/privacy-policy/";
-  static const termsAndConditionsUrl = "https://hiddify.com/terms/";
+  // Raman VPN has no channel, terms or privacy pages of its own (yet): these stay empty and the
+  // screens that linked them hide the links. Problems are reported on the GitHub issues page.
+  static const telegramChannelUrl = "";
+  static const bugReportEmail = "";
+  static const bugReportTelegramUrl = "";
+  static const issuesUrl = "https://github.com/RAMANOW/hiddify-app/issues";
+  static const privacyPolicyUrl = "";
+  static const termsAndConditionsUrl = "";
   static const cfWarpPrivacyPolicy = "https://www.cloudflare.com/application/privacypolicy/";
   static const cfWarpTermsOfService = "https://www.cloudflare.com/application/terms/";
 }

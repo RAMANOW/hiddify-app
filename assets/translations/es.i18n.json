@@ -98,7 +98,7 @@
   "intro": {
     "banner": "Todo lo que necesitas para un internet sin restricciones",
     "termsAndPolicyCaution(rich)": "Al continuar, aceptas los ${tap(@:pages.about.termsAndConditions)}",
-    "info(rich)": "Raman VPN, based on Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
+    "info(rich)": "Raman VPN. ${tap_source(Open source)} and ${tap_license(License)}"
   },
   "pages": {
     "home": {
@@ -1041,7 +1041,7 @@
       "msg": "Empecemos. Añade un perfil de conexión con los datos de tu servidor VPN.\n\n¿Aún no tienes servidor? No pasa nada. La guía de abajo te muestra cómo crear uno gratis.",
       "helpBtn": {
         "label": "Muéstrame cómo",
-        "url": "https://hiddify.com/manager/"
+        "url": ""
       }
     },
     "unknownDomainsWarning": {

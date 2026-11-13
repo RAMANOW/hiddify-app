@@ -5,9 +5,15 @@ import 'package:hiddify/core/app_info/app_info_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/features/raman/raman_strings.dart';
+import 'package:hiddify/features/raman/shield/shield_controller.dart';
+import 'package:hiddify/features/raman/shield/shield_page.dart';
+import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
+import 'package:hiddify/features/connection/notifier/connection_notifier.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hiddify/core/router/bottom_sheets/bottom_sheets_notifier.dart';
 import 'package:hiddify/features/home/widget/connection_button.dart';
 import 'package:hiddify/features/home/widget/local_proxy_hint.dart';
+import 'package:hiddify/features/profile/model/profile_entity.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
 import 'package:hiddify/features/profile/widget/profile_tile.dart';
 import 'package:hiddify/features/proxy/active/active_proxy_card.dart';
@@ -25,6 +31,42 @@ class HomePage extends HookConsumerWidget {
     final t = ref.watch(translationsProvider).requireValue;
     // final hasAnyProfile = ref.watch(hasAnyProfileProvider);
     final activeProfile = ref.watch(activeProfileProvider);
+    final s = ref.watch(ramanStringsProvider);
+    final shieldActive = ref.watch(shieldActiveProvider);
+    // the Shield tab while Shield is the profile in use, the Raman tab otherwise
+    final tab = useState(shieldActive ? 1 : 0);
+    useEffect(() {
+      if (shieldActive && tab.value != 1) tab.value = 1;
+      return null;
+    }, [shieldActive]);
+
+    /// Only one VPN runs at a time: leaving a tab whose connection runs asks first, then stops it.
+    Future<void> selectTab(int index) async {
+      if (index == tab.value) return;
+      final shield = ref.read(shieldControllerProvider);
+      final busy = shield.isBusy;
+      if (index == 0) {
+        if (shield.isShieldActive) {
+          if (busy) {
+            final ok = await ref
+                .read(dialogNotifierProvider.notifier)
+                .showConfirmation(title: s.switchTitle, message: s.switchToRaman, positiveBtnTxt: s.switchYes);
+            if (!ok) return;
+            await shield.disconnect();
+            await _waitStopped(ref);
+          }
+          await shield.restoreRaman();
+        }
+      } else if (busy && !shield.isShieldActive) {
+        final ok = await ref
+            .read(dialogNotifierProvider.notifier)
+            .showConfirmation(title: s.switchTitle, message: s.switchToShield, positiveBtnTxt: s.switchYes);
+        if (!ok) return;
+        await ref.read(connectionNotifierProvider.notifier).abortConnection();
+        await _waitStopped(ref);
+      }
+      tab.value = index;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -78,10 +120,33 @@ class HomePage extends HookConsumerWidget {
           ),
           const Gap(8),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(52),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<int>(
+                showSelectedIcon: false,
+                segments: [
+                  ButtonSegment(value: 0, label: Text(s.tabRaman), icon: const Icon(Icons.vpn_key_rounded)),
+                  ButtonSegment(value: 1, label: Text(s.tabShield), icon: const Icon(Icons.shield_rounded)),
+                ],
+                selected: {tab.value},
+                onSelectionChanged: (v) => selectTab(v.first),
+              ),
+            ),
+          ),
+        ),
       ),
-      // The sky and the map are drawn once into their own layer: a ripple or a label changing on
-      // the page no longer redraws the whole map image under it.
-      body: Stack(
+      body: IndexedStack(index: tab.value, children: [_ramanBody(context, ref, theme, t, activeProfile), const ShieldPage()]),
+    );
+  }
+
+  Widget _ramanBody(BuildContext context, WidgetRef ref, ThemeData theme, Translations t, AsyncValue<ProfileEntity?> activeProfile) {
+    // The sky and the map are drawn once into their own layer: a ripple or a label changing on
+    // the page no longer redraws the whole map image under it.
+    return Stack(
         fit: StackFit.expand,
         children: [
           RepaintBoundary(
@@ -229,8 +294,7 @@ class HomePage extends HookConsumerWidget {
             ],
           ),
         ],
-      ),
-    );
+      );
   }
 }
 
@@ -258,5 +322,14 @@ class AppVersionLabel extends HookConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// Waits, for at most a few seconds, until no connection runs.
+Future<void> _waitStopped(WidgetRef ref) async {
+  for (var i = 0; i < 50; i++) {
+    final status = ref.read(connectionNotifierProvider).valueOrNull;
+    if (status == null || status.isDisconnected) return;
+    await Future<void>.delayed(const Duration(milliseconds: 100));
   }
 }

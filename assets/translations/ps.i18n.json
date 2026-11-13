@@ -98,7 +98,7 @@
   "intro": {
     "banner": "هر څه چې د بې بندیزه انټرنیټ لپاره درکار دي",
     "termsAndPolicyCaution(rich)": "د دوام په ورکولو سره تاسو ${tap(@:pages.about.termsAndConditions)} منئ",
-    "info(rich)": "Raman VPN, based on Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
+    "info(rich)": "Raman VPN. ${tap_source(Open source)} and ${tap_license(License)}"
   },
   "pages": {
     "home": {
@@ -1041,7 +1041,7 @@
       "msg": "راځئ پیل وکړو. د خپل VPN سرور جزئیاتو سره د اتصال پروفایل زیات کړئ.\n\nتر اوسه سرور نه لرئ؟ ستونزه نشته. لاندې لارښود ښيي چې څنګه یې وړیا جوړ کړئ.",
       "helpBtn": {
         "label": "راته وښيه څنګه",
-        "url": "https://hiddify.com/manager/"
+        "url": ""
       }
     },
     "unknownDomainsWarning": {

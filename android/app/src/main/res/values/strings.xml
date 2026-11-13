@@ -7,4 +7,8 @@
     <string name="status_started">Connected</string>
     <string name="mode_vpn">VPN</string>
     <string name="mode_proxy">Proxy</string>
+    <string name="disguise_calculator">Calculator</string>
+    <string name="disguise_weather">Weather</string>
+    <string name="disguise_notes">Notes</string>
+    <string name="disguise_clock">Clock</string>
 </resources>

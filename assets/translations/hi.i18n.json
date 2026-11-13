@@ -98,7 +98,7 @@
   "intro": {
     "banner": "बिना रोक-टोक के इंटरनेट के लिए ज़रूरी सब कुछ",
     "termsAndPolicyCaution(rich)": "जारी रखने पर आप ${tap(@:pages.about.termsAndConditions)} से सहमत होते हैं",
-    "info(rich)": "Raman VPN, based on Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
+    "info(rich)": "Raman VPN. ${tap_source(Open source)} and ${tap_license(License)}"
   },
   "pages": {
     "home": {
@@ -1041,7 +1041,7 @@
       "msg": "चलिए शुरू करते हैं। अपने VPN सर्वर की जानकारी के साथ एक कनेक्शन प्रोफ़ाइल जोड़ें।\n\nअभी सर्वर नहीं है? कोई बात नहीं। नीचे दी गाइड में मुफ़्त सर्वर बनाना बताया गया है।",
       "helpBtn": {
         "label": "तरीका दिखाएँ",
-        "url": "https://hiddify.com/manager/"
+        "url": ""
       }
     },
     "unknownDomainsWarning": {
