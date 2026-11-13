@@ -1,27 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/core/notification/in_app_notification_controller.dart';
-import 'package:hiddify/core/preferences/general_preferences.dart';
 import 'package:hiddify/features/connection/model/connection_status.dart';
 import 'package:hiddify/features/connection/notifier/connection_notifier.dart';
 import 'package:hiddify/features/proxy/active/active_proxy_delay_indicator.dart';
 import 'package:hiddify/features/raman/raman_strings.dart';
 import 'package:hiddify/features/raman/shield/shield_controller.dart';
+import 'package:hiddify/features/raman/shield/shield_settings_page.dart';
 import 'package:hiddify/features/settings/data/config_option_repository.dart';
 import 'package:hiddify/singbox/model/singbox_config_enum.dart';
+import 'package:hiddify/utils/uri_utils.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 const _shieldGreen = Color(0xFF16A34A);
 const _shieldAmber = Color(0xFFD97706);
-
-/// The flag of a two-letter country code.
-String _flag(String code) {
-  if (code.length != 2) return '🌐';
-  final up = code.toUpperCase();
-  return String.fromCharCodes([0x1F1E6 + up.codeUnitAt(0) - 65, 0x1F1E6 + up.codeUnitAt(1) - 65]);
-}
 
 /// The Shield tab: one-tap Psiphon, its exit country, and how it works with the Raman profiles.
 class ShieldPage extends HookConsumerWidget {
@@ -37,10 +30,29 @@ class ShieldPage extends HookConsumerWidget {
     final status = shieldActive ? connection : const Disconnected();
     final region = ref.watch(ShieldPrefs.region);
     final chainUse = ref.watch(shieldChainUseProvider);
-    final perApp = ref.watch(Preferences.perAppProxyEnabled);
+    final split = ref.watch(ShieldPrefs.splitMode);
     final lan = ref.watch(ConfigOptions.allowConnectionFromLan);
-    final port = ref.watch(ConfigOptions.mixedPort);
+    final port = ref.watch(ConfigOptions.lanSharingPort);
     final controller = ref.read(shieldControllerProvider);
+
+    // Shield's connection changes: a sound and/or vibration, and the website to open once connected
+    ref.listen(connectionNotifierProvider, (previous, next) {
+      if (!ref.read(shieldActiveProvider)) return;
+      final before = previous?.valueOrNull;
+      final now = next.valueOrNull;
+      if (before == null || now == null) return;
+      final becameConnected = now is Connected && before is! Connected;
+      final becameDisconnected = now is Disconnected && before is! Disconnected;
+      if (!becameConnected && !becameDisconnected) return;
+      ShieldPlatform.statusFeedback(
+        sound: ref.read(ShieldPrefs.notifySound),
+        vibrate: ref.read(ShieldPrefs.notifyVibrate),
+      );
+      if (becameConnected && ref.read(ShieldPrefs.openSite)) {
+        final uri = Uri.tryParse(ref.read(ShieldPrefs.openSiteUrl));
+        if (uri != null && uri.host.isNotEmpty) UriUtils.tryLaunch(uri);
+      }
+    });
 
     final (String label, Color color) = switch (status) {
       Connected() => (s.shieldConnected, _shieldGreen),
@@ -106,36 +118,11 @@ class ShieldPage extends HookConsumerWidget {
         const Gap(16),
         Card(
           child: ListTile(
-            leading: Text(_flag(region == PsiphonRegion.auto ? '' : region.key), style: const TextStyle(fontSize: 24)),
+            leading: Text(shieldFlag(region == PsiphonRegion.auto ? '' : region.key), style: const TextStyle(fontSize: 24)),
             title: Text(s.shieldRegion),
             subtitle: Text(region == PsiphonRegion.auto ? s.shieldRegionAuto : region.present(t)),
             trailing: const Icon(Icons.arrow_drop_down_rounded),
-            onTap: () async {
-              final picked = await showModalBottomSheet<PsiphonRegion>(
-                context: context,
-                isScrollControlled: true,
-                showDragHandle: true,
-                builder: (context) => DraggableScrollableSheet(
-                  expand: false,
-                  initialChildSize: .7,
-                  maxChildSize: .95,
-                  builder: (context, scroll) => ListView(
-                    controller: scroll,
-                    children: [
-                      for (final r in PsiphonRegion.values)
-                        RadioListTile<PsiphonRegion>(
-                          value: r,
-                          groupValue: region,
-                          onChanged: (v) => Navigator.of(context).pop(v),
-                          secondary: Text(_flag(r == PsiphonRegion.auto ? '' : r.key), style: const TextStyle(fontSize: 22)),
-                          title: Text(r == PsiphonRegion.auto ? s.shieldRegionAuto : r.present(t)),
-                        ),
-                    ],
-                  ),
-                ),
-              );
-              if (picked != null && picked != region) await controller.setRegion(picked);
-            },
+            onTap: () => pickShieldRegion(context, ref),
           ),
         ),
         Card(
@@ -173,23 +160,17 @@ class ShieldPage extends HookConsumerWidget {
         Card(
           child: Column(
             children: [
-              SwitchListTile.adaptive(
-                secondary: const Icon(Icons.apps_rounded),
+              ListTile(
+                leading: const Icon(Icons.apps_rounded),
                 title: Text(s.shieldPerApp),
-                subtitle: Text(perApp ? s.shieldPerAppOn : s.shieldPerAppOff),
-                value: perApp,
-                onChanged: (v) async {
-                  await ref.read(Preferences.perAppProxyEnabled.notifier).update(v);
-                  if (v && context.mounted) context.goNamed('appList');
-                },
+                subtitle: Text(switch (split) {
+                  ShieldSplitMode.all => s.ssSplitAll,
+                  ShieldSplitMode.include => s.ssSplitInclude,
+                  ShieldSplitMode.exclude => s.ssSplitExclude,
+                }),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => _openSettings(context),
               ),
-              if (perApp)
-                ListTile(
-                  leading: const SizedBox(width: 24),
-                  title: Text(s.shieldPerAppOn),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => context.goNamed('appList'),
-                ),
               SwitchListTile.adaptive(
                 secondary: const Icon(Icons.wifi_tethering_rounded),
                 title: Text(s.shieldLan),
@@ -205,7 +186,19 @@ class ShieldPage extends HookConsumerWidget {
             ],
           ),
         ),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.tune_rounded),
+            title: Text(s.ssOpen),
+            subtitle: Text(s.ssOpenSub),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => _openSettings(context),
+          ),
+        ),
       ],
     );
   }
+
+  static void _openSettings(BuildContext context) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ShieldSettingsPage()));
 }

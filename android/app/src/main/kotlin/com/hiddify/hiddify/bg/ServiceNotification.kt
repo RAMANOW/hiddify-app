@@ -5,6 +5,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
+import android.content.ComponentName
+import android.content.pm.PackageManager
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -126,16 +128,46 @@ class ServiceNotification(private val status: MutableLiveData<Status>, private v
     private fun render(profile: String, text: String, header: String, foreground: Boolean = false) {
         synchronized(lock) {
             if (!active) return
-            val next = Triple(profile.ifBlank { "Raman VPN" }, text, header)
+            // stealth notifications: the disguise app's name and a plain icon, nothing about the VPN
+            val disguise = stealthDisguise()
+            val next = if (disguise != null) Triple(disguise.first, "", "")
+            else Triple(profile.ifBlank { "Raman VPN" }, text, header)
             if (!foreground && next == shown) return
             shown = next
             val built = notificationBuilder
+                .setSmallIcon(disguise?.second ?: R.drawable.ic_stat_logo)
                 .setContentTitle(next.first)
                 .setContentText(next.second)
                 .setSubText(next.third)
                 .build()
             if (foreground) service.startForeground(notificationId, built)
             else Application.notification.notify(notificationId, built)
+        }
+    }
+
+    /**
+     * With "stealth notifications" on (Raman Shield settings) and a disguise launcher icon in use,
+     * the disguise's name and a matching system icon; null otherwise.
+     */
+    private fun stealthDisguise(): Pair<String, Int>? {
+        return try {
+            val prefs = service.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+            if (!prefs.getBoolean("flutter.raman-stealth-notifications", false)) return null
+            val pm = service.packageManager
+            val pkg = MainActivity::class.java.`package`!!.name
+            val disguises = listOf(
+                Triple("Calculator", R.string.disguise_calculator, android.R.drawable.ic_menu_agenda),
+                Triple("Weather", R.string.disguise_weather, android.R.drawable.ic_menu_compass),
+                Triple("Notes", R.string.disguise_notes, android.R.drawable.ic_menu_edit),
+                Triple("Clock", R.string.disguise_clock, android.R.drawable.ic_lock_idle_alarm),
+            )
+            for ((alias, label, icon) in disguises) {
+                val state = pm.getComponentEnabledSetting(ComponentName(service.packageName, "$pkg.Launcher$alias"))
+                if (state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) return service.getString(label) to icon
+            }
+            null
+        } catch (e: Exception) {
+            null
         }
     }
 

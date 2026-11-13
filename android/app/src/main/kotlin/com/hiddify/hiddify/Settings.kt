@@ -22,19 +22,34 @@ object Settings {
 
     private const val LIST_IDENTIFIER = "VGhpcyBpcyB0aGUgcHJlZml4IGZvciBhIGxpc3Qu"
 
+    // Raman Shield keeps a split tunnel of its own, used while Shield is the connection in use.
+    private val shieldActive: Boolean
+        get() = preferences.getBoolean("flutter.raman-shield-active", false)
+
+    /** "all", "include" or "exclude". */
+    private val shieldSplitMode: String
+        get() = preferences.getString("flutter.raman-shield-split-mode", "all") ?: "all"
+
+    private fun shieldList(mode: String): List<String> =
+        (preferences.getString("flutter.raman-shield-$mode-apps", "") ?: "")
+            .split(";").map { it.trim() }.filter { it.isNotEmpty() }
+
     var perAppProxyMode: String
-        get() = preferences.getString(SettingsKey.PER_APP_PROXY_MODE, PerAppProxyMode.EXCLUDE)!!
+        get() = if (shieldActive) {
+            if (shieldSplitMode == PerAppProxyMode.INCLUDE) PerAppProxyMode.INCLUDE else PerAppProxyMode.EXCLUDE
+        } else preferences.getString(SettingsKey.PER_APP_PROXY_MODE, PerAppProxyMode.EXCLUDE)!!
         set(value) = preferences.edit().putString(SettingsKey.PER_APP_PROXY_MODE, value).apply()
 
     // Older versions saved it as the mode's "off". The tile can start the VPN before the app moves it.
     val perAppProxyEnabled: Boolean
-        get() = preferences.getBoolean(
+        get() = if (shieldActive) shieldSplitMode != "all" else preferences.getBoolean(
             SettingsKey.PER_APP_PROXY_ENABLED,
             preferences.getString(SettingsKey.PER_APP_PROXY_MODE, PerAppProxyMode.OFF) != PerAppProxyMode.OFF
         )
 
     val perAppProxyList: List<String>
         get() {
+            if (shieldActive) return shieldList(perAppProxyMode)
             val stringValue = if (perAppProxyMode == PerAppProxyMode.INCLUDE) {
                 preferences.getString(SettingsKey.PER_APP_PROXY_INCLUDE_LIST, "")!!
             } else {

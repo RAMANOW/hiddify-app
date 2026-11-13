@@ -117,6 +117,113 @@ class RamanStrings {
   String get disguiseApplied => _t('آیکون تغییر کرد', 'Icon changed');
   String get disguiseUnsupported => _t('روی این دستگاه پشتیبانی نمی‌شود', 'Not supported on this device');
 
+  // Shield settings
+  String get ssTitle => _t('تنظیمات شیلد', 'Shield settings');
+  String get ssOpen => _t('همه‌ی تنظیمات شیلد', 'All Shield settings');
+  String get ssOpenSub => _t('تونل‌سازی جداگانه، پروکسی بالادستی، اشتراک در شبکه، اعلان‌ها و…', 'Split tunneling, upstream proxy, network sharing, notifications and more');
+  String get ssSoon => _t('به‌زودی', 'Coming soon');
+  String ssSoonNote(String why) => _t('به‌زودی — $why', 'Coming soon — $why');
+  String get ssNeedsCore => _t('هسته‌ی فعلی برنامه این گزینه را پشتیبانی نمی‌کند', 'the app’s current core does not support it yet');
+  String get ssApply => _t('اعمال و اتصال دوباره', 'Apply and reconnect');
+  String get ssApplied => _t('تنظیمات اعمال شد', 'Settings applied');
+  String get ssSaved => _t('ذخیره شد؛ در اتصال بعدی شیلد اعمال می‌شود', 'Saved; used the next time Shield connects');
+  String get ssNotSet => _t('تنظیم نشده', 'Not set');
+  String get ssSave => _t('ذخیره', 'Save');
+  String get ssCancel => _t('انصراف', 'Cancel');
+  String get ssClear => _t('پاک کردن', 'Clear');
+
+  String get ssSecRegion => _t('کشور', 'Region');
+  String get ssSecSplit => _t('تونل‌سازی جداگانه (VPN)', 'Split tunneling (VPN)');
+  String get ssSplitAll => _t('همه‌ی برنامه‌ها از شیلد استفاده کنند', 'Tunnel all apps');
+  String get ssSplitInclude => _t('فقط برنامه‌های انتخاب‌شده', 'Only tunnel selected apps');
+  String get ssSplitExclude => _t('همه به‌جز برنامه‌های انتخاب‌شده', 'Tunnel all apps except selected ones');
+  String get ssSplitChoose => _t('انتخاب برنامه‌ها', 'Choose apps');
+  String ssSplitCount(int n) => _t('$n برنامه انتخاب شده', '$n apps selected');
+  String get ssSplitHelp => _t(
+    'این انتخاب فقط برای شیلد است و هنگام اتصال شیلد به کار می‌رود؛ پروفایل‌های رامان تنظیم «مسیریابی برنامه‌ها»ی خودشان را دارند. خود برنامه همیشه بیرون از تونل است.',
+    'This is Shield’s own choice, used when Shield connects; the Raman profiles keep their own app-based routing. This app itself always stays outside the tunnel.',
+  );
+  String get ssAlwaysOn => _t('VPN همیشه روشن', 'Always-on VPN');
+  String get ssAlwaysOnSub => _t('رفتن به تنظیمات سیستم برای روشن کردن VPN همیشه روشن', 'Open the system settings to turn on always-on VPN');
+  String get ssAppsSearch => _t('جستجوی برنامه', 'Search apps');
+  String get ssAppsHideSystem => _t('پنهان کردن برنامه‌های سیستمی', 'Hide system apps');
+  String get ssAppsShowSystem => _t('نمایش برنامه‌های سیستمی', 'Show system apps');
+  String get ssAppsIncludeTitle => _t('برنامه‌هایی که از شیلد استفاده کنند', 'Apps that use Shield');
+  String get ssAppsExcludeTitle => _t('برنامه‌هایی که از شیلد استفاده نکنند', 'Apps that skip Shield');
+  String get ssAppsUnsupported => _t('فقط روی اندروید', 'Android only');
+
+  String get ssSecUpstream => _t('پروکسی بالادستی', 'Upstream proxy');
+  String get ssUpstreamHelp => _t(
+    'اگر شبکه‌ی شما (مثلاً محل کار یا دانشگاه) فقط از طریق یک پروکسی به اینترنت وصل می‌شود، شیلد اتصال‌های خودش را از آن پروکسی عبور می‌دهد.',
+    'If your network (at work or university, say) only reaches the internet through a proxy, Shield sends its own connections through it.',
+  );
+  String get ssUpstreamUse => _t('اتصال از طریق پروکسی', 'Connect through a proxy');
+  String get ssUpstreamSystem => _t('استفاده از پروکسی تنظیم‌شده در سیستم (Wi‑Fi)', 'Use the system (Wi‑Fi) proxy settings');
+  String get ssUpstreamCustom => _t('استفاده از پروکسی دلخواه', 'Use a custom proxy');
+  String get ssUpstreamType => _t('نوع پروکسی', 'Proxy type');
+  String get ssUpstreamHost => _t('آدرس میزبان', 'Host address');
+  String get ssUpstreamHostHint => _t('مثلاً 192.168.1.10 یا proxy.example.com', 'e.g. 192.168.1.10 or proxy.example.com');
+  String get ssUpstreamPort => _t('پورت', 'Port');
+  String get ssUpstreamAuth => _t('پروکسی نیاز به احراز هویت دارد', 'The proxy needs authentication');
+  String get ssUpstreamUser => _t('نام کاربری', 'Username');
+  String get ssUpstreamPass => _t('رمز عبور', 'Password');
+  String get ssUpstreamDomain => _t('دامنه (NTLM، اختیاری)', 'Domain (NTLM, optional)');
+  String get ssUpstreamNoSystem => _t('پروکسی سیستمی پیدا نشد؛ شیلد مستقیم وصل می‌شود', 'No system proxy found; Shield connects directly');
+  String get ssUpstreamInvalid => _t('میزبان و پورت پروکسی دلخواه را وارد کنید', 'Enter the custom proxy’s host and port');
+
+  String get ssSecLan => _t('اشتراک پروکسی در شبکه', 'Share proxy on network');
+  String get ssLanHelp => _t(
+    'دستگاه‌های دیگر همین Wi‑Fi می‌توانند از طریق این گوشی وصل شوند. یک پورت هم SOCKS5 و هم HTTP را پاسخ می‌دهد و با رمز محافظت می‌شود؛ نشانی، رمز و کد QR را با لمس گزینه ببینید.',
+    'Other devices on the same Wi‑Fi can connect through this phone. One port answers both SOCKS5 and HTTP and is protected by a password; tap the row for the address, password and QR code.',
+  );
+  String get ssLanPort => _t('پورت اشتراک (SOCKS5 و HTTP)', 'Sharing port (SOCKS5 and HTTP)');
+
+  String get ssSecConnection => _t('اتصال', 'Connection');
+  String get ssDisableTimeouts => _t('غیرفعال کردن مهلت‌ها', 'Disable timeouts');
+  String get ssDisableTimeoutsSub => _t(
+    'برای شبکه‌های کند: شیلد به‌جای یک دقیقه تا ۳۰ دقیقه برای برقراری تونل تلاش می‌کند',
+    'For slow networks: Shield keeps trying to build the tunnel for up to 30 minutes instead of one',
+  );
+  String get ssProtocol => _t('پروتکل اتصال', 'Connection protocol');
+  String get ssProtocolSub => _t('خودکار (مستقیم، CDN fronting، Conduit)', 'Automatic (direct, CDN fronting, Conduit)');
+  String get ssBeast => _t('حالت تهاجمی (Beast)', 'Beast mode');
+  String get ssBeastSub => _t('امتحان همه‌ی پروتکل‌ها روی هر سرور', 'Try every protocol on every server');
+  String get ssSecCdn => _t('CDN fronting', 'CDN fronting');
+  String get ssCdnIps => _t('IPهای لبه‌ی CDN', 'CDN edge IPs');
+  String get ssCdnSni => _t('نام‌های SNI برای CDN', 'CDN SNI hostnames');
+  String get ssSecConduit => _t('Conduit (رله‌های داوطلب)', 'Conduit (volunteer relays)');
+  String get ssConduitMode => _t('حالت Conduit', 'Conduit mode');
+  String get ssConduitTimeout => _t('زمان جایگزینی', 'Fallback timeout');
+  String get ssConduitReject => _t('رد کردن رله‌های کشورهای سانسورشده', 'Reject relays in censored countries');
+
+  String get ssSecNotifications => _t('اعلان‌ها', 'Notifications');
+  String get ssSound => _t('صدا', 'Sound');
+  String get ssSoundSub => _t('پخش صدا هنگام تغییر وضعیت اتصال شیلد', 'Play a sound when Shield’s connection changes');
+  String get ssVibrate => _t('لرزش', 'Vibrate');
+  String get ssVibrateSub => _t('لرزش هنگام تغییر وضعیت اتصال شیلد', 'Vibrate when Shield’s connection changes');
+  String get ssStealth => _t('اعلان مخفی', 'Stealth notifications');
+  String get ssStealthSub => _t(
+    'وقتی آیکون مخفی فعال است، اعلان VPN نام و آیکون همان برنامه‌ی ظاهری را نشان می‌دهد',
+    'With a disguise icon on, the VPN notification shows the disguise app’s name and icon',
+  );
+
+  String get ssSecAppearance => _t('ظاهر و زبان', 'Appearance and language');
+
+  String get ssSecMore => _t('بیشتر', 'More');
+  String get ssOpenSite => _t('باز کردن یک وب‌سایت پس از اتصال', 'Open a website after connecting');
+  String get ssOpenSiteUrl => _t('نشانی وب‌سایت', 'Website address');
+  String get ssOpenSiteInvalid => _t('نشانی باید با https:// یا http:// شروع شود', 'The address must start with https:// or http://');
+  String get ssMalware => _t('هشدار ترافیک ناامن (بدافزار)', 'Unsafe traffic (malware) alerts');
+  String get ssMalwareWhy => _t('نیاز به هشدارهای سرور که هسته‌ی فعلی ارائه نمی‌دهد', 'needs server alerts the current core does not pass on');
+  String get ssNfc => _t('اشتراک با NFC', 'NFC bump');
+  String get ssNfcWhy => _t('نیاز به کتابخانه‌ی جاوای جداگانه برای خروجی گرفتن از سرورها', 'needs a separate Java library to export servers');
+  String get ssWifiUpdates => _t('دانلود به‌روزرسانی فقط با Wi‑Fi', 'Download upgrades on Wi‑Fi only');
+  String get ssWifiUpdatesWhy => _t('به‌روزرسانی‌ها از صفحه‌ی انتشار برنامه دریافت می‌شوند و دانلود خودکار ندارند', 'updates come from the app’s releases page; nothing downloads by itself');
+  String get ssFeedback => _t('ارسال گزارش', 'Send feedback');
+  String get ssFeedbackSub => _t('گزارش‌ها (لاگ) را ببینید و ذخیره یا ارسال کنید', 'View the logs and save or share them');
+  String get ssAbout => _t('درباره', 'About');
+  String get ssConduitWhy => _t('Conduit و حالت‌های اتصال نیاز به تنظیمات هسته دارند که هنوز در دسترس نیست', 'Conduit and the connection modes need core options that are not available yet');
+
   // diagnostics
   String get shareDiagnostics => _t('ذخیره یا اشتراک‌گذاری فایل گزارش', 'Save or share the report file');
   String get shareDiagnosticsMsg => _t('فایل را برای پشتیبانی خودتان بفرستید', 'Send the file to whoever supports you');

@@ -9,7 +9,7 @@ on:
       release-tag:
         description: Publish a GitHub release with this tag (empty = build only)
         type: string
-        default: 'v1.1.0-raman'
+        default: 'v1.2.0-raman'
   push:
     branches: [main]
     tags: ['v*-raman*']
@@ -121,6 +121,7 @@ jobs:
           - Two tabs: **Raman** (your profiles and configs) and **Shield** (one-tap connect through the Psiphon network, no server needed)
           - Shield: exit-country picker, use as extra security or unblocker for Raman profiles, per-app split tunneling, share the proxy on the local network
           - Disguise icon: show the app as Calculator, Weather, Notes or Clock (Settings)
+          - New in 1.2: **Shield settings** (Shield tab → All Shield settings): Shield's own split tunneling (all / only selected / all except selected apps), upstream proxy (system or custom HTTP/SOCKS5 with username, password and NTLM domain), network sharing port, disable timeouts for slow networks, sound and vibration on connection changes, stealth notifications, open a website after connecting, language, disguise icon, always-on VPN shortcut
           - Smart DNS, network checker, Iran defaults
 
           Install `RamanVPN-Android-universal.apk` if you are not sure which one fits your phone. These APKs are signed with a different key from earlier releases: uninstall the old version first.
