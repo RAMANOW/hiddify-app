@@ -5,14 +5,17 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:hiddify/core/preferences/preferences_provider.dart';
 import 'package:hiddify/core/utils/preferences_utils.dart';
+import 'package:hiddify/features/connection/model/connection_status.dart';
 import 'package:hiddify/features/connection/notifier/connection_notifier.dart';
 import 'package:hiddify/features/profile/data/profile_data_providers.dart';
 import 'package:hiddify/features/profile/model/profile_entity.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
+import 'package:hiddify/features/raman/raman_strings.dart';
 import 'package:hiddify/features/settings/data/config_option_repository.dart';
 import 'package:hiddify/singbox/model/singbox_config_enum.dart';
 import 'package:hiddify/utils/custom_loggers.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// How Shield (the Psiphon network) is used with the Raman profiles: not at all, in front of them
@@ -84,7 +87,54 @@ abstract class ShieldPrefs {
   static final openSiteUrl = PreferencesNotifier.create<String, String>('raman-shield-open-site-url', '');
 
   static const establishTimeoutSlow = '30m';
+
+  // Psiphon tunnel settings (Raman core patch: merged on top of the core's built-in Psiphon config)
+
+  /// Which tunnel protocols Psiphon may use (core field protocol_mode).
+  static final protocol = PreferencesNotifier.create<ShieldProtocol, String>(
+    'raman-shield-protocol',
+    ShieldProtocol.auto,
+    mapFrom: ShieldProtocol.values.byName,
+    mapTo: (value) => value.name,
+  );
+
+  /// More connection attempts at once (core field beast_mode).
+  static final beastMode = PreferencesNotifier.create<bool, bool>('raman-shield-beast', false);
+
+  /// Conduit: the user's own relays (a personal compartment ID), public relays, or own first.
+  static final conduitMode = PreferencesNotifier.create<ShieldConduitMode, String>(
+    'raman-shield-conduit-mode',
+    ShieldConduitMode.auto,
+    mapFrom: ShieldConduitMode.values.byName,
+    mapTo: (value) => value.name,
+  );
+
+  /// The personal compartment ID of the user's own Conduit (core field inproxy_compartment_id).
+  static final conduitCompartmentId = PreferencesNotifier.create<String, String>('raman-shield-conduit-id', '');
+
+  /// Minutes before automatic Conduit mode moves from the user's own relays to public ones.
+  static final conduitFallbackMinutes = PreferencesNotifier.create<int, int>('raman-shield-conduit-fallback', 3);
+  static const conduitFallbackChoices = [2, 3, 5, 10];
+
+  /// Psiphon's servers warn about traffic to sites known for malware (core field
+  /// unsafe_traffic_alerts); shown as a notification.
+  static final unsafeTrafficAlerts = PreferencesNotifier.create<bool, bool>('raman-shield-unsafe-alerts', false);
 }
+
+/// Psiphon tunnel protocols: Psiphon's own choice, direct ones, CDN fronting, or Conduit relays.
+enum ShieldProtocol {
+  auto('auto'),
+  direct('direct'),
+  cdn('cdn'),
+  conduit('conduit');
+
+  const ShieldProtocol(this.core);
+
+  /// The value of the core field protocol_mode.
+  final String core;
+}
+
+enum ShieldConduitMode { auto, personal, public }
 
 /// Which apps go through Shield: all, only the listed ones, or all but the listed ones.
 enum ShieldSplitMode { all, include, exclude }
@@ -121,6 +171,14 @@ abstract class ShieldPlatform {
     } catch (_) {
       return false;
     }
+  }
+
+  /// A notification (Psiphon server alerts).
+  static Future<void> alert({required String title, required String body}) async {
+    if (!supported) return;
+    try {
+      await _channel.invokeMethod<bool>('alert', {'title': title, 'body': body});
+    } catch (_) {}
   }
 
   static Future<void> statusFeedback({required bool sound, required bool vibrate}) async {
@@ -178,20 +236,34 @@ class ShieldController with InfraLogger {
 
   /// The profile Shield runs as: one Psiphon outbound of the core, with the exit country, the
   /// upstream proxy and the tunnel timeout from Shield's settings.
-  static String contentFor(PsiphonRegion region, {String? upstreamProxyUrl, bool disableTimeouts = false}) =>
-      jsonEncode({
-        'outbounds': [
-          {
-            'type': 'psiphon',
-            'tag': shieldTag,
-            // the Psiphon config built into the core
-            'config': 'hiddify',
-            if (region != PsiphonRegion.auto) 'egress_region': region.key,
-            if (upstreamProxyUrl != null && upstreamProxyUrl.isNotEmpty) 'upstream_proxy_url': upstreamProxyUrl,
-            if (disableTimeouts) 'establish_tunnel_timeout': ShieldPrefs.establishTimeoutSlow,
-          },
-        ],
-      });
+  static String contentFor(
+    PsiphonRegion region, {
+    String? upstreamProxyUrl,
+    bool disableTimeouts = false,
+    ShieldProtocol protocol = ShieldProtocol.auto,
+    bool beastMode = false,
+    String? compartmentId,
+    bool unsafeTrafficAlerts = false,
+  }) => jsonEncode({
+    'outbounds': [
+      {
+        'type': 'psiphon',
+        'tag': shieldTag,
+        // the Psiphon config built into the core; the fields below are merged on top of it
+        'config': 'hiddify',
+        if (region != PsiphonRegion.auto) 'egress_region': region.key,
+        if (upstreamProxyUrl != null && upstreamProxyUrl.isNotEmpty) 'upstream_proxy_url': upstreamProxyUrl,
+        if (disableTimeouts) 'establish_tunnel_timeout': ShieldPrefs.establishTimeoutSlow,
+        if (protocol != ShieldProtocol.auto) 'protocol_mode': protocol.core,
+        if (beastMode) 'beast_mode': true,
+        if (protocol == ShieldProtocol.conduit && compartmentId != null && compartmentId.isNotEmpty)
+          'inproxy_compartment_id': compartmentId,
+        if (unsafeTrafficAlerts) 'unsafe_traffic_alerts': true,
+        // as Shir o Khorshid does with timeouts disabled: tolerate slow networks
+        if (disableTimeouts) 'parameters': {'NetworkLatencyMultiplierLambda': 0.1},
+      },
+    ],
+  });
 
   /// The upstream proxy as a URL for the core, or null for none (off, or no system proxy).
   Future<String?> upstreamProxyUrl() async {
@@ -247,7 +319,53 @@ class ShieldController with InfraLogger {
     _ref.read(ShieldPrefs.region),
     upstreamProxyUrl: await upstreamProxyUrl(),
     disableTimeouts: _ref.read(ShieldPrefs.disableTimeouts),
+    protocol: _ref.read(ShieldPrefs.protocol),
+    beastMode: _ref.read(ShieldPrefs.beastMode),
+    compartmentId: _compartmentIdInUse(),
+    unsafeTrafficAlerts: _ref.read(ShieldPrefs.unsafeTrafficAlerts),
   );
+
+  // Conduit: automatic mode tries the user's own relays first and, if Shield has not connected
+  // after the fallback time, reconnects through public relays (until Shield connects again).
+  static bool _conduitPublicFallback = false;
+  static Timer? _fallbackTimer;
+
+  /// The personal compartment ID Shield connects with now, if any.
+  String? _compartmentIdInUse() {
+    if (_ref.read(ShieldPrefs.protocol) != ShieldProtocol.conduit) return null;
+    final id = _ref.read(ShieldPrefs.conduitCompartmentId).trim();
+    if (id.isEmpty) return null;
+    return switch (_ref.read(ShieldPrefs.conduitMode)) {
+      ShieldConduitMode.public => null,
+      ShieldConduitMode.personal => id,
+      ShieldConduitMode.auto => _conduitPublicFallback ? null : id,
+    };
+  }
+
+  void _armConduitFallback() {
+    _fallbackTimer?.cancel();
+    _fallbackTimer = null;
+    _conduitPublicFallback = false;
+    if (_ref.read(ShieldPrefs.protocol) != ShieldProtocol.conduit ||
+        _ref.read(ShieldPrefs.conduitMode) != ShieldConduitMode.auto ||
+        _ref.read(ShieldPrefs.conduitCompartmentId).trim().isEmpty) {
+      return;
+    }
+    final minutes = _ref.read(ShieldPrefs.conduitFallbackMinutes);
+    _fallbackTimer = Timer(Duration(minutes: minutes), () async {
+      _fallbackTimer = null;
+      if (!isShieldActive || !isBusy) return;
+      if (_ref.read(connectionNotifierProvider).valueOrNull is Connected) return;
+      loggy.info('Conduit: no tunnel through the personal relays after $minutes min, using public relays');
+      _conduitPublicFallback = true;
+      await _applySettings(rearm: false);
+    });
+  }
+
+  void _cancelConduitFallback() {
+    _fallbackTimer?.cancel();
+    _fallbackTimer = null;
+  }
 
   bool get isShieldActive => _ref.read(shieldActiveProvider);
 
@@ -259,6 +377,7 @@ class ShieldController with InfraLogger {
 
   /// Connects Shield. A running Raman connection must be stopped first (the caller asks the user).
   Future<String?> connect() async {
+    _armConduitFallback();
     final repo = await _ref.read(profileRepositoryProvider.future);
     final content = await buildContent();
 
@@ -317,12 +436,14 @@ class ShieldController with InfraLogger {
   }
 
   Future<void> disconnect() async {
+    _cancelConduitFallback();
     await _ref.read(connectionNotifierProvider.notifier).abortConnection();
   }
 
   /// Gives the app back to the Raman profiles: the one used before Shield becomes active again,
   /// the Shield profile is removed and the parked chain comes back. Shield must be stopped.
   Future<void> restoreRaman() async {
+    _cancelConduitFallback();
     final shieldId = _ref.read(shieldProfileIdProvider);
     if (shieldId != null) {
       final repo = await _ref.read(profileRepositoryProvider.future);
@@ -357,8 +478,11 @@ class ShieldController with InfraLogger {
 
   /// Writes Shield's settings into its profile and, when Shield runs, reconnects so they take
   /// effect (the split tunnel too: the VPN service reads it on start). True when Shield ran.
-  Future<bool> applySettings() async {
+  Future<bool> applySettings() => _applySettings(rearm: true);
+
+  Future<bool> _applySettings({required bool rearm}) async {
     if (!isShieldActive) return false;
+    if (rearm) _armConduitFallback();
     final shieldId = _ref.read(shieldProfileIdProvider);
     if (shieldId == null) return false;
     final repo = await _ref.read(profileRepositoryProvider.future);
@@ -400,3 +524,32 @@ class ShieldController with InfraLogger {
     }
   }
 }
+
+
+/// A Psiphon server alert, as the patched core logs it.
+final _alertPattern = RegExp(r'psiphon server alert: reason=(\S*) subject=(.*)$');
+
+/// Shows Psiphon's server alerts (unsafe traffic) while Shield runs: a notification, and the
+/// reason and site in the app log. Alive while something watches it (the Shield tab).
+final shieldAlertWatcherProvider = Provider<void>((ref) {
+  final shown = <String, DateTime>{};
+  final sub = Logger.root.onRecord.listen((record) {
+    if (!record.loggerName.startsWith('core')) return;
+    final m = _alertPattern.firstMatch(record.message);
+    if (m == null) return;
+    final reason = m.group(1) ?? '';
+    final subject = (m.group(2) ?? '').trim();
+    final key = '$reason|$subject';
+    final now = DateTime.now();
+    final last = shown[key];
+    if (last != null && now.difference(last) < const Duration(minutes: 10)) return;
+    shown[key] = now;
+    final s = ref.read(ramanStringsProvider);
+    final unsafe = reason == 'unsafe-traffic';
+    ShieldPlatform.alert(
+      title: unsafe ? s.ssAlertUnsafeTitle : s.ssAlertTitle,
+      body: unsafe ? s.ssAlertUnsafeBody(subject) : s.ssAlertBody(reason, subject),
+    );
+  });
+  ref.onDispose(sub.cancel);
+});

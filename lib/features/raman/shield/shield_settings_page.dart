@@ -181,6 +181,13 @@ class ShieldSettingsPage extends HookConsumerWidget {
     final openSite = ref.watch(ShieldPrefs.openSite);
     final openSiteUrl = ref.watch(ShieldPrefs.openSiteUrl);
     final lanPort = ref.watch(ConfigOptions.lanSharingPort);
+    final protocol = ref.watch(ShieldPrefs.protocol);
+    final beast = ref.watch(ShieldPrefs.beastMode);
+    final conduitMode = ref.watch(ShieldPrefs.conduitMode);
+    final conduitId = ref.watch(ShieldPrefs.conduitCompartmentId);
+    final conduitFallback = ref.watch(ShieldPrefs.conduitFallbackMinutes);
+    final unsafeAlerts = ref.watch(ShieldPrefs.unsafeTrafficAlerts);
+    final conduit = protocol == ShieldProtocol.conduit;
 
     /// Saves a setting that goes into Shield's connection; a running Shield is reconnected on Apply.
     Future<void> update<T>(PreferencesNotifier<T, dynamic> notifier, T value) async {
@@ -209,6 +216,16 @@ class ShieldSettingsPage extends HookConsumerWidget {
       subtitle: Text([if (subtitle.isNotEmpty) subtitle, s.ssSoonNote(why ?? s.ssNeedsCore)].join('\n')),
       isThreeLine: subtitle.isNotEmpty,
       trailing: Chip(label: Text(s.ssSoon), visualDensity: VisualDensity.compact),
+    );
+
+    /// A setting this build cannot offer, with the reason.
+    Widget unavailable(IconData icon, String title, String why) => ListTile(
+      enabled: false,
+      leading: Icon(icon),
+      title: Text(title),
+      subtitle: Text(why),
+      isThreeLine: true,
+      trailing: Chip(label: Text(s.ssUnavailable), visualDensity: VisualDensity.compact),
     );
 
     Widget textTile({
@@ -448,15 +465,85 @@ class ShieldSettingsPage extends HookConsumerWidget {
             value: disableTimeouts,
             onChanged: (v) => update(ref.read(ShieldPrefs.disableTimeouts.notifier), v),
           ),
-          soon(Icons.hub_rounded, s.ssProtocol, s.ssProtocolSub),
-          soon(Icons.bolt_rounded, s.ssBeast, s.ssBeastSub),
+          SwitchListTile.adaptive(
+            secondary: const Icon(Icons.bolt_rounded),
+            title: Text(s.ssBeast),
+            subtitle: Text(s.ssBeastSub),
+            isThreeLine: true,
+            value: beast,
+            onChanged: (v) => update(ref.read(ShieldPrefs.beastMode.notifier), v),
+          ),
+
+          // protocol
+          section(s.ssProtocol, help: s.ssProtocolHelp),
+          for (final (value, title, sub) in [
+            (ShieldProtocol.auto, s.ssProtoAuto, s.ssProtoAutoSub),
+            (ShieldProtocol.direct, s.ssProtoDirect, s.ssProtoDirectSub),
+            (ShieldProtocol.cdn, s.ssProtoCdn, s.ssProtoCdnSub),
+            (ShieldProtocol.conduit, s.ssProtoConduit, s.ssProtoConduitSub),
+          ])
+            RadioListTile<ShieldProtocol>(
+              value: value,
+              groupValue: protocol,
+              title: Text(title),
+              subtitle: Text(sub),
+              onChanged: (v) => update(ref.read(ShieldPrefs.protocol.notifier), v!),
+            ),
+
+          // CDN fronting
           section(s.ssSecCdn),
-          soon(Icons.cloud_rounded, s.ssCdnIps, 'IP / CIDR'),
-          soon(Icons.badge_rounded, s.ssCdnSni, 'SNI'),
-          section(s.ssSecConduit, help: s.ssConduitWhy),
-          soon(Icons.diversity_3_rounded, s.ssConduitMode, 'Auto / Private / Public'),
-          soon(Icons.timer_rounded, s.ssConduitTimeout, '2 / 3 / 5 / 10 min'),
-          soon(Icons.block_rounded, s.ssConduitReject, 'IR, CN, RU…'),
+          unavailable(Icons.cloud_rounded, s.ssCdnIps, s.ssCdnWhy),
+          unavailable(Icons.badge_rounded, s.ssCdnSni, s.ssCdnWhy),
+
+          // Conduit
+          section(s.ssSecConduit, help: s.ssConduitHelp),
+          for (final (value, title) in [
+            (ShieldConduitMode.auto, s.ssConduitAuto),
+            (ShieldConduitMode.personal, s.ssConduitPersonal),
+            (ShieldConduitMode.public, s.ssConduitPublic),
+          ])
+            RadioListTile<ShieldConduitMode>(
+              value: value,
+              groupValue: conduitMode,
+              title: Text(title),
+              onChanged: conduit ? (v) => update(ref.read(ShieldPrefs.conduitMode.notifier), v!) : null,
+            ),
+          if (conduitMode != ShieldConduitMode.public) ...[
+            textTile(
+              icon: Icons.key_rounded,
+              title: s.ssConduitId,
+              value: conduitId,
+              hint: s.ssConduitIdHint,
+              enabled: conduit,
+              notifier: ref.read(ShieldPrefs.conduitCompartmentId.notifier),
+            ),
+            if (conduitId.trim().isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(s.ssConduitNoId, style: theme.textTheme.bodySmall),
+              ),
+          ],
+          if (conduitMode == ShieldConduitMode.auto)
+            ListTile(
+              enabled: conduit && conduitId.trim().isNotEmpty,
+              leading: const Icon(Icons.timer_rounded),
+              title: Text(s.ssConduitTimeout),
+              subtitle: Text(s.ssConduitTimeoutSub(conduitFallback)),
+              trailing: DropdownButton<int>(
+                value: ShieldPrefs.conduitFallbackChoices.contains(conduitFallback) ? conduitFallback : 3,
+                underline: const SizedBox(),
+                items: [
+                  for (final m in ShieldPrefs.conduitFallbackChoices)
+                    DropdownMenuItem(value: m, child: Text(s.ssMinutes(m))),
+                ],
+                onChanged: conduit && conduitId.trim().isNotEmpty
+                    ? (v) {
+                        if (v != null) update(ref.read(ShieldPrefs.conduitFallbackMinutes.notifier), v);
+                      }
+                    : null,
+              ),
+            ),
+          unavailable(Icons.block_rounded, s.ssConduitReject, s.ssConduitRejectWhy),
 
           // notifications
           section(s.ssSecNotifications),
@@ -519,7 +606,14 @@ class ShieldSettingsPage extends HookConsumerWidget {
               notifier: ref.read(ShieldPrefs.openSiteUrl.notifier),
               validate: _validateUrl(s),
             ),
-          soon(Icons.gpp_maybe_rounded, s.ssMalware, '', why: s.ssMalwareWhy),
+          SwitchListTile.adaptive(
+            secondary: const Icon(Icons.gpp_maybe_rounded),
+            title: Text(s.ssMalware),
+            subtitle: Text(s.ssMalwareSub),
+            isThreeLine: true,
+            value: unsafeAlerts,
+            onChanged: (v) => update(ref.read(ShieldPrefs.unsafeTrafficAlerts.notifier), v),
+          ),
           soon(Icons.contactless_rounded, s.ssNfc, '', why: s.ssNfcWhy),
           soon(Icons.system_update_rounded, s.ssWifiUpdates, '', why: s.ssWifiUpdatesWhy),
           ListTile(

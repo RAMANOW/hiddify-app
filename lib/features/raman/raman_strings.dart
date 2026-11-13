@@ -122,6 +122,7 @@ class RamanStrings {
   String get ssOpen => _t('همه‌ی تنظیمات شیلد', 'All Shield settings');
   String get ssOpenSub => _t('تونل‌سازی جداگانه، پروکسی بالادستی، اشتراک در شبکه، اعلان‌ها و…', 'Split tunneling, upstream proxy, network sharing, notifications and more');
   String get ssSoon => _t('به‌زودی', 'Coming soon');
+  String get ssUnavailable => _t('در دسترس نیست', 'Not available');
   String ssSoonNote(String why) => _t('به‌زودی — $why', 'Coming soon — $why');
   String get ssNeedsCore => _t('هسته‌ی فعلی برنامه این گزینه را پشتیبانی نمی‌کند', 'the app’s current core does not support it yet');
   String get ssApply => _t('اعمال و اتصال دوباره', 'Apply and reconnect');
@@ -185,16 +186,59 @@ class RamanStrings {
     'For slow networks: Shield keeps trying to build the tunnel for up to 30 minutes instead of one',
   );
   String get ssProtocol => _t('پروتکل اتصال', 'Connection protocol');
-  String get ssProtocolSub => _t('خودکار (مستقیم، CDN fronting، Conduit)', 'Automatic (direct, CDN fronting, Conduit)');
+  String get ssProtocolHelp => _t(
+    'شیوه‌ی رسیدن شیلد به سرورهای سایفون. اگر نمی‌دانید، «خودکار» را نگه دارید.',
+    'How Shield reaches the Psiphon servers. If unsure, keep Automatic.',
+  );
+  String get ssProtoAuto => _t('خودکار', 'Automatic');
+  String get ssProtoAutoSub => _t('سایفون خودش بهترین راه را انتخاب می‌کند', 'Psiphon picks the best way itself');
+  String get ssProtoDirect => _t('مستقیم', 'Direct');
+  String get ssProtoDirectSub => _t(
+    'اتصال مستقیم به سرورها (OSSH، TLS، QUIC، meek و…) با CDN fronting به‌عنوان پشتیبان',
+    'Connect to the servers themselves (OSSH, TLS, QUIC, meek…) with CDN fronting as a fallback',
+  );
+  String get ssProtoCdn => _t('CDN fronting', 'CDN fronting');
+  String get ssProtoCdnSub => _t(
+    'فقط از طریق CDN (domain fronting)؛ وقتی اتصال مستقیم بسته است',
+    'Only through a CDN (domain fronting); for when direct connections are blocked',
+  );
+  String get ssProtoConduit => _t('Conduit (رله‌های داوطلب)', 'Conduit (volunteer relays)');
+  String get ssProtoConduitSub => _t(
+    'فقط از طریق رله‌های داوطلب Conduit (WebRTC)',
+    'Only through volunteer Conduit relays (WebRTC)',
+  );
   String get ssBeast => _t('حالت تهاجمی (Beast)', 'Beast mode');
-  String get ssBeastSub => _t('امتحان همه‌ی پروتکل‌ها روی هر سرور', 'Try every protocol on every server');
+  String get ssBeastSub => _t(
+    'تلاش هم‌زمان با سرورهای بیشتر (۳۰ به‌جای ۱۰) بدون انتظار برای سرور قبلی؛ اتصال سریع‌تر در فیلترینگ شدید، با مصرف باتری و داده‌ی بیشتر',
+    'Try more servers at once (30 instead of 10) without waiting for the last server first; faster in heavy filtering, uses more battery and data',
+  );
   String get ssSecCdn => _t('CDN fronting', 'CDN fronting');
   String get ssCdnIps => _t('IPهای لبه‌ی CDN', 'CDN edge IPs');
   String get ssCdnSni => _t('نام‌های SNI برای CDN', 'CDN SNI hostnames');
+  String get ssCdnWhy => _t(
+    'نشانی‌ها و SNI فرانتینگ از فهرست سرورهای سایفون می‌آیند؛ تغییر دستی آن‌ها فقط در نسخه‌ی تغییریافته‌ی هسته‌ی سایفونِ «شیر و خورشید» ممکن است',
+    'the fronting addresses and SNI come from Psiphon’s server list; overriding them needs Shir o Khorshid’s modified Psiphon core',
+  );
   String get ssSecConduit => _t('Conduit (رله‌های داوطلب)', 'Conduit (volunteer relays)');
+  String get ssConduitHelp => _t(
+    'وقتی پروتکل «Conduit» انتخاب شده باشد به کار می‌رود. رله‌ها از طریق کارگزار (broker) شبکه‌ی سایفون پیدا می‌شوند؛ اگر شبکه‌ی سایفونِ برنامه رله‌ای در دسترس نگذارد، اتصال برقرار نمی‌شود.',
+    'Used when the protocol is Conduit. Relays are found through the Psiphon network’s broker; if the app’s Psiphon network offers none, Shield will not connect.',
+  );
   String get ssConduitMode => _t('حالت Conduit', 'Conduit mode');
+  String get ssConduitAuto => _t('خودکار: اول رله‌ی خودم، بعد عمومی', 'Automatic: my relay first, then public ones');
+  String get ssConduitPersonal => _t('فقط رله‌ی خودم', 'Only my own relay');
+  String get ssConduitPublic => _t('فقط رله‌های عمومی', 'Public relays only');
+  String get ssConduitId => _t('شناسه‌ی جفت‌سازی (Compartment ID)', 'Pairing ID (compartment ID)');
+  String get ssConduitIdHint => _t('شناسه‌ی رله‌ی Conduit خودتان', 'The ID of your own Conduit relay');
+  String get ssConduitNoId => _t('بدون شناسه فقط رله‌های عمومی استفاده می‌شوند', 'Without an ID only public relays are used');
   String get ssConduitTimeout => _t('زمان جایگزینی', 'Fallback timeout');
+  String ssConduitTimeoutSub(int m) => _t('اگر پس از $m دقیقه وصل نشد، رله‌های عمومی امتحان می‌شوند', 'If not connected after $m min, public relays are tried');
+  String ssMinutes(int m) => _t('$m دقیقه', '$m min');
   String get ssConduitReject => _t('رد کردن رله‌های کشورهای سانسورشده', 'Reject relays in censored countries');
+  String get ssConduitRejectWhy => _t(
+    'نیاز به پایگاه GeoIP و تغییرات کلاینت Conduit در هسته‌ی سایفونِ «شیر و خورشید» دارد',
+    'needs a GeoIP database and the Conduit client changes of Shir o Khorshid’s modified Psiphon core',
+  );
 
   String get ssSecNotifications => _t('اعلان‌ها', 'Notifications');
   String get ssSound => _t('صدا', 'Sound');
@@ -214,7 +258,17 @@ class RamanStrings {
   String get ssOpenSiteUrl => _t('نشانی وب‌سایت', 'Website address');
   String get ssOpenSiteInvalid => _t('نشانی باید با https:// یا http:// شروع شود', 'The address must start with https:// or http://');
   String get ssMalware => _t('هشدار ترافیک ناامن (بدافزار)', 'Unsafe traffic (malware) alerts');
-  String get ssMalwareWhy => _t('نیاز به هشدارهای سرور که هسته‌ی فعلی ارائه نمی‌دهد', 'needs server alerts the current core does not pass on');
+  String get ssMalwareSub => _t(
+    'سرورهای سایفون وقتی ترافیکی به سایت‌های شناخته‌شده‌ی بدافزار ببینند هشدار می‌دهند و شیلد آن را به‌صورت اعلان نشان می‌دهد (وقتی برنامه باز یا در پس‌زمینه است)',
+    'Psiphon’s servers warn when they see traffic to known malware sites, and Shield shows it as a notification (while the app runs)',
+  );
+  String get ssAlertTitle => _t('هشدار شیلد', 'Shield alert');
+  String ssAlertBody(String reason, String subject) => _t('هشدار سرور: $reason $subject', 'Server alert: $reason $subject');
+  String get ssAlertUnsafeTitle => _t('هشدار ترافیک ناامن', 'Unsafe traffic alert');
+  String ssAlertUnsafeBody(String subject) => _t(
+    'یکی از برنامه‌ها با سایتی شناخته‌شده برای بدافزار ارتباط داشت${subject.isEmpty ? '' : ': $subject'}. ممکن است دستگاه شما آلوده باشد.',
+    'An app contacted a site known for malware${subject.isEmpty ? '' : ': $subject'}. Your device may be infected.',
+  );
   String get ssNfc => _t('اشتراک با NFC', 'NFC bump');
   String get ssNfcWhy => _t('نیاز به کتابخانه‌ی جاوای جداگانه برای خروجی گرفتن از سرورها', 'needs a separate Java library to export servers');
   String get ssWifiUpdates => _t('دانلود به‌روزرسانی فقط با Wi‑Fi', 'Download upgrades on Wi‑Fi only');
@@ -222,7 +276,6 @@ class RamanStrings {
   String get ssFeedback => _t('ارسال گزارش', 'Send feedback');
   String get ssFeedbackSub => _t('گزارش‌ها (لاگ) را ببینید و ذخیره یا ارسال کنید', 'View the logs and save or share them');
   String get ssAbout => _t('درباره', 'About');
-  String get ssConduitWhy => _t('Conduit و حالت‌های اتصال نیاز به تنظیمات هسته دارند که هنوز در دسترس نیست', 'Conduit and the connection modes need core options that are not available yet');
 
   // diagnostics
   String get shareDiagnostics => _t('ذخیره یا اشتراک‌گذاری فایل گزارش', 'Save or share the report file');

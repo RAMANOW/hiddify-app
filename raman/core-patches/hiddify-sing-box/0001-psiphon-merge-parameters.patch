@@ -1,0 +1,279 @@
+diff --git a/option/psiphon.go b/option/psiphon.go
+index 309d106..2716f0b 100644
+--- a/option/psiphon.go
++++ b/option/psiphon.go
+@@ -21,4 +21,12 @@ type PsiphonOutboundOptions struct {
+ 	UpstreamProxyURL                        string             `json:"upstream_proxy_url,omitempty"`
+ 	AllowDefaultDNSResolverWithBindToDevice *bool              `json:"allow_default_dns_resolver_with_bind_to_device,omitempty"`
+ 	EstablishTunnelTimeout                  badoption.Duration `json:"establish_tunnel_timeout,omitempty"`
++
++	// Raman VPN: Psiphon tunnel-core settings, merged on top of the config above instead of
++	// replacing it (protocol/psiphon/h_raman_params.go).
++	ProtocolMode         string         `json:"protocol_mode,omitempty"` // auto, direct, cdn, conduit
++	BeastMode            bool           `json:"beast_mode,omitempty"`
++	InproxyCompartmentID string         `json:"inproxy_compartment_id,omitempty"`
++	UnsafeTrafficAlerts  bool           `json:"unsafe_traffic_alerts,omitempty"`
++	Parameters           map[string]any `json:"parameters,omitempty"`
+ }
+diff --git a/protocol/psiphon/h_raman_params.go b/protocol/psiphon/h_raman_params.go
+new file mode 100644
+index 0000000..8f0204c
+--- /dev/null
++++ b/protocol/psiphon/h_raman_params.go
+@@ -0,0 +1,151 @@
++package psiphon
++
++// Raman VPN patch (https://github.com/RAMANOW/hiddify-app, raman/core-patches): the Psiphon
++// settings of an outbound are merged on top of the resolved Psiphon config (with config
++// "hiddify", the one embedded at build time) instead of replacing it, so a client can choose
++// the tunnel protocols, an in-proxy (Conduit) personal compartment, faster establishment and
++// server alerts and still use the built-in network config.
++
++import (
++	"encoding/base64"
++	"encoding/json"
++	"reflect"
++	"strings"
++
++	"github.com/sagernet/sing-box/option"
++	E "github.com/sagernet/sing/common/exceptions"
++	"golang.org/x/crypto/nacl/secretbox"
++)
++
++// Tunnel protocols per protocol_mode (names of psiphon-tunnel-core's protocol package).
++var (
++	// direct: the server is dialed itself, with fronted meek as the fallback.
++	directTunnelProtocols = []string{
++		"SSH", "OSSH", "TLS-OSSH",
++		"UNFRONTED-MEEK-OSSH", "UNFRONTED-MEEK-HTTPS-OSSH", "UNFRONTED-MEEK-SESSION-TICKET-OSSH",
++		"QUIC-OSSH", "SHADOWSOCKS-OSSH",
++		"FRONTED-MEEK-OSSH", "FRONTED-MEEK-HTTP-OSSH", "FRONTED-MEEK-QUIC-OSSH",
++	}
++	// cdn: domain fronting through a CDN only.
++	cdnTunnelProtocols = []string{"FRONTED-MEEK-OSSH", "FRONTED-MEEK-HTTP-OSSH", "FRONTED-MEEK-QUIC-OSSH"}
++	// conduit: in-proxy (volunteer Conduit relays, over WebRTC) only.
++	conduitTunnelProtocols = []string{
++		"INPROXY-WEBRTC-SSH", "INPROXY-WEBRTC-OSSH", "INPROXY-WEBRTC-TLS-OSSH",
++		"INPROXY-WEBRTC-UNFRONTED-MEEK-OSSH", "INPROXY-WEBRTC-UNFRONTED-MEEK-HTTPS-OSSH",
++		"INPROXY-WEBRTC-UNFRONTED-MEEK-SESSION-TICKET-OSSH",
++		"INPROXY-WEBRTC-FRONTED-MEEK-OSSH", "INPROXY-WEBRTC-FRONTED-MEEK-HTTP-OSSH",
++		"INPROXY-WEBRTC-QUIC-OSSH", "INPROXY-WEBRTC-FRONTED-MEEK-QUIC-OSSH",
++		"INPROXY-WEBRTC-SHADOWSOCKS-OSSH",
++	}
++)
++
++// beastWorkers is the connection worker pool of beast mode (tunnel-core's default is 10).
++const beastWorkers = 30
++
++// ramanParameters turns the outbound's options into psiphon-tunnel-core config fields.
++// parameters (any tunnel-core config field) is applied last and wins.
++func ramanParameters(o option.PsiphonOutboundOptions) map[string]any {
++	p := map[string]any{}
++	mode := strings.ToLower(strings.TrimSpace(o.ProtocolMode))
++	switch mode {
++	case "direct":
++		p["LimitTunnelProtocols"] = directTunnelProtocols
++		p["DisableTactics"] = true // tactics could set the protocols again
++	case "cdn", "cdn_fronting", "fronting":
++		p["LimitTunnelProtocols"] = cdnTunnelProtocols
++		p["DisableTactics"] = true
++	case "conduit", "inproxy":
++		// tactics stay on: they carry the in-proxy broker specs
++		p["LimitTunnelProtocols"] = conduitTunnelProtocols
++		if id := strings.TrimSpace(o.InproxyCompartmentID); id != "" {
++			p["InproxyClientPersonalCompartmentID"] = id
++		}
++	}
++	if o.BeastMode {
++		// try more servers at once and do not wait for the last used server first
++		p["ConnectionWorkerPoolSize"] = beastWorkers
++		p["EstablishTunnelServerAffinityGracePeriodMilliseconds"] = 0
++		p["StaggerConnectionWorkersMilliseconds"] = 0
++	}
++	if o.UnsafeTrafficAlerts {
++		p["ClientFeatures"] = []string{"unsafe-traffic-alerts"}
++		p["EmitServerAlerts"] = true
++	}
++	for k, v := range o.Parameters {
++		p[k] = v
++	}
++	return p
++}
++
++// mergeParameters puts the outbound's Psiphon settings on top of the config JSON raw.
++func mergeParameters(raw []byte, options option.PsiphonOutboundOptions) ([]byte, error) {
++	overlay := ramanParameters(options)
++	if len(overlay) == 0 {
++		return raw, nil
++	}
++	base := map[string]any{}
++	if err := json.Unmarshal(raw, &base); err != nil {
++		return nil, E.Cause(err, "parse psiphon config")
++	}
++	if base == nil {
++		base = map[string]any{}
++	}
++	// tunnel-core applies AdditionalParameters (an encrypted part of the config) over every other
++	// field at Commit: it is opened here, the same way, so the settings below still win.
++	if additional, ok := base["AdditionalParameters"].(string); ok && additional != "" {
++		if opened, err := openAdditionalParameters(additional); err == nil {
++			delete(base, "AdditionalParameters")
++			for k, v := range opened {
++				if !isZeroJSON(v) { // as tunnel-core: only set fields override
++					base[k] = v
++				}
++			}
++		}
++	}
++	for k, v := range overlay {
++		base[k] = v
++	}
++	return json.Marshal(base)
++}
++
++// openAdditionalParameters decrypts AdditionalParameters as psiphon.Config.applyAdditionalParameters
++// does: base64(32-byte key || secretbox with a zero nonce).
++func openAdditionalParameters(value string) (map[string]any, error) {
++	b, err := base64.StdEncoding.DecodeString(value)
++	if err != nil {
++		return nil, err
++	}
++	if len(b) < 32 {
++		return nil, E.New("invalid AdditionalParameters")
++	}
++	var key [32]byte
++	copy(key[:], b[:32])
++	opened, ok := secretbox.Open(nil, b[32:], &[24]byte{}, &key)
++	if !ok {
++		return nil, E.New("open AdditionalParameters")
++	}
++	fields := map[string]any{}
++	if err = json.Unmarshal(opened, &fields); err != nil {
++		return nil, err
++	}
++	return fields, nil
++}
++
++func isZeroJSON(v any) bool {
++	if v == nil {
++		return true
++	}
++	switch x := v.(type) {
++	case bool:
++		return !x
++	case float64:
++		return x == 0
++	case string:
++		return x == ""
++	case []any:
++		return len(x) == 0
++	case map[string]any:
++		return len(x) == 0
++	}
++	return reflect.ValueOf(v).IsZero()
++}
+diff --git a/protocol/psiphon/h_raman_params_test.go b/protocol/psiphon/h_raman_params_test.go
+new file mode 100644
+index 0000000..160b952
+--- /dev/null
++++ b/protocol/psiphon/h_raman_params_test.go
+@@ -0,0 +1,68 @@
++package psiphon
++
++import (
++	"encoding/base64"
++	"encoding/json"
++	"testing"
++
++	"github.com/sagernet/sing-box/option"
++	"golang.org/x/crypto/nacl/secretbox"
++)
++
++func TestMergeParametersKeepsBaseConfig(t *testing.T) {
++	base := []byte(`{"PropagationChannelId":"AAAA","SponsorId":"BBBB","LimitTunnelProtocols":["OSSH"]}`)
++	out, err := mergeParameters(base, option.PsiphonOutboundOptions{
++		ProtocolMode:        "conduit",
++		InproxyCompartmentID: "abc",
++		BeastMode:           true,
++		UnsafeTrafficAlerts: true,
++		Parameters:          map[string]any{"NetworkLatencyMultiplierLambda": 0.1},
++	})
++	if err != nil {
++		t.Fatal(err)
++	}
++	var m map[string]any
++	if err = json.Unmarshal(out, &m); err != nil {
++		t.Fatal(err)
++	}
++	if m["PropagationChannelId"] != "AAAA" || m["SponsorId"] != "BBBB" {
++		t.Fatalf("base config lost: %v", m)
++	}
++	if p := m["LimitTunnelProtocols"].([]any); len(p) != len(conduitTunnelProtocols) {
++		t.Fatalf("protocols not set: %v", p)
++	}
++	if m["InproxyClientPersonalCompartmentID"] != "abc" || m["ConnectionWorkerPoolSize"].(float64) != beastWorkers ||
++		m["EmitServerAlerts"] != true || m["NetworkLatencyMultiplierLambda"].(float64) != 0.1 {
++		t.Fatalf("settings missing: %v", m)
++	}
++}
++
++func TestMergeParametersOpensAdditionalParameters(t *testing.T) {
++	var key [32]byte
++	key[0] = 7
++	sealed := secretbox.Seal(key[:], []byte(`{"LimitTunnelProtocols":["OSSH"],"SponsorId":"CCCC","DisableTactics":false}`), &[24]byte{}, &key)
++	base, _ := json.Marshal(map[string]any{"SponsorId": "BBBB", "AdditionalParameters": base64.StdEncoding.EncodeToString(sealed)})
++	out, err := mergeParameters(base, option.PsiphonOutboundOptions{ProtocolMode: "cdn"})
++	if err != nil {
++		t.Fatal(err)
++	}
++	var m map[string]any
++	_ = json.Unmarshal(out, &m)
++	if _, still := m["AdditionalParameters"]; still {
++		t.Fatal("AdditionalParameters kept")
++	}
++	if m["SponsorId"] != "CCCC" {
++		t.Fatalf("AdditionalParameters not applied: %v", m)
++	}
++	if p := m["LimitTunnelProtocols"].([]any); len(p) != len(cdnTunnelProtocols) || m["DisableTactics"] != true {
++		t.Fatalf("the outbound's settings must win: %v", m)
++	}
++}
++
++func TestMergeParametersNoSettings(t *testing.T) {
++	base := []byte(`{"AdditionalParameters":"x"}`)
++	out, err := mergeParameters(base, option.PsiphonOutboundOptions{ProtocolMode: "auto"})
++	if err != nil || string(out) != string(base) {
++		t.Fatalf("config changed without settings: %s %v", out, err)
++	}
++}
+diff --git a/protocol/psiphon/outbound.go b/protocol/psiphon/outbound.go
+index 223463b..e519858 100644
+--- a/protocol/psiphon/outbound.go
++++ b/protocol/psiphon/outbound.go
+@@ -252,6 +252,11 @@ func buildConfig(options option.PsiphonOutboundOptions, timeout time.Duration, t
+ 	if err != nil {
+ 		return nil, E.Cause(err, "decode psiphon config")
+ 	}
++	// Raman VPN: the outbound's own Psiphon settings go on top of that config
++	raw, err = mergeParameters(raw, options)
++	if err != nil {
++		return nil, err
++	}
+ 	config, err := psiphon.LoadConfig(raw)
+ 	if err != nil {
+ 		return nil, E.Cause(err, "parse psiphon config")
+diff --git a/protocol/psiphon/psiphon.go b/protocol/psiphon/psiphon.go
+index fb987f3..0e7922d 100644
+--- a/protocol/psiphon/psiphon.go
++++ b/protocol/psiphon/psiphon.go
+@@ -263,6 +263,10 @@ func NewPsiphon(ctx context.Context, l logger.ContextLogger, config *psiphon.Con
+ // one check its own controller (hasTunnel).
+ func (p *Psiphon) onNotice(event NoticeEvent, connectedSignal func()) {
+ 	p.logger.Debug(fmt.Sprint("Notice ", event.Type, " data ", event.Data))
++	if event.Type == "ServerAlert" { // Raman VPN: shown to the user (unsafe-traffic alerts)
++		p.logger.Warn("psiphon server alert: reason=", event.Data["reason"], " subject=", event.Data["subject"])
++		return
++	}
+ 	if event.Type != "Tunnels" {
+ 		return
+ 	}
