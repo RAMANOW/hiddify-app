@@ -21,10 +21,9 @@ Psiphon settings.
 - With `INPROXY=true` (default) the core is built with psiphon-tunnel-core's tag
   `PSIPHON_ENABLE_INPROXY` and Psiphon's forks of pion dtls/ice/webrtc (from the same
   tunnel-core commit), which in-proxy (Conduit) needs.
-- The built-in Psiphon config: by default the encrypted config and its key are taken unchanged
-  from the official hiddify-core release of the same version (`extract_embedded.py`), so
-  `"config": "hiddify"` behaves as in the official core. Repository secrets `HIDDIFY_SECRET_KEY`
-  and `PSIPHON_CONFIG` replace it with a config of your own.
+- The built-in Psiphon config: none is taken from any other build. Repository secrets
+  `HIDDIFY_SECRET_KEY` and `PSIPHON_CONFIG` (a Psiphon config issued to you) are encrypted and
+  linked in at build time; without them no Psiphon config is embedded.
 
 Field mapping (psiphon-tunnel-core config fields):
 

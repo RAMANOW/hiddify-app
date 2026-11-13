@@ -12,10 +12,9 @@
 #   TARGETS       gomobile targets (default android/arm,android/arm64,android/amd64)
 #   INPROXY       true: build psiphon-tunnel-core's in-proxy (Conduit) support (default true)
 #   STEP          clone | check | build | all (default all)
-#   HIDDIFY_SECRET_KEY + PSIPHON_CONFIG   a Psiphon config of your own for config "hiddify".
-#                 Without them, the encrypted config (and its key) of the official hiddify-core
-#                 release of CORE_REF is linked in unchanged, so config "hiddify" behaves as in
-#                 the official core.
+#   HIDDIFY_SECRET_KEY + PSIPHON_CONFIG   a Psiphon config of your own for config "hiddify",
+#                 encrypted and linked in at build time. Without them no Psiphon config is
+#                 embedded (config "hiddify" then has no network values).
 set -euo pipefail
 
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -102,16 +101,6 @@ embedded() {
     echo "$HIDDIFY_SECRET_KEY $enc"
     return
   fi
-  local tmp
-  tmp=$(mktemp -d)
-  if curl -fsSL --retry 5 --retry-all-errors -o "$tmp/core.tgz" \
-    "https://github.com/hiddify/hiddify-core/releases/download/$CORE_REF/hiddify-lib-android.tar.gz" &&
-    tar xzf "$tmp/core.tgz" -C "$tmp" &&
-    unzip -q -o "$tmp/hiddify-core.aar" 'jni/arm64-v8a/libhiddify-core.so' -d "$tmp" &&
-    python3 "$HERE/extract_embedded.py" "$tmp/jni/arm64-v8a/libhiddify-core.so" "$tmp/key" "$tmp/config" >&2; then
-    echo "$(cat "$tmp/key") $(cat "$tmp/config")"
-  fi
-  rm -rf "$tmp"
 }
 
 build() {
@@ -128,7 +117,7 @@ build() {
     echo "::add-mask::$config"
     echo "embedded Psiphon config: yes (${#config} chars)"
   else
-    echo "::warning::no embedded Psiphon config: config \"hiddify\" uses Psiphon's public defaults"
+    echo "::warning::no embedded Psiphon config: config \"hiddify\" has no Psiphon network values"
   fi
 
   local ld="-w -s -checklinkname=0 -buildid="

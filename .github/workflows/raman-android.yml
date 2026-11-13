@@ -90,10 +90,6 @@ jobs:
         with:
           ndk-version: r28
 
-      - name: Python tools
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install pyelftools cryptography
-
       - name: Clone hiddify-core and apply the Raman patches
         if: steps.cache.outputs.cache-hit != 'true'
         env:
@@ -111,7 +107,7 @@ jobs:
         env:
           STEP: build
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
-          # optional: a Psiphon config of your own (otherwise the official core's is linked in)
+          # optional: a Psiphon config of your own (otherwise none is embedded)
           HIDDIFY_SECRET_KEY: ${{ secrets.HIDDIFY_SECRET_KEY }}
           PSIPHON_CONFIG: ${{ secrets.PSIPHON_CONFIG }}
         run: bash raman/core/build-core.sh
