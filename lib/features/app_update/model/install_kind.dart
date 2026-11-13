@@ -58,12 +58,12 @@ enum InstallKind {
       switch (this) {
         androidApk =>
           release.asset(switch (abis.firstOrNull) {
-                'arm64-v8a' => 'Hiddify-Android-arm64.apk',
-                'armeabi-v7a' => 'Hiddify-Android-arm7.apk',
-                'x86_64' => 'Hiddify-Android-x86_64.apk',
-                _ => 'Hiddify-Android-universal.apk',
+                'arm64-v8a' => 'RamanVPN-Android-arm64.apk',
+                'armeabi-v7a' => 'RamanVPN-Android-arm7.apk',
+                'x86_64' => 'RamanVPN-Android-x86_64.apk',
+                _ => 'RamanVPN-Android-universal.apk',
               }) ??
-              release.asset('Hiddify-Android-universal.apk'),
+              release.asset('RamanVPN-Android-universal.apk'),
         windowsSetup => release.asset('Hiddify-Windows-Setup-x64.exe'),
         linuxAppImage => release.asset('Hiddify-Linux-${arm64 ? 'arm64' : 'x64'}.AppImage'),
         linuxDeb => release.asset('Hiddify-Debian-${arm64 ? 'arm64' : 'x64'}.deb'),

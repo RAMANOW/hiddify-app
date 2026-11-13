@@ -5,6 +5,7 @@ import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
 import 'package:hiddify/core/router/go_router/helper/active_breakpoint_notifier.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
+import 'package:hiddify/features/raman/raman_strings.dart';
 import 'package:hiddify/features/settings/notifier/config_option/config_option_notifier.dart';
 import 'package:hiddify/features/settings/notifier/reset_tunnel/reset_tunnel_notifier.dart';
 import 'package:hiddify/hiddifycore/hiddify_core_service_provider.dart';
@@ -143,6 +144,12 @@ class SettingsPage extends HookConsumerWidget {
       body: ListView(
         children: [
           // TipCard(message: t.settings.experimentalMsg),
+          SettingsSection(
+            title: ref.watch(ramanStringsProvider).toolsTitle,
+            subtitle: Text(ref.watch(ramanStringsProvider).toolsSubtitle),
+            icon: Icons.shield_rounded,
+            namedLocation: context.namedLocation('ramanTools'),
+          ),
           SettingsSection(
             title: t.pages.settings.general.title,
             icon: Icons.layers_rounded,

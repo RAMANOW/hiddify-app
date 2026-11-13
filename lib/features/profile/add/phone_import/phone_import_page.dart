@@ -61,7 +61,7 @@ String phoneImportPage(
     '<meta name="theme-color" content="#455FE9">',
     '<meta name="referrer" content="no-referrer">',
     '<title>${e(t.title)}</title><style>$_css</style></head><body><main class="wrap">',
-    '<header class="brand"><span class="logo">$_logo</span><span class="word">Hiddify</span></header>',
+    '<header class="brand"><span class="logo">$_logo</span><span class="word">Raman VPN</span></header>',
     '<h1>${e(t.title)}</h1><p class="intro">${e(t.intro)}</p>',
     notice,
     '<ol class="steps">',
@@ -75,12 +75,12 @@ String phoneImportPage(
   ].join();
 }
 
-/// The Hiddify mark (assets/images/logo.svg), in white for its tile.
+/// The Raman VPN mark (assets/images/logo.svg), in white for its tile.
 final _logo = [
   '<svg viewBox="0 0 64 64" aria-hidden="true"><g fill="#fff">',
-  '<path d="M47.1582 14.4283C47.1582 13.8368 47.4684 13.2886 47.9757 12.9842L61.4494 4.89891C62.5721 4.22529 64.0003 5.03389 64.0003 6.34306V20.2103C64.0003 21.1405 63.2461 21.8945 62.3161 21.8945H48.8424C47.9124 21.8945 47.1582 21.1405 47.1582 20.2103V14.4283Z"/>',
-  '<path fill-rule="evenodd" d="M24.3966 26.4593C23.8893 26.7637 23.5789 27.3118 23.5789 27.9034V43.7921L23.5789 45.4751L23.5789 45.4763L23.5789 48.0001C23.5789 48.9301 22.8249 49.6001 21.8947 49.6001H18.5263C17.5962 49.6001 16.8421 48.9301 16.8421 48.0001V45.4751V34.976C16.8421 33.6669 15.4139 32.8583 14.2913 33.5319L0.817607 41.6171C0.310362 41.9216 0 42.4696 0 43.0615V60.6342C0 61.5642 0.754048 62.3184 1.68421 62.3184H15.1579C16.0881 62.3184 16.8421 61.5642 16.8421 60.6342V58.9488V56.8314C16.8421 55.9011 17.5962 55.3376 18.5263 55.3376H21.8947C22.8249 55.3376 23.5789 55.9011 23.5789 56.8314V58.9488L23.5789 60.6342C23.5789 61.5642 24.333 62.3184 25.2632 62.3184H38.7368C39.6669 62.3184 40.4211 61.5642 40.4211 60.6342V45.4763V43.7921V19.8182C40.4211 18.509 38.9928 17.7004 37.8701 18.374L24.3966 26.4593Z"/>',
-  '<path d="M47.1592 28.7999V60.7999C47.1592 61.6836 47.9132 62.3999 48.8434 62.3999H62.3171C63.2472 62.3999 64.0013 61.6836 64.0013 60.7999V28.7999C64.0013 27.9162 63.2472 27.1999 62.3171 27.1999H48.8434C47.9132 27.1999 47.1592 27.9162 47.1592 28.7999Z"/>',
+  '<path fill-rule="evenodd" d="M32 2 L58 10 V29 C58 45 47 55.5 32 62 C17 55.5 6 45 6 29 V10 Z M32 7.5 L52.5 13.9 V29 C52.5 41.6 44 50.2 32 55.9 C20 50.2 11.5 41.6 11.5 29 V13.9 Z"/>',
+  '<path d="M22.5 18 H28.5 V45 H22.5 Z"/>',
+  '<path d="M28.5 18 H34.5 C39.8 18 43 21.4 43 26.3 C43 30.2 40.9 33.1 37.6 34.2 L43 45 H36.6 L31.8 34.8 H28.5 V29.8 H34.2 C36.4 29.8 37.4 28.4 37.4 26.3 C37.4 24.3 36.4 23 34.2 23 H28.5 Z"/>',
   '</g></svg>',
 ].join();
 
@@ -105,7 +105,7 @@ const _icons = {
 
 /// Mobile first, light and dark, left to right and right to left (logical properties throughout).
 const _css = '''
-:root{--brand:#455fe9;--brand2:#7b5cff;--bg:#f3f5fb;--card:#fff;--field:#f7f8fc;--text:#14161f;--muted:#5d6275;--line:#e2e5f0;--ok:#15803d;--okbg:#e7f6ec;--bad:#c62828;--badbg:#fdecec}
+:root{--brand:#4f46e5;--brand2:#06b6d4;--bg:#f3f5fb;--card:#fff;--field:#f7f8fc;--text:#14161f;--muted:#5d6275;--line:#e2e5f0;--ok:#15803d;--okbg:#e7f6ec;--bad:#c62828;--badbg:#fdecec}
 @media (prefers-color-scheme:dark){:root{--bg:#0d0e13;--card:#171922;--field:#10121a;--text:#eceef6;--muted:#9aa0b4;--line:#272b38;--ok:#4ade80;--okbg:#10291b;--bad:#f87171;--badbg:#2e1515}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}

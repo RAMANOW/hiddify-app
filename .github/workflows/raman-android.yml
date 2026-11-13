@@ -1,0 +1,128 @@
+# Raman VPN: builds the Android APKs (universal and one per ABI) and, for a tag or when asked,
+# publishes them as a GitHub release. Without a signing key in the repo secrets the APKs are signed
+# with the debug key (android/app/build.gradle falls back to it), which installs fine.
+name: Raman VPN Android
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-tag:
+        description: Publish a GitHub release with this tag (empty = build only)
+        type: string
+        default: 'v1.0.0-raman'
+  push:
+    branches: [main]
+    tags: ['v*-raman*']
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+
+concurrency:
+  group: raman-android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  CHANNEL: prod
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - name: Set up the Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.5
+          channel: stable
+          cache: true
+
+      - name: Install build tools
+        run: |
+          make android-apk-install-deps
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Get packages, generate code, download the core library
+        run: make android-apk-prepare
+
+      - name: Optional signing key
+        env:
+          SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_KEY }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+        run: |
+          if [ -n "$SIGNING_KEY" ]; then
+            echo "$SIGNING_KEY" | base64 --decode > android/key.jks
+            printf '%s=%s\n' storeFile "$PWD/android/key.jks" storePassword "$STORE_PASSWORD" \
+              keyPassword "$KEY_PASSWORD" keyAlias "$KEY_ALIAS" > android/key.properties
+            echo "release signing key set up"
+          else
+            echo "no signing key: the APKs are signed with the debug key"
+          fi
+
+      - name: Build the APKs
+        run: make android-apk-release
+
+      - name: Collect the APKs
+        run: |
+          mkdir -p out
+          apk=build/app/outputs/flutter-apk
+          ls -la $apk
+          cp $apk/*arm64-v8a*release*.apk out/RamanVPN-Android-arm64.apk || echo "no arm64 apk"
+          cp $apk/*armeabi-v7a*release*.apk out/RamanVPN-Android-arm7.apk || echo "no arm7 apk"
+          cp $apk/*x86_64*release*.apk out/RamanVPN-Android-x86_64.apk || echo "no x64 apk"
+          if [ -f $apk/app-release.apk ]; then cp $apk/app-release.apk out/RamanVPN-Android-universal.apk;
+          else cp $apk/*universal*release*.apk out/RamanVPN-Android-universal.apk; fi
+          ls -la out
+
+      - name: Upload the artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RamanVPN-Android
+          path: out
+          retention-days: 30
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Publish the release
+        if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.release-tag != '')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.release-tag }}
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'EOF'
+          **Raman VPN (رامان VPN)** for Android — based on [Hiddify](https://github.com/hiddify/hiddify-app), licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial.
+
+          - Smart DNS: tests public resolvers and picks the fastest working one automatically
+          - Network checker: reachability and latency of popular services, with and without the VPN
+          - Iran defaults: region Iran (domestic sites direct), TLS fragment on, Persian
+
+          Install `RamanVPN-Android-universal.apk` if you are not sure which one fits your phone.
+          EOF
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" out/*.apk --clobber
+          else
+            gh release create "$TAG" out/*.apk --target "$GITHUB_SHA" --title "Raman VPN $TAG" --notes-file notes.md
+          fi

@@ -1,6 +1,6 @@
 {
   "common": {
-    "appTitle": "Hiddify",
+    "appTitle": "Raman VPN",
     "start": "Start",
     "version": "Version",
     "ok": "OK",
@@ -98,7 +98,7 @@
   "intro": {
     "banner": "All you need for an unrestricted internet",
     "termsAndPolicyCaution(rich)": "By continuing you agree to ${tap(@:pages.about.termsAndConditions)}",
-    "info(rich)": "Made with ❤️ by Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
+    "info(rich)": "Raman VPN, based on Hiddify. ${tap_source(Open source)} and ${tap_license(License)}"
   },
   "pages": {
     "home": {
@@ -215,7 +215,7 @@
         "share": "Share",
         "edit": "Edit",
         "shareTitle": "Share proxy",
-        "configHint": "This proxy alone, and any proxy it connects through. Hiddify imports it like any config.",
+        "configHint": "This proxy alone, and any proxy it connects through. Raman VPN imports it like any config.",
         "editTitle": "Edit as a new profile",
         "editMsg": "“${name}” is copied to a new profile that you can edit. The original stays as it is, since a subscription replaces its proxies on every update.",
         "editConfirm": "Copy and edit",
@@ -235,7 +235,7 @@
         "received": "Received from your phone",
         "from": "From $address",
         "page": {
-          "title": "Send to Hiddify on your TV",
+          "title": "Send to Raman VPN on your TV",
           "intro": "Add a subscription to your TV in four quick steps, without typing it with the remote.",
           "steps": {
             "network": {
@@ -274,7 +274,7 @@
       "updateSubscriptions": "Update subscriptions",
       "share": {
         "title": "Share profile",
-        "scanHint": "Scan it with Hiddify on another device to add this profile",
+        "scanHint": "Scan it with Raman VPN on another device to add this profile",
         "link": "Subscription link",
         "config": "Configuration",
         "configHint": "The full JSON this profile runs with, your settings included",
@@ -285,9 +285,9 @@
         "tooLargeToCopy": "Too large for the clipboard: share or save it as a file",
         "toTv": {
           "button": "Send to TV",
-          "scanHint": "On the TV, open Hiddify and tap + to add a profile, then scan the code it shows. Both devices must be on the same Wi-Fi.",
+          "scanHint": "On the TV, open Raman VPN and tap + to add a profile, then scan the code it shows. Both devices must be on the same Wi-Fi.",
           "sent": "Sent. Press Import on the TV to add it.",
-          "notTvCode": "That is not a Hiddify TV code. On the TV, tap + to add a profile to show it.",
+          "notTvCode": "That is not a Raman VPN TV code. On the TV, tap + to add a profile to show it.",
           "expired": "The TV no longer takes links at this code. Open the add profile screen on the TV again and scan the new code.",
           "busy": "The TV has too many links waiting. Import or discard them on the TV, then try again.",
           "unreachable": "Couldn't reach the TV. Make sure the phone and TV are on the same Wi-Fi network."
@@ -944,7 +944,7 @@
       "updateNow": "Update now",
       "downloading": "Downloading…",
       "installing": "Starting the installer…",
-      "allowInstall": "Allow Hiddify to install apps in the settings that opened, then try again.",
+      "allowInstall": "Allow Raman VPN to install apps in the settings that opened, then try again.",
       "failed": "The update could not be installed.",
       "openPage": "Open the release page",
       "tryAgain": "Try again"
@@ -991,7 +991,7 @@
         "someApps": "Browsers and most apps",
         "switched": "Switched to system proxy mode. You can change it in Settings.",
         "waitingTitle": "Waiting for administrator permission",
-        "waitingMsg": "Hiddify is waiting for you to allow VPN mode.",
+        "waitingMsg": "Raman VPN is waiting for you to allow VPN mode.",
         "waitingWhere": "In the window that opened:",
         "waitingWindows": "Click “Yes”.",
         "waitingMac": "Enter your Mac password and confirm.",
@@ -1008,22 +1008,22 @@
         "helpProsTitle": "Good points",
         "helpConsTitle": "Keep in mind",
         "helpVpn": {
-          "what": "Hiddify adds a virtual network to your computer, and every app's internet traffic goes through it on its own: browsers, Telegram, games, updates and the rest. Nothing has to be set up in each app.",
+          "what": "Raman VPN adds a virtual network to your computer, and every app's internet traffic goes through it on its own: browsers, Telegram, games, updates and the rest. Nothing has to be set up in each app.",
           "pros": [
-            "Every app goes through Hiddify, with no settings in each app.",
+            "Every app goes through Raman VPN, with no settings in each app.",
             "Apps that ignore proxy settings, such as Telegram and games, work too.",
-            "Name lookups (DNS) go through Hiddify as well, so sites blocked that way open too."
+            "Name lookups (DNS) go through Raman VPN as well, so sites blocked that way open too."
           ],
           "cons": [
-            "The first time, your computer asks for administrator permission, to install Hiddify's background service. After that it connects without asking.",
+            "The first time, your computer asks for administrator permission, to install Raman VPN's background service. After that it connects without asking.",
             "Turn off other VPN apps while you use it: two at once get in each other's way."
           ]
         },
         "helpSystemProxy": {
-          "what": "Hiddify changes your computer's proxy setting. Apps that follow that setting, such as web browsers, send their traffic through Hiddify; the rest connect directly, as if Hiddify were off.",
+          "what": "Raman VPN changes your computer's proxy setting. Apps that follow that setting, such as web browsers, send their traffic through Raman VPN; the rest connect directly, as if Raman VPN were off.",
           "pros": [
             "No administrator permission needed.",
-            "Quick to turn on and off, and Hiddify puts the setting back when you disconnect.",
+            "Quick to turn on and off, and Raman VPN puts the setting back when you disconnect.",
             "Works next to other network tools on your computer."
           ],
           "cons": [
@@ -1117,16 +1117,16 @@
       "notFound": "No QR code found in this image"
     },
     "crashReport": {
-      "title": "Hiddify crashed last time",
+      "title": "Raman VPN crashed last time",
       "msg": "Send a report to the developers so this gets fixed? It holds the crash details, the logs and your configuration with servers, keys and passwords removed, as one zip file you can look at before sending.",
-      "sendHiddify": "Send to Hiddify",
+      "sendHiddify": "Send to Raman VPN",
       "sendHiddifyMsg": "The app uploads the report itself",
       "sendEmail": "Send by email",
       "sendTelegram": "Send on Telegram",
       "sent": "Report sent. Thank you!",
       "sendFailed": "Could not send the report. Try email or Telegram instead.",
-      "subject": "Hiddify crash report",
-      "shareText": "Hiddify crash report, for $to",
+      "subject": "Raman VPN crash report",
+      "shareText": "Raman VPN crash report, for $to",
       "addressCopied": "$address copied: paste it as the recipient",
       "attachHint": "Attach the saved file $file to your message"
     },
@@ -1189,7 +1189,7 @@
         "Open the app's proxy settings",
         "Choose SOCKS5 or HTTP",
         "Enter the values below · tap to copy",
-        "Keep Hiddify connected"
+        "Keep Raman VPN connected"
       ],
       "hint": "Proxy mode · how to use",
       "setPassword": "Set password",
@@ -1209,16 +1209,16 @@
     },
     "dbNewerThanApp": {
       "title": "Saved data is from a newer version",
-      "msg": "Your profiles and settings were saved by a newer version of Hiddify, and this older version cannot read them. Install the latest version to keep them, or delete them to use this version.",
+      "msg": "Your profiles and settings were saved by a newer version of Raman VPN, and this older version cannot read them. Install the latest version to keep them, or delete them to use this version.",
       "deleteData": "Wipe data",
       "deleteConfirm": "The saved data is wiped. Your subscriptions and local profiles are added back where possible; anything else saved by the newer version is lost.",
       "downloadLatest": "Download latest version"
     },
     "dbBroken": {
       "title": "Saved data can't be opened",
-      "msg": "Hiddify couldn't open its saved profiles. Wipe the saved data to start again: your subscriptions and local profiles are added back where possible, and your settings are kept.",
+      "msg": "Raman VPN couldn't open its saved profiles. Wipe the saved data to start again: your subscriptions and local profiles are added back where possible, and your settings are kept.",
       "wipeData": "Wipe data",
-      "wipeConfirm": "The saved data is wiped and Hiddify starts again. Profiles that can still be read are added back; the rest can't be recovered.",
+      "wipeConfirm": "The saved data is wiped and Raman VPN starts again. Profiles that can still be read are added back; the rest can't be recovered.",
       "copyError": "Copy error"
     }
   },

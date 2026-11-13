@@ -1,3 +1,30 @@
+<p align="center"><img src="docs/raman-logo.png" width="128" alt="Raman VPN logo"></p>
+
+# Raman VPN (رامان VPN)
+
+**Raman VPN** is a non-commercial, rebranded build of [Hiddify](https://github.com/hiddify/hiddify-app) for Android, tuned for Iran's filtered internet.
+**رامان VPN** نسخه‌ای غیرتجاری و بازبرندشده از Hiddify برای اندروید است که برای اینترنت فیلترشده‌ی ایران تنظیم شده است.
+
+Download the APK from [Releases](https://github.com/RAMANOW/hiddify-app/releases). If unsure which one fits your phone, install `RamanVPN-Android-universal.apk`.
+
+## Credit and license
+
+Raman VPN is based on **[Hiddify](https://github.com/hiddify/hiddify-app)** by the Hiddify team, and all credit for the app and its core goes to them.
+It is distributed under the same license as the original, the **Hiddify Extended GPL v3** — see [LICENSE.md](LICENSE.md) and the [original license](https://github.com/hiddify/hiddify-app/blob/main/LICENSE.md).
+This fork is public, its full source is here, it is built by GitHub Actions ([`.github/workflows/raman-android.yml`](.github/workflows/raman-android.yml)), and it is not sold or used commercially.
+
+## Changes from Hiddify
+
+- **Name and branding:** the app is called "Raman VPN" ("رامان VPN" in Persian) in the launcher, in the app and on the About page; new shield-and-R logo, launcher icons (all densities and the adaptive icon), splash, TV banner and notification icon.
+- **Package:** Android `applicationId` is `com.ramanow.ramanvpn`, so it installs next to Hiddify. The internal Kotlin package (`com.hiddify.hiddify`) is unchanged.
+- **Smart DNS** (new, `lib/features/raman/`): a built-in list of public resolvers (Cloudflare, Google, Quad9, AdGuard, OpenDNS, Cloudflare/Google/AdGuard DNS-over-HTTPS, and the Iranian Shecan, Electro, Begzar and Radar). They are tested on app start (at most once a day) and on demand; the fastest working one becomes the direct DNS, and the fastest international one that gives honest answers becomes the remote DNS. Resolvers that answer a filtered name with Iran's block address (10.10.34.x) are flagged.
+- **Network checker** (new): reachability and latency of Google, YouTube, Instagram, Telegram, WhatsApp, X, GitHub, Cloudflare, Aparat and Digikala, shown side by side without and with the VPN.
+- **Iran defaults:** region Iran (domestic sites go direct), TLS fragment on, IPv4 only, Persian language — applied on first start, and from the "Iran settings" tab at any time.
+- **Updates** are checked against this fork's releases, not Hiddify's.
+- Smart DNS, the network checker and the Iran settings are under **Settings → Raman tools** and the network icon on the home screen.
+
+---
+
 <div dir="ltr" align=center>
     
 [**![Lang_farsi](https://user-images.githubusercontent.com/125398461/234186932-52f1fa82-52c6-417f-8b37-08fe9250a55f.png) فارسی**](README_fa.md) / [**Русский 🇷🇺**](README_ru.md) / [**简体中文 🇨🇳**](README_cn.md) / [**日本語 🇯🇵**](README_ja.md) / [**Portugês-BR 🇧🇷**](README_br.md)

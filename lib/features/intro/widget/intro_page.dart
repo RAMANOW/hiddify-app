@@ -253,7 +253,8 @@ class IntroPage extends HookConsumerWidget with PresLogger {
       case "TR":
         return RegionLocale(Region.tr, AppLocale.tr);
       default:
-        return RegionLocale(Region.other, AppLocale.en);
+        // Raman VPN is made for Iran: Iran and Persian unless the country says otherwise
+        return RegionLocale(Region.ir, AppLocale.fa);
     }
   }
 }

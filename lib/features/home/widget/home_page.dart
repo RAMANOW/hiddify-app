@@ -2,7 +2,9 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hiddify/core/app_info/app_info_provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hiddify/core/localization/translations.dart';
+import 'package:hiddify/features/raman/raman_strings.dart';
 import 'package:hiddify/core/router/bottom_sheets/bottom_sheets_notifier.dart';
 import 'package:hiddify/features/home/widget/connection_button.dart';
 import 'package:hiddify/features/home/widget/local_proxy_hint.dart';
@@ -61,6 +63,11 @@ class HomePage extends HookConsumerWidget {
           //     material: (context, platform) => MaterialIconButtonData(
           //           tooltip: t.profile.add.buttonText,
           //         )),
+          IconButton(
+            tooltip: ref.watch(ramanStringsProvider).toolsTitle,
+            icon: Icon(Icons.network_check_rounded, color: theme.colorScheme.primary),
+            onPressed: () => context.go(context.namedLocation('ramanTools')),
+          ),
           Semantics(
             key: const ValueKey("profile_add_button"),
             label: t.pages.profiles.add,

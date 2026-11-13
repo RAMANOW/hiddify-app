@@ -45,7 +45,8 @@ abstract class ConfigOptions {
 
   static final region = PreferencesNotifier.create<Region, String>(
     "region",
-    Region.other,
+    // Raman VPN: Iran by default, so domestic sites go direct
+    Region.ir,
     mapFrom: Region.values.byName,
     mapTo: (value) => value.name,
   );
@@ -233,7 +234,7 @@ abstract class ConfigOptions {
 
   static final independentDnsCache = PreferencesNotifier.create<bool, bool>("independent-dns-cache", true);
 
-  static final enableTlsFragment = PreferencesNotifier.create<bool, bool>("enable-tls-fragment", false);
+  static final enableTlsFragment = PreferencesNotifier.create<bool, bool>("enable-tls-fragment", true);
 
   static final fragmentPackets = PreferencesNotifier.create<String, String>(
     "fragment-packets",

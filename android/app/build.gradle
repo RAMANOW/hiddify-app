@@ -78,7 +78,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "app.hiddify.com"
+        applicationId "com.ramanow.ramanvpn"
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()

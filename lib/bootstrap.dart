@@ -28,6 +28,8 @@ import 'package:hiddify/features/log/data/log_data_providers.dart';
 import 'package:hiddify/features/profile/data/profile_data_providers.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
 import 'package:hiddify/features/proxy/active/active_proxy_notifier.dart';
+import 'package:hiddify/features/raman/iran_defaults.dart';
+import 'package:hiddify/features/raman/smart_dns_notifier.dart';
 import 'package:hiddify/features/settings/data/config_option_repository.dart';
 import 'package:hiddify/features/system_tray/notifier/system_tray_notifier.dart';
 import 'package:hiddify/features/window/notifier/window_notifier.dart';
@@ -102,6 +104,8 @@ Future<void> lazyBootstrap(WidgetsBinding widgetsBinding, Environment env) async
   logMarkRun(appInfo.format());
   Logger.bootstrap.info(appInfo.format());
 
+  await _safeInit("raman iran defaults", () => applyIranDefaultsOnce(container.read), timeout: 1000);
+
   await _init("translations", () => container.read(translationsProvider.future));
 
   await _init("database", () => _openDatabase(container));
@@ -148,6 +152,17 @@ Future<void> lazyBootstrap(WidgetsBinding widgetsBinding, Environment env) async
       container: container,
       child: SentryUserInteractionWidget(child: const App()),
     ),
+  );
+
+  // Raman VPN smart DNS: a few seconds after start, off the launch path, at most once a day
+  unawaited(
+    Future<void>.delayed(const Duration(seconds: 6), () async {
+      try {
+        await container.read(smartDnsProvider.notifier).startAutoChecks();
+      } catch (e, stackTrace) {
+        Logger.bootstrap.warning("smart dns auto check failed", e, stackTrace);
+      }
+    }),
   );
 
   // the router removes the splash after the first frame of its real routes; this only lets the frames through

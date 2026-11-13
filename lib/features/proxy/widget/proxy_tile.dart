@@ -405,7 +405,7 @@ class _PinBadge extends StatelessWidget {
   }
 }
 
-/// The Hiddify logo as the signal: its three columns light like a phone's three bars.
+/// The Raman VPN logo as the signal: its three columns light like a phone's three bars.
 class _Logo extends StatelessWidget {
   const _Logo(this.colors);
   final List<Color> colors;
@@ -432,7 +432,7 @@ class _Logo extends StatelessWidget {
   static const size = 13.0;
 
   // where the logo's columns split, as parts of its width (assets/images/logo.svg, 64 wide)
-  static const _cuts = [0.0, 17.6 / 64, 45.6 / 64, 1.0];
+  static const _cuts = [0.0, 22.0 / 64, 43.0 / 64, 1.0];
 
   @override
   Widget build(BuildContext context) => SizedBox.square(

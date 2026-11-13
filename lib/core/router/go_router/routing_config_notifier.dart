@@ -17,6 +17,7 @@ import 'package:hiddify/features/profile/details/profile_details_page.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
 import 'package:hiddify/features/profile/overview/profiles_page.dart';
 import 'package:hiddify/features/proxy/overview/proxies_overview_page.dart';
+import 'package:hiddify/features/raman/raman_tools_page.dart';
 import 'package:hiddify/features/route_rules/notifier/rule_notifier.dart';
 import 'package:hiddify/features/route_rules/overview/generic_list_page.dart';
 import 'package:hiddify/features/route_rules/overview/package_names_page.dart';
@@ -246,6 +247,12 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
                               customTransition(TransitionType.slide, state.pageKey, const AppListPage()),
                         ),
                       ],
+                    ),
+                    GoRoute(
+                      name: 'ramanTools',
+                      path: 'raman-tools',
+                      pageBuilder: (_, state) =>
+                          customTransition(TransitionType.slide, state.pageKey, const RamanToolsPage()),
                     ),
                     GoRoute(
                       name: 'dnsOptions',

@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:hiddify/utils/utils.dart';
 
 abstract class Constants {
-  static const appName = "Hiddify";
-  static const githubUrl = "https://github.com/hiddify/hiddify-next";
-  static const licenseUrl = "https://github.com/hiddify/hiddify-next?tab=License-1-ov-file#readme";
-  static const githubReleasesApiUrl = "https://api.github.com/repos/hiddify/hiddify-app/releases";
-  static const githubLatestReleaseUrl = "https://github.com/hiddify/hiddify-app/releases/latest";
+  static const appName = "Raman VPN";
+  static const githubUrl = "https://github.com/RAMANOW/hiddify-app";
+  /// The upstream project Raman VPN is based on.
+  static const upstreamUrl = "https://github.com/hiddify/hiddify-app";
+  static const licenseUrl = "https://github.com/RAMANOW/hiddify-app/blob/main/LICENSE.md";
+  static const githubReleasesApiUrl = "https://api.github.com/repos/RAMANOW/hiddify-app/releases";
+  static const githubLatestReleaseUrl = "https://github.com/RAMANOW/hiddify-app/releases/latest";
   static const telegramChannelUrl = "https://t.me/hiddify";
   static const bugReportEmail = "bug@hiddify.com";
   static const bugReportTelegramUrl = "https://t.me/hiddify_board";
