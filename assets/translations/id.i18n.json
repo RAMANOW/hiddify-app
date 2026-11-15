@@ -404,7 +404,7 @@
         "enableAnalyticsMsg": "Kirim analitik dan laporan kerusakan dari perangkat Anda untuk membantu meningkatkan aplikasi",
         "autoIpCheck": "Periksa IP koneksi secara otomatis",
         "reduceAnimations": "Kurangi animasi",
-        "reduceAnimationsMsg": "Tombol sambung tetap diam dan efek berulang dihentikan untuk menghemat baterai",
+        "reduceAnimationsMsg": "Cahaya di sekitar tombol sambung tetap diam saat tersambung untuk menghemat baterai",
         "dynamicNotification": "Tampilkan kecepatan di notifikasi",
         "hapticFeedback": "Umpan balik haptik",
         "alwaysOnVpn": "VPN selalu aktif",
@@ -1101,9 +1101,21 @@
       "notFound": "Tidak ada kode QR di gambar ini"
     },
     "crashReport": {
+      "recommended": "Disarankan",
+      "email": "Email",
+      "localOnly": "Hanya lokal",
+      "localOnlyMsg": "Tidak ada yang dikirim: simpan, lihat isinya, atau kirim sendiri nanti.",
+      "scrubSecrets": "Menghapus IP, domain, dan kunci",
+      "encryptingLogs": "Mengenkripsi log",
+      "notEncrypted": "Log tidak terenkripsi",
       "title": "Raman VPN mengalami crash terakhir kali",
-      "msg": "Kirim laporan ke pengembang agar masalah ini diperbaiki? Isinya detail crash, log, dan konfigurasi Anda dengan server, kunci, dan kata sandi dihapus, dalam satu file zip yang bisa Anda lihat sebelum dikirim.",
-      "send": "Kirim laporan"
+      "msg": "Kirim laporan agar kami bisa memperbaikinya. Log ikut terkirim.",
+      "problemMsg": "Ceritakan apa yang salah. Log ikut terkirim.",
+      "send": "Kirim laporan",
+      "steps": {
+        "ready": "Laporan siap",
+        "saveUnencryptedCopy": "Simpan salinan tanpa enkripsi"
+      }
     },
     "keepTop": {
       "title": "Langganan besar",

@@ -12,6 +12,7 @@ import 'package:hiddify/core/db/provider/db_providers.dart';
 import 'package:hiddify/core/directories/directories_provider.dart';
 import 'package:hiddify/core/localization/locale_preferences.dart';
 import 'package:hiddify/core/localization/translations.dart';
+import 'package:hiddify/core/logger/crash/app_crash_store.dart';
 import 'package:hiddify/core/logger/logger.dart';
 import 'package:hiddify/core/logger/logger_setup.dart';
 import 'package:hiddify/core/model/environment.dart';
@@ -57,6 +58,7 @@ Future<void> lazyBootstrap(WidgetsBinding widgetsBinding, Environment env) async
   await _init("directories", () => container.read(appDirectoriesProvider.future));
   // phase 2 — the folders exist, so app.log can be opened
   logAddFile(container.read(logPathResolverProvider).appFile().path);
+  openAppCrashStore(container.read(appDirectoriesProvider).requireValue.workingDir.path);
 
   final appInfo = await _init("app info", () => container.read(appInfoProvider.future));
   await _init("preferences", () => container.read(sharedPreferencesProvider.future));
@@ -80,9 +82,16 @@ Future<void> lazyBootstrap(WidgetsBinding widgetsBinding, Environment env) async
     }
   });
 
-  // The log level decides this now. There is no second debug switch to keep in
-  // sync, and the core reaches the same conclusion from the same value.
-  final debug = kDebugMode || container.read(ConfigOptions.logLevel).isVerbose;
+  // A dev build (a .dev tag or the draft release) is a beta: it joins the beta channel, so that
+  // it updates to the next beta rather than waiting for a stable release. A store build has no
+  // beta channel: the store delivers its updates (TestFlight is the App Store's beta)
+  if (env == Environment.dev && appInfo.release.allowCustomUpdateChecker) {
+    final build = "${appInfo.version}+${appInfo.buildNumber}";
+    if (container.read(Preferences.betaUpdatesJoinedBy) != build) {
+      await container.read(Preferences.betaUpdatesJoinedBy.notifier).update(build);
+      await container.read(Preferences.betaUpdates.notifier).update(true);
+    }
+  }
 
   if (PlatformUtils.isDesktop) {
     await _init("window controller", () => container.read(windowNotifierProvider.future));
@@ -96,9 +105,10 @@ Future<void> lazyBootstrap(WidgetsBinding widgetsBinding, Environment env) async
     }
     await _init("auto start service", () => container.read(autoStartNotifierProvider.future));
   }
-  // phase 3 — a log file is worth its cost on desktop, or while debugging.
-  // On a phone in release it only burns storage nobody reads.
-  await _init("logging", () async => logFinish(keepFile: debug || PlatformUtils.isDesktop));
+  // phase 3 — the file is kept everywhere: after a crash, it is the only log
+  // of the run that crashed, and the report sends it. Only errors reach it,
+  // and it is cut back when it grows.
+  await _init("logging", () async => logFinish(keepFile: true));
 
   // marks where this run begins, since the file now spans several
   logMarkRun(appInfo.format());
@@ -134,7 +144,13 @@ Future<void> lazyBootstrap(WidgetsBinding widgetsBinding, Environment env) async
         () => container.read(connectionNotifierProvider.notifier).restoreConnectionOnStartup(),
         timeout: 5000,
       );
-      await _safeInit("system tray", () => container.read(systemTrayNotifierProvider.future), timeout: 1000);
+      // nothing at start waits for the tray: it rebuilds on every connection change, and a
+      // connection restored just above keeps it rebuilding for a while (it used to time out here)
+      container.listen(systemTrayNotifierProvider, (_, next) {
+        if (next case AsyncError(:final error, :final stackTrace)) {
+          Logger.bootstrap.error("[system tray] error", error, stackTrace);
+        }
+      }, fireImmediately: true);
     }
 
     if (PlatformUtils.isAndroid) {
@@ -150,7 +166,7 @@ Future<void> lazyBootstrap(WidgetsBinding widgetsBinding, Environment env) async
   runApp(
     UncontrolledProviderScope(
       container: container,
-      child: SentryUserInteractionWidget(child: const App()),
+      child: NativeSplash.cover(SentryUserInteractionWidget(child: const App())),
     ),
   );
 

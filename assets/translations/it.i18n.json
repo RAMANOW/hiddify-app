@@ -404,7 +404,7 @@
         "enableAnalyticsMsg": "Invia statistiche e rapporti sugli arresti anomali dal tuo dispositivo per aiutare a migliorare l’app",
         "autoIpCheck": "Controlla automaticamente l’IP della connessione",
         "reduceAnimations": "Riduci le animazioni",
-        "reduceAnimationsMsg": "Tiene fermo il pulsante di connessione e ferma gli effetti ripetuti, per risparmiare batteria",
+        "reduceAnimationsMsg": "Tiene ferma la luce attorno al pulsante di connessione quando sei connesso, per risparmiare batteria",
         "dynamicNotification": "Mostra la velocità nella notifica",
         "hapticFeedback": "Feedback tattile",
         "alwaysOnVpn": "VPN sempre attiva",
@@ -1101,9 +1101,21 @@
       "notFound": "Nessun codice QR trovato in questa immagine"
     },
     "crashReport": {
+      "recommended": "Consigliato",
+      "email": "Email",
+      "localOnly": "Solo locale",
+      "localOnlyMsg": "Non viene inviato nulla: conservalo, guardaci dentro o invialo tu più tardi.",
+      "scrubSecrets": "Rimozione di IP, domini e chiavi",
+      "encryptingLogs": "Cifratura dei log",
+      "notEncrypted": "I log non sono cifrati",
       "title": "Raman VPN si è arrestato l’ultima volta",
-      "msg": "Inviare un rapporto agli sviluppatori per risolvere il problema? Contiene i dettagli dell’arresto, i log e la tua configurazione senza server, chiavi e password, in un unico file zip che puoi controllare prima di inviare.",
-      "send": "Invia il rapporto"
+      "msg": "Invia un report così lo sistemiamo. I log sono inclusi.",
+      "problemMsg": "Dicci cosa è andato storto. I log sono inclusi.",
+      "send": "Invia il rapporto",
+      "steps": {
+        "ready": "Rapporto pronto",
+        "saveUnencryptedCopy": "Salva una copia non cifrata"
+      }
     },
     "keepTop": {
       "title": "Un abbonamento grande",

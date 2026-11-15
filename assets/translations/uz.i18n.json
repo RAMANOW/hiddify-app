@@ -404,7 +404,7 @@
         "enableAnalyticsMsg": "Ilovani yaxshilashga yordam berish uchun qurilmangizdan analitika va ishdan chiqish hisobotlarini yuborish",
         "autoIpCheck": "Ulanish IP manzilini avtomatik tekshirish",
         "reduceAnimations": "Animatsiyalarni kamaytirish",
-        "reduceAnimationsMsg": "Batareyani tejash uchun ulanish tugmasini harakatsiz qoldirish va takrorlanuvchi effektlarni to‘xtatish",
+        "reduceAnimationsMsg": "Batareyani tejash uchun ulangan paytda ulanish tugmasi atrofidagi yorug‘likni harakatsiz qoldirish",
         "dynamicNotification": "Bildirishnomada tezlikni ko‘rsatish",
         "hapticFeedback": "Tebranish bilan javob",
         "alwaysOnVpn": "Doim yoqilgan VPN",
@@ -1101,9 +1101,21 @@
       "notFound": "Bu rasmda QR kod topilmadi"
     },
     "crashReport": {
+      "recommended": "Tavsiya etiladi",
+      "email": "Email",
+      "localOnly": "Faqat mahalliy",
+      "localOnlyMsg": "Hech narsa yuborilmaydi: saqlang, ichini ko‘ring yoki keyinroq o‘zingiz yuboring.",
+      "scrubSecrets": "IP, domen va kalitlar olib tashlanmoqda",
+      "encryptingLogs": "Loglar shifrlanmoqda",
+      "notEncrypted": "Loglar shifrlanmagan",
       "title": "Raman VPN oxirgi safar ishdan chiqdi",
-      "msg": "Buni tuzatish uchun dasturchilarga hisobot yuborilsinmi? Unda ishdan chiqish tafsilotlari, jurnallar va serverlar, kalitlar hamda parollari olib tashlangan konfiguratsiyangiz bor. U bitta zip fayl bo‘lib, yuborishdan oldin ko‘rib chiqishingiz mumkin.",
-      "send": "Hisobotni yuborish"
+      "msg": "Tuzatishimiz uchun hisobot yuboring. Loglar ham qoʻshiladi.",
+      "problemMsg": "Nima notoʻgʻri ketganini ayting. Loglar ham qoʻshiladi.",
+      "send": "Hisobotni yuborish",
+      "steps": {
+        "ready": "Hisobot tayyor",
+        "saveUnencryptedCopy": "Shifrlanmagan nusxani saqlash"
+      }
     },
     "keepTop": {
       "title": "Katta obuna",

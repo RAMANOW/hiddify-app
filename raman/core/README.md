@@ -1,9 +1,14 @@
 # Raman VPN core build
 
-Raman VPN uses its own build of [hiddify-core](https://github.com/hiddify/hiddify-core)
-(GNU GPL v3 with the Hiddify additional terms, see `LICENSE.md` of this repository and of
-hiddify-core) instead of the released `hiddify-lib-android.tar.gz`, so that Shield can pass its own
-Psiphon settings.
+**Experimental and not used by releases.** Raman VPN releases use the official released
+`hiddify-lib-android.tar.gz` of [hiddify-core](https://github.com/hiddify/hiddify-core) that
+`dependencies.properties` pins. This directory is an opt-in build of hiddify-core (GNU GPL v3 with
+the Hiddify additional terms, see `LICENSE.md` of this repository and of hiddify-core) so that Shield
+could one day pass its own Psiphon settings. It runs only when `raman-android.yml` is dispatched with
+`custom-core: true`, and is only usable with a Psiphon config issued to this project (secrets
+below): without one Shield has no Psiphon config. The app's Shield settings for these fields
+(protocol, beast mode, CDN, Conduit, alerts) stay "coming soon" until then. The patch was written
+against hiddify-core 5.9.0 and may need updating for the pinned version.
 
 - `build-core.sh` clones hiddify-core at the tag of `dependencies.properties` (`core.version`),
   applies `raman/core-patches/<dir>/*.patch` and builds `hiddify-core.aar` with gomobile

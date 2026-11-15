@@ -404,7 +404,7 @@
         "enableAnalyticsMsg": "Envoyez des statistiques et des rapports d'erreurs depuis votre appareil pour aider à améliorer l'application",
         "autoIpCheck": "Vérifier automatiquement l'IP de connexion",
         "reduceAnimations": "Réduire les animations",
-        "reduceAnimationsMsg": "Garde le bouton de connexion immobile et arrête les effets en boucle pour économiser la batterie",
+        "reduceAnimationsMsg": "Garde immobile la lumière autour du bouton de connexion une fois connecté, pour économiser la batterie",
         "dynamicNotification": "Afficher la vitesse dans la notification",
         "hapticFeedback": "Retour haptique",
         "alwaysOnVpn": "VPN toujours activé",
@@ -1101,9 +1101,21 @@
       "notFound": "Aucun code QR trouvé dans cette image"
     },
     "crashReport": {
+      "recommended": "Recommandé",
+      "email": "E-mail",
+      "localOnly": "Local uniquement",
+      "localOnlyMsg": "Rien n’est envoyé : gardez-le, regardez dedans ou envoyez-le vous-même plus tard.",
+      "scrubSecrets": "Retrait des IP, domaines et clés",
+      "encryptingLogs": "Chiffrement des journaux",
+      "notEncrypted": "Les journaux ne sont pas chiffrés",
       "title": "Raman VPN a planté la dernière fois",
-      "msg": "Envoyer un rapport aux développeurs pour corriger le problème ? Il contient les détails du plantage, les journaux et votre configuration sans serveurs, clés ni mots de passe, dans un seul fichier zip que vous pouvez consulter avant l'envoi.",
-      "send": "Envoyer le rapport"
+      "msg": "Envoyez un rapport pour qu'on corrige ça. Les journaux sont joints.",
+      "problemMsg": "Dites-nous ce qui n'a pas marché. Les journaux sont joints.",
+      "send": "Envoyer le rapport",
+      "steps": {
+        "ready": "Rapport prêt",
+        "saveUnencryptedCopy": "Enregistrer une copie non chiffrée"
+      }
     },
     "keepTop": {
       "title": "Un gros abonnement",

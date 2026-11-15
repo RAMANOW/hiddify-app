@@ -404,7 +404,7 @@
         "enableAnalyticsMsg": "Envie dados de análise e relatórios de falhas do seu dispositivo para ajudar a melhorar o aplicativo",
         "autoIpCheck": "Verificar IP da conexão automaticamente",
         "reduceAnimations": "Reduzir animações",
-        "reduceAnimationsMsg": "Mantém o botão de conexão parado e interrompe os efeitos em repetição para economizar bateria",
+        "reduceAnimationsMsg": "Mantém parada a luz ao redor do botão de conexão enquanto conectado, para economizar bateria",
         "dynamicNotification": "Exibir velocidade na notificação",
         "hapticFeedback": "Feedback tátil",
         "alwaysOnVpn": "VPN sempre ativa",
@@ -1101,9 +1101,21 @@
       "notFound": "Nenhum código QR encontrado nesta imagem"
     },
     "crashReport": {
+      "recommended": "Recomendado",
+      "email": "E-mail",
+      "localOnly": "Somente local",
+      "localOnlyMsg": "Nada é enviado: guarde, veja o conteúdo ou envie você mesmo depois.",
+      "scrubSecrets": "Removendo IPs, domínios e chaves",
+      "encryptingLogs": "Criptografando os logs",
+      "notEncrypted": "Os logs não estão criptografados",
       "title": "O Raman VPN fechou inesperadamente da última vez",
-      "msg": "Enviar um relatório aos desenvolvedores para corrigir isso? Ele contém os detalhes da falha, os logs e sua configuração sem servidores, chaves e senhas, em um único arquivo zip que você pode ver antes de enviar.",
-      "send": "Enviar relatório"
+      "msg": "Envie um relatório para corrigirmos. Os logs vão junto.",
+      "problemMsg": "Conte o que deu errado. Os logs vão junto.",
+      "send": "Enviar relatório",
+      "steps": {
+        "ready": "Relatório pronto",
+        "saveUnencryptedCopy": "Salvar uma cópia sem criptografia"
+      }
     },
     "keepTop": {
       "title": "Uma assinatura grande",

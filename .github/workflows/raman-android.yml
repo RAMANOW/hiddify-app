@@ -2,9 +2,15 @@
 # publishes them as a GitHub release. Without a signing key in the repo secrets the APKs are signed
 # with the debug key (android/app/build.gradle falls back to it), which installs fine.
 #
-# The core library (hiddify-core.aar) is built from hiddify-core's source with the patches of
-# raman/core-patches (job "core", raman/core/build-core.sh), not downloaded: the Raman patches let
-# Shield pass its own Psiphon settings. It is cached by the hash of those files.
+# The core library is the official hiddify-core release that dependencies.properties pins
+# (downloaded by `make android-apk-prepare`, as upstream does). Its built-in Psiphon config is what
+# Shield connects with.
+#
+# Experimental, opt-in (input custom-core, default off): job "core" builds hiddify-core from source
+# with the patches of raman/core-patches (raman/core/build-core.sh) so Shield could pass its own
+# Psiphon settings. That build embeds a Psiphon config only from the HIDDIFY_SECRET_KEY and
+# PSIPHON_CONFIG secrets (a config issued to this project by Psiphon Inc.); without them Shield has
+# no Psiphon config and does not work, so do not use it for a release until those exist.
 name: Raman VPN Android
 
 on:
@@ -14,8 +20,12 @@ on:
         description: Publish a GitHub release with this tag (empty = build only)
         type: string
         default: 'v1.3.0-raman'
+      custom-core:
+        description: 'Experimental: build the core from source with the Raman patches (needs the PSIPHON_CONFIG and HIDDIFY_SECRET_KEY secrets, otherwise Shield breaks)'
+        type: boolean
+        default: false
       inproxy:
-        description: Build the core with Psiphon in-proxy (Conduit) support
+        description: With custom-core, build it with Psiphon in-proxy (Conduit) support
         type: boolean
         default: true
   push:
@@ -36,10 +46,12 @@ permissions:
 # steps only: flutter-action reads a CHANNEL variable of its own.
 jobs:
   core:
+    # opt-in only: a push or a dispatch without custom-core uses the official core
+    if: github.event_name == 'workflow_dispatch' && inputs.custom-core
     runs-on: ubuntu-latest
     timeout-minutes: 300
     env:
-      INPROXY: ${{ github.event_name != 'workflow_dispatch' || inputs.inproxy }}
+      INPROXY: ${{ inputs.inproxy }}
     steps:
       - uses: actions/checkout@v4
 
@@ -123,6 +135,8 @@ jobs:
 
   android:
     needs: core
+    # runs after the custom core, or without it when that job is skipped
+    if: ${{ !failure() && !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -161,7 +175,8 @@ jobs:
           CHANNEL: prod
         run: make android-apk-prepare
 
-      - name: Use the Raman core
+      - name: Use the custom Raman core (experimental, opt-in)
+        if: needs.core.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: hiddify-core-aar
@@ -170,7 +185,7 @@ jobs:
       - name: Check the core
         run: |
           ls -la android/app/libs
-          unzip -l android/app/libs/hiddify-core.aar | grep -E 'jni/|classes.jar'
+          for aar in android/app/libs/*.aar; do unzip -l "$aar" | grep -E 'jni/|classes.jar'; done
 
       - name: Optional signing key
         env:
@@ -221,22 +236,9 @@ jobs:
           TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.release-tag }}
         run: |
           set -euo pipefail
-          cat > notes.md <<'EOF'
-          **Raman VPN (رامان VPN)** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial.
-
-          - Two tabs: **Raman** (your profiles and configs) and **Shield** (one-tap connect through the Psiphon network, no server needed)
-          - Shield: exit-country picker, use as extra security or unblocker for Raman profiles, per-app split tunneling, share the proxy on the local network
-          - Disguise icon: show the app as Calculator, Weather, Notes or Clock (Settings)
-          - New in 1.2: **Shield settings** (Shield tab → All Shield settings): Shield's own split tunneling (all / only selected / all except selected apps), upstream proxy (system or custom HTTP/SOCKS5 with username, password and NTLM domain), network sharing port, disable timeouts for slow networks, sound and vibration on connection changes, stealth notifications, open a website after connecting, language, disguise icon, always-on VPN shortcut
-          - New in 1.3: **Shield connection settings**: connection protocol (Automatic / Direct / CDN fronting / Conduit volunteer relays), beast mode (more servers tried at once), Conduit pairing ID of your own relay with automatic fallback to public relays after 2–10 minutes, unsafe-traffic (malware) alerts as notifications
-          - Smart DNS, network checker, Iran defaults
-
-          The core library is built from [hiddify-core](https://github.com/hiddify/hiddify-core) 5.9.0 source with the patches in [`raman/core-patches`](https://github.com/RAMANOW/hiddify-app/tree/main/raman/core-patches) (Psiphon settings merged on top of the built-in Psiphon config), same license.
-
-          Install `RamanVPN-Android-universal.apk` if you are not sure which one fits your phone. These APKs are signed with a different key from earlier releases: uninstall the old version first.
-          EOF
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" out/*.apk --clobber
+            gh release edit "$TAG" --notes-file raman/release-notes.md
           else
-            gh release create "$TAG" out/*.apk --target "$GITHUB_SHA" --title "Raman VPN $TAG" --notes-file notes.md
+            gh release create "$TAG" out/*.apk --target "$GITHUB_SHA" --title "Raman VPN $TAG" --notes-file raman/release-notes.md
           fi

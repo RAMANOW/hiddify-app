@@ -404,7 +404,7 @@
         "enableAnalyticsMsg": "Uygulamayı iyileştirmeye yardımcı olmak için cihazınızdan analiz ve kilitlenme raporları gönderin",
         "autoIpCheck": "Bağlantı IP'sini otomatik kontrol et",
         "reduceAnimations": "Animasyonları azalt",
-        "reduceAnimationsMsg": "Bağlan düğmesini sabit tutar ve tekrar eden efektleri durdurarak pil tasarrufu sağlar",
+        "reduceAnimationsMsg": "Bağlıyken bağlan düğmesinin etrafındaki ışığı sabit tutarak pil tasarrufu sağlar",
         "dynamicNotification": "Hızı bildirimde göster",
         "hapticFeedback": "Dokunsal geri bildirim",
         "alwaysOnVpn": "Her zaman açık VPN",
@@ -1101,9 +1101,21 @@
       "notFound": "Bu görselde QR kod bulunamadı"
     },
     "crashReport": {
+      "recommended": "Önerilen",
+      "email": "E-posta",
+      "localOnly": "Yalnızca yerel",
+      "localOnlyMsg": "Hiçbir şey gönderilmez: saklayın, içine bakın ya da sonra kendiniz gönderin.",
+      "scrubSecrets": "IP'ler, alan adları ve anahtarlar kaldırılıyor",
+      "encryptingLogs": "Günlükler şifreleniyor",
+      "notEncrypted": "Günlükler şifrelenmedi",
       "title": "Raman VPN geçen sefer çöktü",
-      "msg": "Bunun düzeltilmesi için geliştiricilere rapor gönderilsin mi? Rapor, çökme ayrıntılarını, logları ve sunucuları, anahtarları ve parolaları çıkarılmış yapılandırmanızı içerir; göndermeden önce bakabileceğiniz tek bir zip dosyasıdır.",
-      "send": "Raporu gönder"
+      "msg": "Düzeltebilmemiz için rapor gönderin. Günlükler de eklenir.",
+      "problemMsg": "Neyin ters gittiğini anlatın. Günlükler de eklenir.",
+      "send": "Raporu gönder",
+      "steps": {
+        "ready": "Rapor hazır",
+        "saveUnencryptedCopy": "Şifrelenmemiş kopyayı kaydet"
+      }
     },
     "keepTop": {
       "title": "Büyük bir abonelik",
@@ -1195,6 +1207,11 @@
       "wipeData": "Verileri sil",
       "wipeConfirm": "Kayıtlı veriler silinir ve Raman VPN baştan başlar. Hâlâ okunabilen profiller geri eklenir; gerisi kurtarılamaz.",
       "copyError": "Hatayı kopyala"
+    },
+    "telegramChannel": {
+      "title": "Telegram'da Raman VPN'a katılın",
+      "msg": "Haberler, yeni sürümler ve bağlı kalma ipuçları için resmi Raman VPN kanalını takip edin.",
+      "join": "Kanala katıl"
     }
   },
   "connection": {

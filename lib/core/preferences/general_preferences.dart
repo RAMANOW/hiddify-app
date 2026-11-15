@@ -118,6 +118,14 @@ abstract class Preferences {
 
   static final autoCheckIp = PreferencesNotifier.create<bool, bool>("auto_check_ip", true);
 
+  /// The beta channel: updates to pre-releases (a .dev tag, or one still a pre-release on GitHub)
+  /// too, not only to stable releases.
+  static final betaUpdates = PreferencesNotifier.create<bool, bool>("beta_updates", false);
+
+  /// The dev build (version+build) that last joined the beta channel on its own, so that a dev
+  /// build joins it once and the user can still leave it.
+  static final betaUpdatesJoinedBy = PreferencesNotifier.create<String, String>("beta_updates_joined_by", "");
+
   /// Keeps the connect button still and stops the decorative loops, as the system's own reduce
   /// motion setting does: less CPU, and so battery, on a laptop or an old phone.
   static final reduceAnimations = PreferencesNotifier.create<bool, bool>("reduce_animations", false);
@@ -125,6 +133,22 @@ abstract class Preferences {
   static final startedByUser = PreferencesNotifier.create<bool, bool>("started_by_user", false);
 
   static final storeReviewedByUser = PreferencesNotifier.create<bool, bool>("store_reviewed_by_user", false);
+
+  /// When this install first ran past the intro, so the Telegram channel is offered only after a while of use.
+  static final firstUsedAt = PreferencesNotifier.create<DateTime?, String?>(
+    "first_used_at",
+    null,
+    mapFrom: (value) => value == null ? null : DateTime.tryParse(value),
+    mapTo: (value) => value?.toIso8601String(),
+  );
+
+  /// When the Telegram channel was last offered: it is offered again a month later.
+  static final telegramChannelOfferedAt = PreferencesNotifier.create<DateTime?, String?>(
+    "telegram_channel_offered_at",
+    null,
+    mapFrom: (value) => value == null ? null : DateTime.tryParse(value),
+    mapTo: (value) => value?.toIso8601String(),
+  );
 
   static final actionAtClose = PreferencesNotifier.create<ActionsAtClosing, String>(
     "action_at_close",

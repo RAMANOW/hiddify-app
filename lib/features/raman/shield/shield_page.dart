@@ -34,8 +34,6 @@ class ShieldPage extends HookConsumerWidget {
     final lan = ref.watch(ConfigOptions.allowConnectionFromLan);
     final port = ref.watch(ConfigOptions.lanSharingPort);
     final controller = ref.read(shieldControllerProvider);
-    // Psiphon server alerts (unsafe traffic) become notifications while this tab exists
-    ref.watch(shieldAlertWatcherProvider);
 
     // Shield's connection changes: a sound and/or vibration, and the website to open once connected
     ref.listen(connectionNotifierProvider, (previous, next) {

@@ -404,7 +404,7 @@
         "enableAnalyticsMsg": "Stuur analyses en crashrapporten van je apparaat om de app te helpen verbeteren",
         "autoIpCheck": "IP-adres van de verbinding automatisch controleren",
         "reduceAnimations": "Minder animaties",
-        "reduceAnimationsMsg": "Houd de verbindingsknop stil en stop herhalende effecten om batterij te besparen",
+        "reduceAnimationsMsg": "Houd het licht rond de verbindingsknop stil zolang je verbonden bent, om batterij te besparen",
         "dynamicNotification": "Snelheid tonen in melding",
         "hapticFeedback": "Haptische feedback",
         "alwaysOnVpn": "Altijd-aan-VPN",
@@ -1101,9 +1101,21 @@
       "notFound": "Geen QR-code gevonden in deze afbeelding"
     },
     "crashReport": {
+      "recommended": "Aanbevolen",
+      "email": "E-mail",
+      "localOnly": "Alleen lokaal",
+      "localOnlyMsg": "Er wordt niets verzonden: bewaar het, kijk erin of stuur het later zelf.",
+      "scrubSecrets": "IP's, domeinen en sleutels verwijderen",
+      "encryptingLogs": "Logs versleutelen",
+      "notEncrypted": "Logs zijn niet versleuteld",
       "title": "Raman VPN is de vorige keer gecrasht",
-      "msg": "Een rapport naar de ontwikkelaars sturen zodat dit wordt opgelost? Het bevat de crashgegevens, de logboeken en je configuratie zonder servers, sleutels en wachtwoorden, als één zipbestand dat je kunt bekijken voordat je het verstuurt.",
-      "send": "Rapport versturen"
+      "msg": "Stuur een rapport zodat we het oplossen. De logs gaan mee.",
+      "problemMsg": "Vertel wat er misging. De logs gaan mee.",
+      "send": "Rapport versturen",
+      "steps": {
+        "ready": "Rapport klaar",
+        "saveUnencryptedCopy": "Onversleutelde kopie opslaan"
+      }
     },
     "keepTop": {
       "title": "Een groot abonnement",
