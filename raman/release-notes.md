@@ -1,4 +1,24 @@
-**Raman VPN (رامان VPN) 1.4** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial.
+**Raman VPN (رامان VPN) 1.4.1** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial.
+
+### تازه‌های ۱.۴.۱ (تنظیمات شیلد)
+- 🛡️ گزینه‌های «به‌زودی» شیلد که هسته‌ی رسمی ۵.۹.۱۵ پشتیبانی می‌کند، حالا کار می‌کنند:
+  - **پروتکل اتصال**: «خودکار» (همه‌ی پروتکل‌ها همراه با جست‌وجوی لبه‌های CDN) یا «فقط مستقیم» (بدون جست‌وجوی CDN، فقط پروتکل‌های TCP؛ برای شبکه‌های باز سریع‌تر)
+  - **حالت تهاجمی (Beast)**: جست‌وجوی عمیق از همان ابتدا، بدون محدودیت زمان و با تلاش‌های هم‌زمان بیشتر
+  - **شبکه‌های CDN**: انتخاب CDNهایی که شیلد از پشت آن‌ها عبور می‌کند (Cloudflare، Fastly، CloudFront، Akamai و…)
+  - **IPهای لبه‌ی CDN**: IP یا بازه‌ی CIDR دلخواه (IPv4) که اول امتحان می‌شود
+  - **نام‌های SNI برای CDN**: همراه با IPهای خودتان فرستاده می‌شوند
+- این گزینه‌ها فقط وقتی شیلد مستقیم وصل می‌شود (بدون پروکسی بالادستی) اثر دارند.
+- گزینه‌هایی که هسته‌ی رسمی ندارد (Conduit، هشدار بدافزار، اشتراک NFC، به‌روزرسانی فقط با Wi‑Fi) غیرفعال مانده‌اند و دلیلشان کنار هرکدام نوشته شده است.
+
+### New in 1.4.1 (Shield settings)
+- 🛡️ The Shield options marked "coming soon" that official core 5.9.15 supports now work:
+  - **Connection protocol**: Automatic (every protocol, with the CDN edge search) or Direct only (no CDN search, TCP protocols only; faster on open networks)
+  - **Beast mode**: a deep search from the start, with no time limit and more attempts at once
+  - **CDN networks**: pick the CDNs Shield fronts through (Cloudflare, Fastly, CloudFront, Akamai…)
+  - **CDN edge IPs**: your own IPv4 addresses or CIDR ranges, tried first
+  - **CDN SNI hostnames**: sent with your own edge IPs
+- These take effect when Shield connects directly (no upstream proxy).
+- Options the official core lacks (Conduit, malware alerts, NFC bump, Wi‑Fi-only upgrades) stay disabled, each with its reason.
 
 ### تازه‌های ۱.۴ (بر پایه‌ی Hiddify 5.9.15)
 - 🔎 جست‌وجوگر مشترک WARP و Psiphon: اگر جست‌وجوی راه عبور در زمان معمول به نتیجه نرسد، برنامه «جست‌وجوی عمیق» را پیشنهاد می‌دهد (ممکن است طول بکشد و باتری مصرف کند، پس اول می‌پرسد)
@@ -22,7 +42,7 @@
 - 📱 Steadier Android service: the VPN goes down when its core stops, better quick-settings tile and DNS handling
 - 📝 "Report a problem" can record 10 minutes of detailed logs first; the report stays on your device
 - 🔤 Error messages in Persian read right to left
-- 🛡️ Shield unchanged: all its settings work as before (connection protocol, beast mode, CDN and Conduit options stay "coming soon")
+- 🛡️ Shield unchanged: all its settings work as before
 
 ### Raman VPN
 - Two tabs: **Raman** (your profiles and configs) and **Shield** (one-tap connect through the Psiphon network, no server needed)

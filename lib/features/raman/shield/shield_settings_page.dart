@@ -148,6 +148,49 @@ class _TextDialog extends HookWidget {
   }
 }
 
+/// Picks the built-in CDN sets Shield fronts through; none picked = all.
+class _CdnSetsDialog extends HookWidget {
+  const _CdnSetsDialog({required this.s, required this.selected});
+
+  final RamanStrings s;
+  final List<String> selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final picked = useState<Set<String>>(selected.where(ShieldPrefs.builtInCdnSets.contains).toSet());
+    return AlertDialog(
+      title: Text(s.ssCdnSets),
+      contentPadding: const EdgeInsets.only(top: 12),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            CheckboxListTile(
+              value: picked.value.isEmpty,
+              title: Text(s.ssCdnSetsAll),
+              onChanged: (_) => picked.value = <String>{},
+            ),
+            for (final name in ShieldPrefs.builtInCdnSets)
+              CheckboxListTile(
+                value: picked.value.contains(name),
+                title: Text(name, textDirection: TextDirection.ltr),
+                onChanged: (v) => picked.value = v == true ? {...picked.value, name} : ({...picked.value}..remove(name)),
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(s.ssCancel)),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(ShieldPrefs.builtInCdnSets.where(picked.value.contains).toList()),
+          child: Text(s.ssSave),
+        ),
+      ],
+    );
+  }
+}
+
 /// All of Shield's settings, reached from the Shield tab.
 class ShieldSettingsPage extends HookConsumerWidget {
   const ShieldSettingsPage({super.key});
@@ -181,6 +224,13 @@ class ShieldSettingsPage extends HookConsumerWidget {
     final openSite = ref.watch(ShieldPrefs.openSite);
     final openSiteUrl = ref.watch(ShieldPrefs.openSiteUrl);
     final lanPort = ref.watch(ConfigOptions.lanSharingPort);
+    final protocolMode = ref.watch(ShieldPrefs.protocolMode);
+    final beast = ref.watch(ShieldPrefs.beast);
+    final cdnSets = shieldListItems(ref.watch(ShieldPrefs.cdnSets));
+    final cdnIps = ref.watch(ShieldPrefs.cdnIps);
+    final cdnSni = ref.watch(ShieldPrefs.cdnSni);
+    // the core scans CDN edges and searches only when Psiphon is the first hop
+    final scanOn = !upstream && protocolMode == ShieldProtocolMode.auto;
 
     /// Saves a setting that goes into Shield's connection; a running Shield is reconnected on Apply.
     Future<void> update<T>(PreferencesNotifier<T, dynamic> notifier, T value) async {
@@ -202,13 +252,13 @@ class ShieldSettingsPage extends HookConsumerWidget {
       ),
     );
 
-    Widget soon(IconData icon, String title, String subtitle, {String? why}) => ListTile(
+    /// An option the official core cannot do, with the reason.
+    Widget unavailable(IconData icon, String title, String why) => ListTile(
       enabled: false,
       leading: Icon(icon),
       title: Text(title),
-      subtitle: Text([if (subtitle.isNotEmpty) subtitle, s.ssSoonNote(why ?? s.ssNeedsCore)].join('\n')),
-      isThreeLine: subtitle.isNotEmpty,
-      trailing: Chip(label: Text(s.ssSoon), visualDensity: VisualDensity.compact),
+      subtitle: Text(why),
+      trailing: Chip(label: Text(s.ssUnavailable), visualDensity: VisualDensity.compact),
     );
 
     Widget textTile({
@@ -219,15 +269,20 @@ class ShieldSettingsPage extends HookConsumerWidget {
       String? hint,
       bool obscure = false,
       bool digits = false,
+      bool multiline = false,
       bool enabled = true,
+      String? note,
       String? Function(String)? validate,
     }) => ListTile(
       enabled: enabled,
       leading: icon != null ? Icon(icon) : const SizedBox(width: 24),
       title: Text(title),
       subtitle: Text(
-        value.isEmpty ? s.ssNotSet : (obscure ? '•' * value.length.clamp(4, 12) : value),
-        textDirection: value.isEmpty ? null : TextDirection.ltr,
+        [
+          if (value.isEmpty) s.ssNotSet else (obscure ? '•' * value.length.clamp(4, 12) : (multiline ? shieldListItems(value).join(', ') : value)),
+          if (note != null) note,
+        ].join('\n'),
+        textDirection: value.isEmpty || note != null ? null : TextDirection.ltr,
       ),
       onTap: () async {
         final v = await _editText(
@@ -238,9 +293,10 @@ class ShieldSettingsPage extends HookConsumerWidget {
           hint: hint,
           obscure: obscure,
           digits: digits,
+          multiline: multiline,
           validate: validate,
         );
-        if (v != null) await update(notifier, v);
+        if (v != null) await update(notifier, multiline ? shieldListItems(v).join('\n') : v);
       },
     );
 
@@ -448,15 +504,96 @@ class ShieldSettingsPage extends HookConsumerWidget {
             value: disableTimeouts,
             onChanged: (v) => update(ref.read(ShieldPrefs.disableTimeouts.notifier), v),
           ),
-          soon(Icons.hub_rounded, s.ssProtocol, s.ssProtocolSub),
-          soon(Icons.bolt_rounded, s.ssBeast, s.ssBeastSub),
-          section(s.ssSecCdn),
-          soon(Icons.cloud_rounded, s.ssCdnIps, 'IP / CIDR'),
-          soon(Icons.badge_rounded, s.ssCdnSni, 'SNI'),
-          section(s.ssSecConduit, help: s.ssConduitWhy),
-          soon(Icons.diversity_3_rounded, s.ssConduitMode, 'Auto / Private / Public'),
-          soon(Icons.timer_rounded, s.ssConduitTimeout, '2 / 3 / 5 / 10 min'),
-          soon(Icons.block_rounded, s.ssConduitReject, 'IR, CN, RU…'),
+          ListTile(
+            leading: const Icon(Icons.hub_rounded),
+            title: Text(s.ssProtocol),
+            subtitle: Text(
+              protocolMode == ShieldProtocolMode.auto
+                  ? '${s.ssProtocolAuto} — ${s.ssProtocolAutoSub}'
+                  : '${s.ssProtocolDirect} — ${s.ssProtocolDirectSub}',
+            ),
+            trailing: const Icon(Icons.arrow_drop_down_rounded),
+            onTap: () async {
+              final picked = await showDialog<ShieldProtocolMode>(
+                context: context,
+                builder: (context) => SimpleDialog(
+                  title: Text(s.ssProtocol),
+                  children: [
+                    for (final (mode, title, sub) in [
+                      (ShieldProtocolMode.auto, s.ssProtocolAuto, s.ssProtocolAutoSub),
+                      (ShieldProtocolMode.direct, s.ssProtocolDirect, s.ssProtocolDirectSub),
+                    ])
+                      RadioListTile<ShieldProtocolMode>(
+                        value: mode,
+                        groupValue: protocolMode,
+                        title: Text(title),
+                        subtitle: Text(sub),
+                        onChanged: (v) => Navigator.of(context).pop(v),
+                      ),
+                  ],
+                ),
+              );
+              if (picked != null && picked != protocolMode) await update(ref.read(ShieldPrefs.protocolMode.notifier), picked);
+            },
+          ),
+          SwitchListTile.adaptive(
+            secondary: const Icon(Icons.bolt_rounded),
+            title: Text(s.ssBeast),
+            subtitle: Text(scanOn ? s.ssBeastSub : '${s.ssBeastSub}\n${s.ssNeedsDirectHop}'),
+            isThreeLine: !scanOn,
+            value: beast,
+            onChanged: scanOn ? (v) => update(ref.read(ShieldPrefs.beast.notifier), v) : null,
+          ),
+          section(s.ssSecCdn, help: scanOn ? s.ssCdnHelp : '${s.ssCdnHelp}\n${s.ssNeedsDirectHop}'),
+          ListTile(
+            enabled: scanOn,
+            leading: const Icon(Icons.lan_rounded),
+            title: Text(s.ssCdnSets),
+            subtitle: Text(cdnSets.isEmpty ? s.ssCdnSetsAll : cdnSets.join(', '), textDirection: cdnSets.isEmpty ? null : TextDirection.ltr),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () async {
+              final picked = await showDialog<List<String>>(
+                context: context,
+                builder: (context) => _CdnSetsDialog(s: s, selected: cdnSets),
+              );
+              if (picked != null) await update(ref.read(ShieldPrefs.cdnSets.notifier), picked.join(';'));
+            },
+          ),
+          textTile(
+            icon: Icons.cloud_rounded,
+            title: s.ssCdnIps,
+            value: cdnIps,
+            hint: s.ssCdnIpsHint,
+            multiline: true,
+            enabled: scanOn,
+            notifier: ref.read(ShieldPrefs.cdnIps.notifier),
+            validate: (v) {
+              for (final item in shieldListItems(v)) {
+                if (shieldCidr(item) == null) return s.ssCdnIpsInvalid(item);
+              }
+              return null;
+            },
+          ),
+          textTile(
+            icon: Icons.badge_rounded,
+            title: s.ssCdnSni,
+            value: cdnSni,
+            hint: s.ssCdnSniHint,
+            multiline: true,
+            enabled: scanOn && shieldListItems(cdnIps).isNotEmpty,
+            note: s.ssCdnSniNeedsIps,
+            notifier: ref.read(ShieldPrefs.cdnSni.notifier),
+            validate: (v) {
+              for (final item in shieldListItems(v)) {
+                if (!shieldValidHostname(item)) return s.ssCdnSniInvalid(item);
+              }
+              return null;
+            },
+          ),
+          section(s.ssSecConduit),
+          unavailable(Icons.diversity_3_rounded, s.ssConduitMode, s.ssConduitWhy),
+          unavailable(Icons.timer_rounded, s.ssConduitTimeout, s.ssConduitWhy),
+          unavailable(Icons.block_rounded, s.ssConduitReject, s.ssConduitWhy),
 
           // notifications
           section(s.ssSecNotifications),
@@ -519,9 +656,9 @@ class ShieldSettingsPage extends HookConsumerWidget {
               notifier: ref.read(ShieldPrefs.openSiteUrl.notifier),
               validate: _validateUrl(s),
             ),
-          soon(Icons.gpp_maybe_rounded, s.ssMalware, '', why: s.ssMalwareWhy),
-          soon(Icons.contactless_rounded, s.ssNfc, '', why: s.ssNfcWhy),
-          soon(Icons.system_update_rounded, s.ssWifiUpdates, '', why: s.ssWifiUpdatesWhy),
+          unavailable(Icons.gpp_maybe_rounded, s.ssMalware, s.ssMalwareWhy),
+          unavailable(Icons.contactless_rounded, s.ssNfc, s.ssNfcWhy),
+          unavailable(Icons.system_update_rounded, s.ssWifiUpdates, s.ssWifiUpdatesWhy),
           ListTile(
             leading: const Icon(Icons.send_rounded),
             title: Text(s.ssFeedback),

@@ -84,7 +84,66 @@ abstract class ShieldPrefs {
   static final openSiteUrl = PreferencesNotifier.create<String, String>('raman-shield-open-site-url', '');
 
   static const establishTimeoutSlow = '30m';
+
+  // CDN fronting and search (core 5.9.15 psiphon outbound field `scanner`)
+  /// auto: every protocol and the CDN edge scan (core default as the first hop); direct: no scan,
+  /// the tunnel core's TCP protocols only (scanner.enabled = false).
+  static final protocolMode = PreferencesNotifier.create<ShieldProtocolMode, String>(
+    'raman-shield-protocol-mode',
+    ShieldProtocolMode.auto,
+    mapFrom: ShieldProtocolMode.values.byName,
+    mapTo: (value) => value.name,
+  );
+
+  /// Beast mode: a deep search from the start (scanner.search_timeout < 0: no time limit, more
+  /// probes at once, the tunnel core's aggressive establishment).
+  static final beast = PreferencesNotifier.create<bool, bool>('raman-shield-beast', false);
+
+  /// The built-in CDN sets scanned and fronted through, ';'-joined; empty = all (scanner.sets).
+  static final cdnSets = PreferencesNotifier.create<String, String>('raman-shield-cdn-sets', '');
+
+  /// The user's own CDN edges, IPv4 addresses or CIDRs, one per line or comma-separated (scanner.cidrs).
+  static final cdnIps = PreferencesNotifier.create<String, String>('raman-shield-cdn-ips', '');
+
+  /// TLS server names sent to the user's own edges (scanner.server_names; only with cdnIps).
+  static final cdnSni = PreferencesNotifier.create<String, String>('raman-shield-cdn-sni', '');
+
+  /// The CDN sets built into core 5.9.15 (hiddify-sing-box protocol/psiphon/h_cdn_edges.go).
+  static const builtInCdnSets = [
+    'cloudflare',
+    'fastly',
+    'cloudfront',
+    'psiphon-akamai',
+    'psiphon-bunny',
+    'vercel',
+    'github',
+    'google',
+    'curated-fronting',
+    'legacy-android-overrides',
+  ];
 }
+
+enum ShieldProtocolMode { auto, direct }
+
+/// Items of a list setting: split on new lines, commas, semicolons and spaces.
+List<String> shieldListItems(String value) =>
+    value.split(RegExp(r'[\s,;]+')).map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+
+final _ipv4 = RegExp(r'^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$');
+
+/// An IPv4 address or CIDR as a prefix for the core ("1.2.3.4" -> "1.2.3.4/32"), or null.
+String? shieldCidr(String item) {
+  final parts = item.split('/');
+  if (parts.length > 2 || !_ipv4.hasMatch(parts[0])) return null;
+  if (parts.length == 1) return '${parts[0]}/32';
+  final bits = int.tryParse(parts[1]);
+  if (bits == null || bits < 0 || bits > 32) return null;
+  return '${parts[0]}/$bits';
+}
+
+final _hostname = RegExp(r'^(?=.{1,253}$)([a-zA-Z0-9_]([a-zA-Z0-9_-]{0,61}[a-zA-Z0-9])?)(\.[a-zA-Z0-9_]([a-zA-Z0-9_-]{0,61}[a-zA-Z0-9])?)*$');
+
+bool shieldValidHostname(String item) => _hostname.hasMatch(item);
 
 /// Which apps go through Shield: all, only the listed ones, or all but the listed ones.
 enum ShieldSplitMode { all, include, exclude }
@@ -178,8 +237,12 @@ class ShieldController with InfraLogger {
 
   /// The profile Shield runs as: one Psiphon outbound of the core, with the exit country, the
   /// upstream proxy and the tunnel timeout from Shield's settings.
-  static String contentFor(PsiphonRegion region, {String? upstreamProxyUrl, bool disableTimeouts = false}) =>
-      jsonEncode({
+  static String contentFor(
+    PsiphonRegion region, {
+    String? upstreamProxyUrl,
+    bool disableTimeouts = false,
+    Map<String, dynamic>? scanner,
+  }) => jsonEncode({
         'outbounds': [
           {
             'type': 'psiphon',
@@ -189,6 +252,7 @@ class ShieldController with InfraLogger {
             if (region != PsiphonRegion.auto) 'egress_region': region.key,
             if (upstreamProxyUrl != null && upstreamProxyUrl.isNotEmpty) 'upstream_proxy_url': upstreamProxyUrl,
             if (disableTimeouts) 'establish_tunnel_timeout': ShieldPrefs.establishTimeoutSlow,
+            if (scanner != null && scanner.isNotEmpty) 'scanner': scanner,
           },
         ],
       });
@@ -243,10 +307,39 @@ class ShieldController with InfraLogger {
     return b.toString();
   }
 
+  /// The psiphon outbound's `scanner` (core 5.9.15): the CDN edge scan and search of Psiphon as
+  /// the first hop. The core runs it only without an upstream proxy; null keeps its defaults.
+  static Map<String, dynamic>? scannerFor({
+    required ShieldProtocolMode mode,
+    required bool beast,
+    required List<String> sets,
+    required List<String> cidrs,
+    required List<String> serverNames,
+  }) {
+    if (mode == ShieldProtocolMode.direct) return {'enabled': false};
+    final scanner = <String, dynamic>{
+      if (sets.isNotEmpty) 'sets': sets,
+      if (cidrs.isNotEmpty) 'cidrs': cidrs,
+      if (cidrs.isNotEmpty && serverNames.isNotEmpty) 'server_names': serverNames,
+      // below zero: a deep search from the start (aggressive establishment, no time limit)
+      if (beast) 'search_timeout': '-1s',
+    };
+    return scanner.isEmpty ? null : scanner;
+  }
+
+  Map<String, dynamic>? buildScanner() => scannerFor(
+    mode: _ref.read(ShieldPrefs.protocolMode),
+    beast: _ref.read(ShieldPrefs.beast),
+    sets: shieldListItems(_ref.read(ShieldPrefs.cdnSets)).where(ShieldPrefs.builtInCdnSets.contains).toList(),
+    cidrs: shieldListItems(_ref.read(ShieldPrefs.cdnIps)).map(shieldCidr).whereType<String>().toList(),
+    serverNames: shieldListItems(_ref.read(ShieldPrefs.cdnSni)).where(shieldValidHostname).toList(),
+  );
+
   Future<String> buildContent() async => contentFor(
     _ref.read(ShieldPrefs.region),
     upstreamProxyUrl: await upstreamProxyUrl(),
     disableTimeouts: _ref.read(ShieldPrefs.disableTimeouts),
+    scanner: buildScanner(),
   );
 
   bool get isShieldActive => _ref.read(shieldActiveProvider);
