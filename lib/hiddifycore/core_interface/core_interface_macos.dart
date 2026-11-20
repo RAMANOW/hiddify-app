@@ -83,7 +83,14 @@ class CoreInterfaceMacOS extends CoreInterfaceDesktop {
 
   @override
   Future<String> setup(Directories directories, bool debug, int mode) async {
-    if (_nativeSubscription != null) return '';
+    if (_nativeSubscription != null) {
+      // set up already; a core process that was given up on after its crashes is started again
+      // here, or every call failed until the app was relaunched
+      if (!coreProcessGivenUp) return '';
+      final error = await super.setup(directories, debug, mode);
+      if (error.isEmpty) _listenForeground();
+      return error;
+    }
     final workingDirectory = directories.workingDir.absolute;
     final error = await super.setup(directories, debug, mode);
     if (error.isNotEmpty) return error;
@@ -102,10 +109,20 @@ class CoreInterfaceMacOS extends CoreInterfaceDesktop {
   @override
   void onCoreProcessRestarted() => _listenForeground();
 
+  /// The app's core crashed. Without a VPN its connection went with it: that is a failed
+  /// connection, with the crash's reason; before, only a stream error said so, as a plain stop.
+  @override
+  void onCoreProcessExited(String message) {
+    if (_usingVPN || _status.isClosed) return;
+    if (_status.valueOrNull is CoreStopped) return;
+    _status.add(CoreStatus.stopped(alert: CoreAlert.startFailed, message: message));
+  }
+
   /// Follows the app core's status while no VPN runs (proxy modes).
   void _listenForeground() {
     unawaited(_foregroundSubscription?.cancel());
-    _foregroundSubscription = fgClient
+    late final StreamSubscription<CoreInfoResponse> subscription;
+    _foregroundSubscription = subscription = fgClient
         .coreInfoListener(Empty())
         .cancelOnUnsubscribe
         .listen(
@@ -118,8 +135,14 @@ class CoreInterfaceMacOS extends CoreInterfaceDesktop {
               );
             }
           },
+          // the stream ends with the core's process (onCoreProcessExited reports that) or with
+          // its channel, which reconnects: neither is a stop of the core, and the listener is
+          // armed again
           onError: (Object error) {
-            if (!_usingVPN) _status.add(CoreStatus.stopped(message: error.toString()));
+            loggy.debug('foreground status stream ended: $error');
+            Future<void>.delayed(const Duration(seconds: 1), () {
+              if (identical(_foregroundSubscription, subscription)) _listenForeground();
+            });
           },
         );
   }
@@ -273,8 +296,9 @@ class CoreInterfaceMacOS extends CoreInterfaceDesktop {
       } else {
         _usingVPN = false;
         bgClient = fgClient;
-        // the quiet stop above may still be under way in the core
-        final response = await startOnceStopped(
+        // the quiet stop above may still be under way in the core; the outcome, not only the
+        // answer, see startAndConfirm
+        final response = await startAndConfirm(
           fgClient,
           StartRequest(configPath: path, configName: name, disableMemoryLimit: disableMemoryLimit),
         );
@@ -379,38 +403,42 @@ class CoreInterfaceMacOS extends CoreInterfaceDesktop {
       _stoppingVPN = true;
       _status.add(const CoreStatus.stopping());
     }
-    // Clear before native stop so _receiveState(disconnected) does not publish Stopped
-    // during quiet stop-before-start (that flashed "tap to connect" and stuck SingleCall).
-    final stopEngine = !quiet && _tunnelServiceAvailable && _extensionChannel != null;
-    _usingVPN = false;
-    bgClient = fgClient;
-
-    // Stop over AdminBg gRPC first. If that works, tell Swift to skip spawning
-    // another `Hiddify --tunnel disconnect` (the double-stop was the long hang).
-    var engineStopped = false;
-    if (stopEngine) {
-      engineStopped = await _stopAdminBgEngine();
-    } else {
-      loggy.warning(
-        'macOS stop: skip AdminBg.Stop (quiet=$quiet tunnel=$_tunnelServiceAvailable '
-        'channel=${_extensionChannel != null})',
-      );
-    }
-
-    // A saved on-demand VPN can be disconnected when the app reopens. Stop its
-    // native configuration even when this app instance has never used the VPN.
-    // Quiet + already idle: skip the serial Swift queue (stop-before-start after disconnect).
-    final needsNativeStop =
-        (_vpnAvailable || _tunnelServiceAvailable) &&
-        (!quiet || _nativeStatus != 'disconnected' || _extensionChannel != null);
-    if (needsNativeStop) {
-      final nativeSw = Stopwatch()..start();
-      final state = await _methods.invokeMapMethod<String, dynamic>('stop', {if (engineStopped) 'engineStopped': true});
-      loggy.warning('macOS stop: native stop in ${nativeSw.elapsedMilliseconds}ms (engineStopped=$engineStopped)');
-      if (state != null) _receiveState(state);
-    }
-
+    // Everything after Stopping is inside the try: a native stop that throws (specified to on a
+    // failed stop) left _stoppingVPN set for good, and every later status ignored.
     try {
+      // Clear before native stop so _receiveState(disconnected) does not publish Stopped
+      // during quiet stop-before-start (that flashed "tap to connect" and stuck SingleCall).
+      final stopEngine = !quiet && _tunnelServiceAvailable && _extensionChannel != null;
+      _usingVPN = false;
+      bgClient = fgClient;
+
+      // Stop over AdminBg gRPC first. If that works, tell Swift to skip spawning
+      // another `Hiddify --tunnel disconnect` (the double-stop was the long hang).
+      var engineStopped = false;
+      if (stopEngine) {
+        engineStopped = await _stopAdminBgEngine();
+      } else {
+        loggy.warning(
+          'macOS stop: skip AdminBg.Stop (quiet=$quiet tunnel=$_tunnelServiceAvailable '
+          'channel=${_extensionChannel != null})',
+        );
+      }
+
+      // A saved on-demand VPN can be disconnected when the app reopens. Stop its
+      // native configuration even when this app instance has never used the VPN.
+      // Quiet + already idle: skip the serial Swift queue (stop-before-start after disconnect).
+      final needsNativeStop =
+          (_vpnAvailable || _tunnelServiceAvailable) &&
+          (!quiet || _nativeStatus != 'disconnected' || _extensionChannel != null);
+      if (needsNativeStop) {
+        final nativeSw = Stopwatch()..start();
+        final state = await _methods.invokeMapMethod<String, dynamic>('stop', {
+          if (engineStopped) 'engineStopped': true,
+        });
+        loggy.warning('macOS stop: native stop in ${nativeSw.elapsedMilliseconds}ms (engineStopped=$engineStopped)');
+        if (state != null) _receiveState(state);
+      }
+
       if (quiet) {
         // Keep the channel for the immediate reconnect; detach only (bgClient already fg).
         final fgSw = Stopwatch()..start();
@@ -466,7 +494,9 @@ class CoreInterfaceMacOS extends CoreInterfaceDesktop {
   @override
   Future<void> dispose() async {
     await _nativeSubscription?.cancel();
-    await _foregroundSubscription?.cancel();
+    final foreground = _foregroundSubscription;
+    _foregroundSubscription = null; // a pending re-arm (see _listenForeground) sees it gone
+    await foreground?.cancel();
     await _extensionChannel?.shutdown();
     await _clientChanges.close();
     await _status.close();

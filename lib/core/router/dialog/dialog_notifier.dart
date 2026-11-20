@@ -5,6 +5,7 @@ import 'package:hiddify/core/router/dialog/widgets/admin_bg_service_dialogs.dart
 import 'package:hiddify/core/router/dialog/widgets/chain_license_dialog.dart';
 import 'package:hiddify/core/router/dialog/widgets/confirmation_dialog.dart';
 import 'package:hiddify/core/router/dialog/widgets/custom_alert_dialog.dart';
+import 'package:hiddify/core/router/dialog/widgets/deep_search_dialog.dart';
 import 'package:hiddify/core/router/dialog/widgets/experimental_feature_notice.dart';
 import 'package:hiddify/core/router/dialog/widgets/free_profile_consent_dialog.dart';
 import 'package:hiddify/core/router/dialog/widgets/new_version_dialog.dart';
@@ -28,8 +29,10 @@ import 'package:hiddify/features/common/qr_code_dialog.dart';
 import 'package:hiddify/features/common/qr_code_scanner_screen.dart';
 import 'package:hiddify/features/crash_report/widget/crash_report_dialog.dart';
 import 'package:hiddify/features/profile/model/profile_entity.dart';
+import 'package:hiddify/features/profile/model/profile_failure.dart';
 import 'package:hiddify/features/profile/overview/profiles_notifier.dart';
 import 'package:hiddify/features/profile/overview/remove_inactive_profiles_dialog.dart';
+import 'package:hiddify/features/profile/widget/download_failure_dialog.dart';
 import 'package:hiddify/features/proxy/keep_top/keep_tags_dialog.dart';
 import 'package:hiddify/features/proxy/keep_top/keep_top.dart';
 import 'package:hiddify/features/proxy/keep_top/keep_top_widgets.dart';
@@ -230,6 +233,11 @@ class DialogNotifier extends _$DialogNotifier {
     return await _show<SpeedTestTarget?>(SpeedTestDialog(count: shown, chosen: chosen, limited: false));
   }
 
+  /// Whether the user wants a deep search on [name], whose search for a way through gave up.
+  Future<bool> showDeepSearch({required String name}) async {
+    return await _show<bool?>(DeepSearchDialog(name: name)) ?? false;
+  }
+
   Future<void> showProxyInfo({required OutboundInfo outboundInfo}) async {
     return await _show<void>(ProxyInfoDialog(outboundInfo: outboundInfo));
   }
@@ -339,6 +347,11 @@ class DialogNotifier extends _$DialogNotifier {
 
   Future<void> showCustomAlertFromErr(({String type, String? message}) err) async {
     return await _show<void>(CustomAlertDialog.fromErr(err));
+  }
+
+  /// Why a subscription could not be downloaded, in plain words; [action] is what failed.
+  Future<void> showDownloadFailure(ProfileDownloadFailure failure, {String? action}) async {
+    return await _show<void>(DownloadFailureDialog(failure: failure, action: action));
   }
 
   /// Mode B: VPN needs elevated admin_bgservice.

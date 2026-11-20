@@ -118,6 +118,13 @@
       "switchFailed": "Couldn’t switch to this proxy. Try again.",
       "notResponding": "Not responding",
       "noneResponding": "No proxy is responding",
+      "deepSearch": {
+        "title": "Keep searching?",
+        "message": "${name} looked for a way through (a WARP endpoint or a Psiphon route) for a few minutes and found none. A deep search keeps looking with no time limit. It may take hours and use a lot of battery and CPU.",
+        "start": "Deep search",
+        "notNow": "Not now",
+        "failed": "Couldn’t start the deep search."
+      },
       "sortOptions": {
         "unsorted": "Default",
         "name": "Alphabetically",
@@ -171,6 +178,8 @@
         "restingHint": "A sleeping proxy is not loaded. Tap one to wake it: it is loaded and tested. Long press it to pin it.",
         "restingTitle": "$n proxies are taking a nap",
         "restingWhy": "Only the fastest stay awake, so your device stays quick and saves battery and data. Tap any of them to wake it up.",
+        "retest": "Test again",
+        "retesting": "Testing… $n left",
         "fasterElsewhere": "$n proxies in other regions are faster",
         "anyRegion": "Show all regions",
         "running": "running",
@@ -224,6 +233,16 @@
         "editConfirm": "Copy and edit",
         "savedAsProfile": "Copied to the new profile “${name}”",
         "failed": "Couldn't read this proxy's configuration"
+      },
+      "insecure": {
+        "badge": "Not secure",
+        "title": "This proxy is not secure",
+        "plaintext": "Nothing encrypts the traffic between this device and the proxy server: it uses no TLS and has no encryption of its own. Your network, your ISP or anyone filtering it can read and change what you send and receive.",
+        "noCipher": "The encryption of this proxy is turned off (method \"none\") and no TLS takes its place. Your network, your ISP or anyone filtering it can read and change what you send and receive.",
+        "weakCipher": "This proxy only scrambles the traffic with a weak method (such as table, rc4 or xor) that anyone on the way can undo, so it can be read and changed.",
+        "tlsInsecure": "This proxy uses TLS in insecure mode without a pinned certificate: it accepts any certificate, so anyone on the way can stand in for the server and read or change your traffic.",
+        "unknown": "The core marked this proxy as not secure ($reason).",
+        "advice": "Sites with HTTPS stay protected, but everything else, including DNS and the sites you visit, can be seen. Prefer a proxy with TLS, REALITY or its own encryption, or ask your provider for a secure config."
       }
     },
     "profiles": {
@@ -352,6 +371,8 @@
         "disableAutoUpdate": "Turn off auto update",
         "autoUpdateInterval": "Auto update interval",
         "loading": "Adding profile…",
+        "retrying": "Attempt ${failed} didn’t work: ${reason}",
+        "retryingNext": "Trying again (${next} of ${of})…",
         "adminPreference": "Administrator permission",
         "adminPreferenceAskEachTime": "Ask each time",
         "adminPreferencePreferAdmin": "Always use administrator permission",
@@ -380,7 +401,14 @@
       "buffer": "Buffer",
       "diagnostics": "Diagnostics report",
       "diagnosticsMsg": "Send or save crash reports, logs, connection state and your settings without servers or passwords",
-      "fullReport": "Full report"
+      "fullReport": "Full report",
+      "toPhone": {
+        "title": "Download on your phone",
+        "scan": "Scan this code with your phone's camera to download $name.",
+        "sameNetwork": "Your phone and this TV must be on the same Wi-Fi network.",
+        "noNetwork": "This TV is not on a local network. Connect it to Wi-Fi to download the file on your phone.",
+        "downloaded": "Downloaded to your phone"
+      }
     },
     "about": {
       "title": "About",
@@ -1103,7 +1131,8 @@
       "tapToTest": "Tap to test",
       "error": "Why it failed",
       "keepLoaded": "Pin proxy",
-      "keepLoadedBody": "It stays loaded and tested beside the fastest ones, whatever its ping."
+      "keepLoadedBody": "It stays loaded and tested beside the fastest ones, whatever its ping.",
+      "changeCountry": "Change country"
     },
     "windowClosing": {
       "askEachTime": "Ask each time",
@@ -1171,6 +1200,28 @@
         "dropInIssueHow": "Drag the file into Additional Context, or tap the bar under that box",
         "ready": "Report ready",
         "saveUnencryptedCopy": "Save an unencrypted copy"
+      },
+      "trace": {
+        "offerTitle": "Catch the problem in the act",
+        "offerMsg": "Turn on detailed logging, make the problem happen once more, then send. We find the cause much faster this way.",
+        "step1": "Detailed logging turns on for $minutes minutes",
+        "step1Msg": "It turns itself off after that",
+        "step2": "Connect again and make the problem happen",
+        "step2Msg": "Do exactly what you did when it went wrong",
+        "step2Connected": "Raman VPN reconnects by itself to start logging. Now do what went wrong before.",
+        "step3": "Come back here and send your report",
+        "step3Msg": "Report a problem again, then describe what you saw",
+        "privacy": "IPs, domains and keys are removed before anything leaves your device. Logging returns to normal after $minutes minutes.",
+        "start": "Start detailed logging",
+        "skip": "Skip",
+        "gotIt": "Got it",
+        "connect": "Connect",
+        "onTitle": "Detailed logging is on",
+        "onMsg": "Go make the problem happen. Come back here when you've seen it.",
+        "bannerTitle": "Detailed logging · $time left",
+        "bannerMsg": "Describe what happened and press Continue",
+        "stop": "Stop",
+        "ended": "Detailed logging ended. Send it from Report a problem."
       }
     },
     "keepTop": {
@@ -1236,6 +1287,7 @@
       ],
       "hint": "Proxy mode · how to use",
       "setPassword": "Set password",
+      "removePassword": "Remove password",
       "manual": "Manual",
       "dontShowAgain": "Don't show again",
       "thisDevice": "This device",
@@ -1324,6 +1376,140 @@
       "invalidConfig": "Invalid configuration",
       "invalidUrl": "Invalid URL",
       "canceledByUser": "Canceled by user"
+    },
+    "download": {
+      "details": "Details",
+      "errorCode": "Error code",
+      "technicalDetails": "Technical details",
+      "whatToTry": "What you can try",
+      "copyDetails": "Copy details",
+      "side": {
+        "provider": "VPN provider’s server",
+        "subscription": "Your subscription",
+        "network": "Your connection",
+        "unknown": "Unknown cause"
+      },
+      "path": {
+        "title": "Where it stopped",
+        "device": "Your device",
+        "internet": "Internet",
+        "provider": "VPN provider"
+      },
+      "serverError": {
+        "title": "The VPN provider’s server has a problem",
+        "why": "Your VPN provider’s server answered with an error (code $code). Your device and the app are fine.",
+        "tips": [
+          "Try again in a few minutes",
+          "If it keeps happening, contact your VPN provider"
+        ]
+      },
+      "notFound": {
+        "title": "Subscription not found",
+        "why": "There’s no subscription at this link.",
+        "tips": [
+          "Check that you copied the whole link",
+          "Ask your VPN provider for a new link: the subscription may have been removed"
+        ]
+      },
+      "denied": {
+        "title": "The VPN provider refused this link",
+        "why": "The VPN provider’s server didn’t accept this subscription.",
+        "tips": [
+          "Your subscription may have expired, been turned off, or used up its data",
+          "Contact your VPN provider to check or renew it"
+        ]
+      },
+      "tooManyRequests": {
+        "title": "Too many tries",
+        "why": "The VPN provider’s server is getting too many requests from you.",
+        "tips": [
+          "Wait a few minutes, then try again"
+        ]
+      },
+      "badStatus": {
+        "title": "The server answered with an error",
+        "why": "The VPN provider’s server answered with an unexpected error (code $code).",
+        "tips": [
+          "Check the link",
+          "Contact your VPN provider"
+        ]
+      },
+      "tooLarge": {
+        "title": "The subscription is too large",
+        "why": "The server sent more data than the app can read.",
+        "tips": [
+          "Check that this is a subscription link",
+          "Contact your VPN provider"
+        ]
+      },
+      "noInternet": {
+        "title": "No internet connection",
+        "why": "Your device isn’t connected to the internet.",
+        "tips": [
+          "Check your Wi-Fi or mobile data",
+          "Make sure airplane mode is off"
+        ]
+      },
+      "dns": {
+        "title": "Server address not found",
+        "why": "The server’s name couldn’t be found.",
+        "tips": [
+          "Check the link for typos",
+          "Your network may be blocking this address: try another network, such as mobile data instead of Wi-Fi",
+          "Ask your VPN provider for another link"
+        ]
+      },
+      "certificate": {
+        "title": "The server’s certificate isn’t trusted",
+        "why": "The server’s security certificate isn’t valid, or something on your network is intercepting the connection.",
+        "tips": [
+          "Check that your device’s date and time are right",
+          "Try another network",
+          "Contact your VPN provider"
+        ]
+      },
+      "reset": {
+        "title": "Connection cut, possibly filtered",
+        "why": "The connection to the server was cut while it was being set up. This usually means your network or internet provider is filtering this server.",
+        "tips": [
+          "Try another network, such as mobile data instead of Wi-Fi",
+          "Ask your VPN provider for another link"
+        ]
+      },
+      "tls": {
+        "title": "Secure connection failed",
+        "why": "A secure connection to the server couldn’t be set up. Your network may be filtering it.",
+        "tips": [
+          "Try another network",
+          "Ask your VPN provider for another link"
+        ]
+      },
+      "refused": {
+        "title": "The server refused the connection",
+        "why": "The server isn’t accepting connections. It may be down, or the link may be wrong.",
+        "tips": [
+          "Try again later",
+          "Check the link",
+          "Contact your VPN provider"
+        ]
+      },
+      "timeout": {
+        "title": "The server didn’t answer",
+        "why": "The server didn’t answer in time. It may be down, or your network may be blocking it.",
+        "tips": [
+          "Try again",
+          "Try another network, such as mobile data instead of Wi-Fi",
+          "Contact your VPN provider"
+        ]
+      },
+      "unknown": {
+        "title": "Couldn’t download the subscription",
+        "why": "Something went wrong while downloading the subscription.",
+        "tips": [
+          "Check your internet connection and the link, then try again",
+          "If it keeps failing, copy the details and send them to your VPN provider"
+        ]
+      }
     },
     "connectivity": {
       "unexpected": "Unexpected failure",

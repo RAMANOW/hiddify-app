@@ -83,6 +83,11 @@ class HiddifyCoreService with InfraLogger {
     });
   }
 
+  /// Downloads [url] in the core, with the TLS handshake of Chrome; cancel the returned call to
+  /// stop it. A status other than 2xx is a response, not an error.
+  ResponseFuture<FetchUrlResponse> fetchUrl(String url, {required String userAgent, required Duration timeout}) =>
+      core.fgClient.fetchUrl(FetchUrlRequest(url: url, userAgent: userAgent, timeoutMs: timeout.inMilliseconds));
+
   TaskEither<String, String> generateFullConfigByPath(String path) {
     return TaskEither(() async {
       final response = await core.fgClient.parse(ParseRequest(configPath: path, debug: false));
@@ -541,6 +546,24 @@ class HiddifyCoreService with InfraLogger {
     });
   }
 
+  /// Starts a deep search on [tag], a proxy whose search for a way through (WARP endpoint
+  /// scanner, Psiphon CDN edge scanner) found nothing in its time (deepSearchAvailable): it
+  /// searches on with no time limit and more workers, possibly for hours.
+  TaskEither<String, Unit> startDeepSearch(String tag) {
+    return TaskEither(() async {
+      loggy.debug("starting deep search");
+      try {
+        final res = await core.bgClient.startDeepSearch(DeepSearchRequest(tag: tag));
+        if (res.code != ResponseCode.OK) return left("${res.code} ${res.message}");
+
+        return right(unit);
+      } catch (e) {
+        loggy.error("error starting deep search: $e");
+        rethrow;
+      }
+    });
+  }
+
   /// Measures the upload ([download] false) or download speed of [tag], a proxy or each proxy of a
   /// group, moving [bytes] through each; the speeds come with the proxies (upload_speed,
   /// download_speed). No tag: the proxy the selection uses.
@@ -712,7 +735,14 @@ class HiddifyCoreService with InfraLogger {
                   loggy.warning("core stopped with an error while its service is up: ${failed.message}");
                   _coreFailure = failed;
                   statusController.add(currentState = failed);
-                  unawaited(core.stop());
+                  // the failure stays the status: a stop that fails too is only logged, not
+                  // left as an unhandled error (reported as an app crash)
+                  unawaited(
+                    core.stop().then<void>(
+                      (_) {},
+                      onError: (Object error) => loggy.warning("stopping the service of a failed core: $error"),
+                    ),
+                  );
                 }
             }
           },
