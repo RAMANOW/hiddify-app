@@ -10,8 +10,9 @@ class LocalePreferences extends _$LocalePreferences with AppLogger {
   @override
   AppLocale build() {
     final persisted = ref.watch(sharedPreferencesProvider).requireValue.getString("locale");
-    // Raman VPN: Persian until the user picks another language
-    if (persisted == null) return AppLocale.fa;
+    // Raman VPN 1.6: Kurdish (Sorani) until the user picks another language (a language the user
+    // already picked, Persian included, stays)
+    if (persisted == null) return AppLocale.ckb;
     // keep backward compatibility with chinese after changing zh to zh_CN
     if (persisted == "zh") {
       return AppLocale.zhCn;

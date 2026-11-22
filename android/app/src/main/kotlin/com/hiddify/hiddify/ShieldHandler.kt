@@ -63,6 +63,20 @@ class ShieldHandler : FlutterPlugin, MethodChannel.MethodCallHandler {
                     result.success(false)
                 }
             }
+            // Raman VPN 1.6: Android's kill switch, while the VPN runs (Android 10+): whether this
+            // app is the always-on VPN and whether connections without the VPN are blocked
+            "vpnLockdown" -> {
+                val vpn = com.hiddify.hiddify.bg.VPNService.running
+                if (vpn == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    result.success(null)
+                } else {
+                    try {
+                        result.success(mapOf("alwaysOn" to vpn.isAlwaysOn, "lockdown" to vpn.isLockdownEnabled))
+                    } catch (e: Exception) {
+                        result.success(null)
+                    }
+                }
+            }
             "statusFeedback" -> {
                 val sound = call.argument<Boolean>("sound") ?: false
                 val vibrate = call.argument<Boolean>("vibrate") ?: false

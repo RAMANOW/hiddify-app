@@ -156,6 +156,10 @@ abstract class ConfigOptions {
 
   static final strictRoute = PreferencesNotifier.create<bool, bool>("strict-route", true);
 
+  /// Raman VPN 1.6: QUIC through the proxy is refused, so browsers use TLS over TCP (the core's
+  /// `block-quic`). Off unless anti-leak mode turns it on.
+  static final blockQuic = PreferencesNotifier.create<bool, bool>("block-quic", false);
+
   static final connectionTestUrl = PreferencesNotifier.create<String, String>(
     "connection-test-url",
     "http://captive.apple.com/hotspot-detect.html",
@@ -636,6 +640,7 @@ abstract class ConfigOptions {
       tunImplementation: ref.watch(tunImplementation),
       mtu: ref.watch(mtu),
       strictRoute: ref.watch(strictRoute),
+      blockQuic: ref.watch(blockQuic),
       connectionTestUrl: ref.watch(connectionTestUrl),
       urlTestInterval: ref.watch(urlTestInterval),
       enableClashApi: ref.watch(enableClashApi),
@@ -724,7 +729,9 @@ class ConfigOptionRepository with ExceptionHandler, InfraLogger {
         (options) => Either.tryCatch(() {
           final own = options.toJson();
           final merged = ProfileParser.applyProfileOverride(options.toJson(), profileOverride);
-          return SingboxConfigOption.fromJson(keepOwnDnsBehindExtraSecurity(own, merged));
+          final kept = keepOwnDnsBehindExtraSecurity(own, merged);
+          final antiLeak = preferences.getBool(antiLeakKey) ?? false;
+          return SingboxConfigOption.fromJson(antiLeak ? keepAntiLeak(own, kept) : kept);
         }, ConfigOptionFailure.unexpected),
       );
 
@@ -732,6 +739,27 @@ class ConfigOptionRepository with ExceptionHandler, InfraLogger {
   /// was never meant for. So whenever extra security is on when connecting, from the user's
   /// settings or from the profile itself, the profile's remote DNS is not applied and the user's
   /// own stays; the core adds DoH through the profile alone as the group's last resort.
+  /// Raman VPN 1.6: the preference of anti-leak mode (AntiLeak.enabled).
+  static const antiLeakKey = 'raman-anti-leak';
+
+  /// The remote DNS anti-leak mode falls back to (AntiLeak.remoteDns).
+  static const antiLeakRemoteDns = 'https://1.1.1.1/dns-query';
+
+  /// While anti-leak mode is on, a profile (subscription) can not take DNS or traffic out of the
+  /// tunnel: its remote DNS, strict route, IPv6 mode and QUIC block are the user's own again, and
+  /// the system resolver ("local"), which answers outside the tunnel, is never the remote DNS.
+  @visibleForTesting
+  static Map<String, dynamic> keepAntiLeak(Map<String, dynamic> own, Map<String, dynamic> merged) {
+    final ownDns = own['remote-dns-address'];
+    return {
+      ...merged,
+      'remote-dns-address': ownDns is String && ownDns != 'local' ? ownDns : antiLeakRemoteDns,
+      'strict-route': true,
+      'ipv6-mode': own['ipv6-mode'],
+      'block-quic': true,
+    };
+  }
+
   @visibleForTesting
   static Map<String, dynamic> keepOwnDnsBehindExtraSecurity(Map<String, dynamic> own, Map<String, dynamic> merged) {
     if (merged['chain-status'] != ChainStatus.extraSecurity.key) return merged;

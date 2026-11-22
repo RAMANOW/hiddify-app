@@ -6,13 +6,14 @@ import 'package:hiddify/gen/translations.g.dart';
 
 extension AppLocaleX on AppLocale {
   String get preferredFontFamily =>
-      this == AppLocale.fa ? FontFamily.shabnam : (kIsWeb || !Platform.isWindows ? "" : FontFamily.emoji);
+      this == AppLocale.fa || this == AppLocale.ckb ? FontFamily.shabnam : (kIsWeb || !Platform.isWindows ? "" : FontFamily.emoji);
 
   String get localeName => switch (flutterLocale.toString()) {
     "ar" => "العربية",
     "en" => "English",
     "es" => "Spanish",
     "fa" => "فارسی",
+    "ckb" => "کوردی (سۆرانی)",
     "fr" => "Français",
     "id" => "Indonesian",
     "ko" => "한국어",
@@ -50,6 +51,8 @@ extension AppLocaleX on AppLocale {
     "en" => "gb",
     "es" => "es",
     "fa" => "ir",
+    // Kurdish (Sorani): the flag of Kurdistan (circle_flags' kurdistan.svg)
+    "ckb" => "kurdistan",
     "fr" => "fr",
     "id" => "id",
     "pt_BR" => "br",

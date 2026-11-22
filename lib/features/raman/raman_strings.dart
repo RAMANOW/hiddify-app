@@ -1,14 +1,23 @@
 import 'package:hiddify/core/localization/locale_preferences.dart';
+import 'package:hiddify/features/raman/raman_strings_ckb.dart';
 import 'package:hiddify/gen/translations.g.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-/// The texts of Raman VPN's own screens, in Persian and English.
+/// The texts of Raman VPN's own screens, in Kurdish (Sorani), Persian and English. A Kurdish text
+/// that is missing is shown in Persian, never in English.
 class RamanStrings {
-  const RamanStrings(this.fa);
+  const RamanStrings(this.locale);
 
-  final bool fa;
+  final AppLocale locale;
 
-  String _t(String faText, String enText) => fa ? faText : enText;
+  /// Kurdish or Persian: both read right to left, and share the Iranian defaults.
+  bool get fa => locale == AppLocale.fa || locale == AppLocale.ckb;
+
+  String _t(String faText, String enText, [String? ckbText]) => switch (locale) {
+    AppLocale.fa => faText,
+    AppLocale.ckb => ckbText ?? ramanCkb[faText] ?? faText,
+    _ => enText,
+  };
 
   String get toolsTitle => _t('ابزارهای رامان', 'Raman tools');
   String get toolsSubtitle => _t('DNS هوشمند، بررسی شبکه، تنظیمات ایران', 'Smart DNS, network check, Iran settings');
@@ -54,14 +63,16 @@ class RamanStrings {
   String get ms => _t('میلی‌ثانیه', 'ms');
 
   String get iranIntro => _t(
-    'تنظیمات پیشنهادی برای اینترنت ایران: سایت‌های داخلی مستقیم باز می‌شوند، TLS fragment برای عبور از فیلترینگ روشن است و زبان برنامه فارسی است.',
-    'Suggested settings for Iran: domestic sites open directly, TLS fragment is on to get past filtering, and the app is in Persian.',
+    'تنظیمات پیشنهادی برای اینترنت ایران: سایت‌های داخلی مستقیم باز می‌شوند و TLS fragment برای عبور از فیلترینگ روشن است.',
+    'Suggested settings for Iran: domestic sites open directly and TLS fragment is on to get past filtering.',
+    'ڕێکخستنە پێشنیارکراوەکان بۆ ئینتەرنێتی ئێران: ماڵپەڕە ناوخۆییەکان ڕاستەوخۆ دەکرێنەوە و TLS fragment بۆ تێپەڕین لە فلتەر داگیرساوە.',
   );
   String get regionIran => _t('منطقه: ایران (سایت‌های داخلی مستقیم)', 'Region: Iran (domestic sites go direct)');
   String get tlsFragment => _t('TLS fragment (عبور از فیلترینگ)', 'TLS fragment (gets past filtering)');
   String get mixedSni => _t('حروف درهم SNI', 'Mixed-case SNI');
   String get ipv4Only => _t('فقط IPv4 (اتصال سریع‌تر)', 'IPv4 only (faster connecting)');
   String get persian => _t('زبان فارسی', 'Persian language');
+  String get language => _t('زبان برنامه', 'App language', 'زمانی بەرنامە');
   String get applyAll => _t('اعمال همه تنظیمات پیشنهادی', 'Apply all suggested settings');
   String get appliedAll => _t('تنظیمات ایران اعمال شد', 'Iran settings applied');
   // home tabs
@@ -93,7 +104,7 @@ class RamanStrings {
   String get shieldPerAppOn => _t('روشن — برای انتخاب برنامه‌ها لمس کنید', 'On — tap to choose apps');
   String get shieldPerAppOff => _t('همه‌ی برنامه‌ها از VPN استفاده می‌کنند', 'All apps use the VPN');
   String get shieldLan => _t('اشتراک پروکسی در شبکه‌ی محلی', 'Share the proxy on the local network');
-  String shieldLanPort(int port) => _t('دستگاه‌های دیگر این شبکه می‌توانند از پورت $port استفاده کنند', 'Other devices on this network can use port $port');
+  String shieldLanPort(int port) => _t('دستگاه‌های دیگر این شبکه می‌توانند از پورت $port استفاده کنند', 'Other devices on this network can use port $port', 'ئامێرەکانی تری ئەم تۆڕە دەتوانن پۆرتی $port بەکاربهێنن');
   String get shieldLanOff => _t('فقط همین دستگاه', 'This device only');
   String get switchTitle => _t('فقط یک VPN در هر زمان', 'One VPN at a time');
   String get switchToShield => _t('رامان اکنون وصل است. برای استفاده از شیلد، اتصال رامان قطع شود؟', 'Raman is connected now. Disconnect it to use Shield?');
@@ -136,7 +147,7 @@ class RamanStrings {
   String get ssSplitInclude => _t('فقط برنامه‌های انتخاب‌شده', 'Only tunnel selected apps');
   String get ssSplitExclude => _t('همه به‌جز برنامه‌های انتخاب‌شده', 'Tunnel all apps except selected ones');
   String get ssSplitChoose => _t('انتخاب برنامه‌ها', 'Choose apps');
-  String ssSplitCount(int n) => _t('$n برنامه انتخاب شده', '$n apps selected');
+  String ssSplitCount(int n) => _t('$n برنامه انتخاب شده', '$n apps selected', '$n بەرنامە هەڵبژێردراوە');
   String get ssSplitHelp => _t(
     'این انتخاب فقط برای شیلد است و هنگام اتصال شیلد به کار می‌رود؛ پروفایل‌های رامان تنظیم «مسیریابی برنامه‌ها»ی خودشان را دارند. خود برنامه همیشه بیرون از تونل است.',
     'This is Shield’s own choice, used when Shield connects; the Raman profiles keep their own app-based routing. This app itself always stays outside the tunnel.',
@@ -202,10 +213,10 @@ class RamanStrings {
   String get ssCdnSetsAll => _t('همه', 'All');
   String get ssCdnIps => _t('IPهای لبه‌ی CDN', 'CDN edge IPs');
   String get ssCdnIpsHint => _t('مثلاً 104.16.0.0/20 یا 151.101.1.1 (هر خط یکی)', 'e.g. 104.16.0.0/20 or 151.101.1.1 (one per line)');
-  String ssCdnIpsInvalid(String item) => _t('نامعتبر: $item (فقط IPv4 یا CIDR)', 'Invalid: $item (IPv4 or CIDR only)');
+  String ssCdnIpsInvalid(String item) => _t('نامعتبر: $item (فقط IPv4 یا CIDR)', 'Invalid: $item (IPv4 or CIDR only)', 'نادروست: $item (تەنها IPv4 یان CIDR)');
   String get ssCdnSni => _t('نام‌های SNI برای CDN', 'CDN SNI hostnames');
   String get ssCdnSniHint => _t('مثلاً www.example.com (هر خط یکی)', 'e.g. www.example.com (one per line)');
-  String ssCdnSniInvalid(String item) => _t('نام نامعتبر: $item', 'Invalid name: $item');
+  String ssCdnSniInvalid(String item) => _t('نام نامعتبر: $item', 'Invalid name: $item', 'ناوی نادروست: $item');
   String get ssCdnSniNeedsIps => _t('فقط همراه با IPهای لبه‌ی خودتان به کار می‌رود', 'Used only with your own edge IPs');
   String get ssSecConduit => _t('Conduit (رله‌های داوطلب)', 'Conduit (volunteer relays)');
   String get ssConduitMode => _t('حالت Conduit', 'Conduit mode');
@@ -243,11 +254,117 @@ class RamanStrings {
     'Official core 5.9.15 keeps Conduit relays off and has no option to turn them on',
   );
 
+  // anti-leak (1.6)
+  String get tabAntiLeak => _t('ضد نشتی', 'Anti-leak', 'دژە-دزە');
+  String get antiLeakMode => _t('حالت ضد نشتی', 'Anti-leak mode', 'دۆخی دژە-دزە');
+  String get antiLeakModeSub => _t(
+    'همه‌ی DNS و ترافیک از داخل تونل، با یک لمس',
+    'All DNS and traffic inside the tunnel, in one tap',
+    'هەموو DNS و هاتوچۆ لە ناو تونێلدا، بە یەک دەستلێدان',
+  );
+  String get antiLeakIntro => _t(
+    'وقتی روشن است: DNS راه‌دور به‌صورت DNS over HTTPS از داخل پروکسی پرسیده می‌شود، مسیر سخت‌گیرانه (strict route) روشن است، فقط IPv4، QUIC مسدود است و پروفایل‌ها (اشتراک‌ها) دیگر نمی‌توانند DNS را عوض کنند. خاموش کردن، تنظیمات قبلی شما را برمی‌گرداند.',
+    'When on: the remote DNS is asked as DNS over HTTPS through the proxy, strict route is on, IPv4 only, QUIC is blocked, and profiles (subscriptions) can no longer change the DNS. Turning it off puts your previous settings back.',
+    'کاتێک داگیرساوە: DNSی دوور وەک DNS over HTTPS لە ناو پرۆکسییەوە دەپرسرێت، ڕێڕەوی توند (strict route) داگیرساوە، تەنها IPv4، QUIC بەربەست کراوە و پرۆفایلەکان (بەشداریکردنەکان) چیتر ناتوانن DNS بگۆڕن. کوژاندنەوەی، ڕێکخستنەکانی پێشووت دەگەڕێنێتەوە.',
+  );
+  String get antiLeakOnMsg => _t(
+    'حالت ضد نشتی روشن شد؛ اگر وصل هستید، اتصال یک لحظه نو می‌شود',
+    'Anti-leak mode is on; if you are connected, the connection refreshes for a moment',
+    'دۆخی دژە-دزە داگیرسا؛ ئەگەر پەیوەستیت، پەیوەندییەکە بۆ ساتێک نوێ دەبێتەوە',
+  );
+  String get antiLeakOffMsg => _t(
+    'حالت ضد نشتی خاموش شد و تنظیمات قبلی برگشت',
+    'Anti-leak mode is off and your previous settings are back',
+    'دۆخی دژە-دزە کوژایەوە و ڕێکخستنەکانی پێشوو گەڕانەوە',
+  );
+  String get antiLeakChanged => _t(
+    'یکی از تنظیمات ضد نشتی را دستی تغییر داده‌اید؛ برای حفاظت کامل، حالت را خاموش و دوباره روشن کنید',
+    'You changed one of the anti-leak settings by hand; turn the mode off and on again for full protection',
+    'یەکێک لە ڕێکخستنەکانی دژە-دزەت بە دەست گۆڕیوە؛ بۆ پاراستنی تەواو، دۆخەکە بکوژێنەوە و دیسان دایگیرسێنە',
+  );
+  String get antiLeakBadge => _t('حالت ضد نشتی روشن است', 'Anti-leak mode is on', 'دۆخی دژە-دزە داگیرساوە');
+  String get bypassIran => _t('سایت‌های ایرانی مستقیم (دور زدن ایران)', 'Iranian sites direct (bypass Iran)', 'ماڵپەڕە ئێرانییەکان ڕاستەوخۆ (تێپەڕاندنی ئێران)');
+  String get bypassIranSub => _t(
+    'روشن: سایت‌های ایرانی بدون VPN و سریع باز می‌شوند، اما نامشان با DNS مستقیم پرسیده می‌شود و اینترنت‌دهنده آن‌ها را می‌بیند. خاموش: همه چیز از تونل می‌رود، اما برخی سایت‌های ایرانی ممکن است کند شوند یا باز نشوند.',
+    'On: Iranian sites open fast without the VPN, but their names are asked of the direct DNS, which your internet provider sees. Off: everything goes through the tunnel, but some Iranian sites may be slow or not open.',
+    'داگیرساو: ماڵپەڕە ئێرانییەکان بەبێ VPN و خێرا دەکرێنەوە، بەڵام ناوەکانیان لە DNSی ڕاستەوخۆ دەپرسرێن و دابینکەری ئینتەرنێت دەیانبینێت. کوژاوە: هەموو شتێک بە تونێلدا دەڕوات، بەڵام هەندێک ماڵپەڕی ئێرانی لەوانەیە خاو بن یان نەکرێنەوە.',
+  );
+  String get fakeIp => _t('FakeIP (اختیاری)', 'FakeIP (optional)', 'FakeIP (ئارەزوومەندانە)');
+  String get fakeIpSub => _t(
+    'برنامه‌ها پاسخ DNS واقعی نمی‌گیرند و نام‌ها فقط روی سرور پرسیده می‌شوند؛ قوی‌ترین حالت، اما ممکن است چند برنامه درست کار نکنند',
+    'Apps get no real DNS answers and names are only looked up on the server; the strongest, but a few apps may not work right',
+    'بەرنامەکان وەڵامی ڕاستەقینەی DNS وەرناگرن و ناوەکان تەنها لەسەر ڕاژەکار دەپرسرێن؛ بەهێزترین دۆخە، بەڵام لەوانەیە چەند بەرنامەیەک باش کار نەکەن',
+  );
+  String get warnSplit => _t(
+    'تونل‌سازی جداگانه‌ی برنامه‌ها روشن است: برنامه‌هایی که بیرون از VPN هستند، DNS و ترافیک خود را بیرون از تونل می‌فرستند.',
+    'Per-app split tunneling is on: apps left out of the VPN send their DNS and traffic outside the tunnel.',
+    'تونێلی جیاوازی بەرنامەکان داگیرساوە: ئەو بەرنامانەی لە دەرەوەی VPNن، DNS و هاتوچۆکەیان لە دەرەوەی تونێل دەنێرن.',
+  );
+  String get warnProxyMode => _t(
+    'حالت سرویس «پروکسی» است، نه VPN: فقط برنامه‌هایی که به پروکسی وصل شده‌اند محافظت می‌شوند.',
+    'The service mode is proxy, not VPN: only apps pointed at the proxy are protected.',
+    'دۆخی خزمەتگوزاری «پرۆکسی»یە، نەک VPN: تەنها ئەو بەرنامانەی بە پرۆکسییەکەوە بەستراون دەپارێزرێن.',
+  );
+  String get killTitle => _t('قطع اینترنت بدون VPN (Kill switch)', 'Block internet without VPN (kill switch)', 'بڕینی ئینتەرنێت بەبێ VPN (Kill switch)');
+  String get killBody => _t(
+    'قفل واقعی را خود اندروید دارد: در تنظیمات VPN گوشی، کنار رامان VPN، «VPN همیشه روشن» و «مسدود کردن اتصال‌های بدون VPN» را روشن کنید. اگر VPN قطع شود، اینترنت تا اتصال دوباره بسته می‌ماند. خود برنامه نمی‌تواند پس از توقف هسته، تونل را باز نگه دارد.',
+    'The real lock is Android’s own: in the phone’s VPN settings, next to Raman VPN, turn on “Always-on VPN” and “Block connections without VPN”. If the VPN drops, the internet stays closed until it reconnects. The app alone cannot keep the tunnel up after the core stops.',
+    'قفڵی ڕاستەقینە هی خودی ئەندرۆیدە: لە ڕێکخستنەکانی VPNی مۆبایلەکەدا، لە تەنیشت ڕامان VPN، «VPNی هەمیشە داگیرساو» و «بەربەستکردنی پەیوەندییەکان بەبێ VPN» دابگیرسێنە. ئەگەر VPN بپچڕێت، ئینتەرنێت تا پەیوەستبوونەوە داخراو دەمێنێتەوە. خودی بەرنامەکە ناتوانێت دوای وەستانی ناوک تونێلەکە بە کراوەیی بهێڵێتەوە.',
+  );
+  String get killOpen => _t('باز کردن تنظیمات VPN اندروید', 'Open Android VPN settings', 'کردنەوەی ڕێکخستنەکانی VPNی ئەندرۆید');
+  String get killStatusOn => _t('فعال است: VPN همیشه روشن + مسدودسازی بدون VPN', 'On: always-on VPN + block without VPN', 'چالاکە: VPNی هەمیشە داگیرساو + بەربەستکردن بەبێ VPN');
+  String get killStatusAlways => _t(
+    'VPN همیشه روشن فعال است، اما «مسدود کردن اتصال‌های بدون VPN» خاموش است',
+    'Always-on VPN is on, but “Block connections without VPN” is off',
+    'VPNی هەمیشە داگیرساو چالاکە، بەڵام «بەربەستکردنی پەیوەندییەکان بەبێ VPN» کوژاوەیە',
+  );
+  String get killStatusOff => _t('فعال نیست', 'Not on', 'چالاک نییە');
+  String get killStatusUnknown => _t(
+    'وضعیت فقط هنگام اتصال VPN دیده می‌شود (اندروید ۱۰ به بالا)',
+    'The status shows only while the VPN is connected (Android 10 and later)',
+    'دۆخەکە تەنها کاتی پەیوەستبوونی VPN دەبینرێت (ئەندرۆید ١٠ و سەرووتر)',
+  );
+  String get testTitle => _t('آزمایش نشتی', 'Leak test', 'تاقیکردنەوەی دزە');
+  String get testIntro => _t(
+    'وقتی وصل هستید، IP عمومی و کشور شما و سرورهای DNS که نام‌ها را می‌پرسند، از دید اینترنت نشان داده می‌شوند (bash.ws و ipleak.net). برای آزمایش، درگاه محلی ممکن است یک لحظه باز و اتصال یک‌بار نو شود.',
+    'While connected, this shows your public IP and country and the DNS resolvers that look names up, as the internet sees them (bash.ws and ipleak.net). For the test the local port may open for a moment and the connection refresh once.',
+    'کاتێک پەیوەستیت، IPی گشتی و وڵاتەکەت و ئەو ڕاژەکارانەی DNS کە ناوەکان دەپرسن، وەک ئینتەرنێت دەیانبینێت نیشان دەدرێن (bash.ws و ipleak.net). بۆ تاقیکردنەوە لەوانەیە دەروازەی ناوخۆیی بۆ ساتێک بکرێتەوە و پەیوەندییەکە جارێک نوێ ببێتەوە.',
+  );
+  String get testRun => _t('شروع آزمایش', 'Run the test', 'دەستپێکردنی تاقیکردنەوە');
+  String get testRunning => _t('در حال آزمایش…', 'Testing…', 'تاقی دەکرێتەوە…');
+  String get testNotConnected => _t('اول وصل شوید، بعد آزمایش کنید', 'Connect first, then run the test', 'سەرەتا پەیوەست بە، پاشان تاقی بکەرەوە');
+  String get testProxyAuth => _t(
+    'رمز درگاه محلی روشن است؛ برای آزمایش آن را خاموش کنید',
+    'The local port asks for a password; turn that off to run the test',
+    'دەروازەی ناوخۆیی وشەی نهێنی دەوێت؛ بۆ تاقیکردنەوە بیکوژێنەوە',
+  );
+  String get testUnreachable => _t('سرویس آزمایش در دسترس نبود؛ دوباره امتحان کنید', 'The test service could not be reached; try again', 'خزمەتگوزاریی تاقیکردنەوە نەگەیشترا؛ دووبارە هەوڵ بدەرەوە');
+  String get testOk => _t('بدون نشتی: ترافیک و DNS از تونل می‌روند', 'No leak: traffic and DNS go through the tunnel', 'بێ دزە: هاتوچۆ و DNS بە تونێلدا دەڕۆن');
+  String get testLeak => _t('نشتی پیدا شد: IP یا DNS ایرانی دیده شد', 'Leak found: an Iranian IP or DNS was seen', 'دزە دۆزرایەوە: IP یان DNSی ئێرانی بینرا');
+  String get testUnknown => _t('نتیجه قطعی نیست', 'No clear result', 'ئەنجامەکە یەکلاکەرەوە نییە');
+  String get testExit => _t('IP عمومی (خروجی تونل)', 'Public IP (tunnel exit)', 'IPی گشتی (دەرچەی تونێل)');
+  String get testResolvers => _t('سرورهای DNS دیده‌شده', 'DNS resolvers seen', 'ڕاژەکارە بینراوەکانی DNS');
+  String get testNoResolvers => _t('هیچ سرور DNSی دیده نشد', 'No DNS resolver was seen', 'هیچ ڕاژەکارێکی DNS نەبینرا');
+  String get testFakeIp => _t('FakeIP روشن است: نام‌ها روی سرور پرسیده شدند', 'FakeIP is on: names were looked up on the server', 'FakeIP داگیرساوە: ناوەکان لەسەر ڕاژەکار پرسران');
+  String get testServerSide => _t(
+    'DNS هسته از درگاه محلی در دسترس نبود؛ فقط DNS سرور آزمایش شد',
+    'The core’s DNS was not reachable through the local port; only the server’s DNS was tested',
+    'DNSی ناوک لە دەروازەی ناوخۆییەوە نەگەیشترا؛ تەنها DNSی ڕاژەکار تاقی کرایەوە',
+  );
+  String get testLeakHelp => _t(
+    'حالت ضد نشتی را روشن کنید و تونل‌سازی جداگانه را خاموش کنید. اگر IP ایرانی دیده شد، ترافیک از VPN نمی‌رود یا سرور در ایران است.',
+    'Turn anti-leak mode on and split tunneling off. If an Iranian IP shows, traffic is not going through the VPN or the server is in Iran.',
+    'دۆخی دژە-دزە دابگیرسێنە و تونێلی جیاواز بکوژێنەوە. ئەگەر IPی ئێرانی دەرکەوت، هاتوچۆ بە VPNدا ناڕوات یان ڕاژەکارەکە لە ئێرانە.',
+  );
+  String get langKurdish => 'کوردی';
+  String get langPersian => 'فارسی';
+  String get langEnglish => 'English';
+
   // diagnostics
   String get shareDiagnostics => _t('ذخیره یا اشتراک‌گذاری فایل گزارش', 'Save or share the report file');
   String get shareDiagnosticsMsg => _t('فایل را برای پشتیبانی خودتان بفرستید', 'Send the file to whoever supports you');
 }
 
 final ramanStringsProvider = Provider<RamanStrings>(
-  (ref) => RamanStrings(ref.watch(localePreferencesProvider) == AppLocale.fa),
+  (ref) => RamanStrings(ref.watch(localePreferencesProvider)),
 );

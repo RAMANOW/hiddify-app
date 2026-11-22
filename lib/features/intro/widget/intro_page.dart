@@ -38,6 +38,7 @@ class IntroPage extends HookConsumerWidget with PresLogger {
   /// Persian keeps Afghanistan when that is already the region.
   static Region? regionForLocale(AppLocale locale, Region current) => switch (locale) {
     AppLocale.fa => current == Region.af ? Region.af : Region.ir,
+    AppLocale.ckb => current == Region.other ? Region.other : Region.ir,
     AppLocale.ps => Region.af,
     AppLocale.zhCn => Region.cn,
     AppLocale.ru => Region.ru,
@@ -260,7 +261,10 @@ class IntroPage extends HookConsumerWidget with PresLogger {
   RegionLocale _getRegionLocale(String country) {
     switch (country.toUpperCase()) {
       case "IR":
-        return RegionLocale(Region.ir, AppLocale.fa);
+        return RegionLocale(Region.ir, AppLocale.ckb);
+      case "IQ":
+        // Iraqi Kurdistan: Kurdish, with no country's sites sent direct
+        return RegionLocale(Region.other, AppLocale.ckb);
       case "CN":
         return RegionLocale(Region.cn, AppLocale.zhCn);
       case "RU":
@@ -272,8 +276,8 @@ class IntroPage extends HookConsumerWidget with PresLogger {
       case "TR":
         return RegionLocale(Region.tr, AppLocale.tr);
       default:
-        // Raman VPN is made for Iran: Iran and Persian unless the country says otherwise
-        return RegionLocale(Region.ir, AppLocale.fa);
+        // Raman VPN is made for Iran: Iran and Kurdish (Sorani) unless the country says otherwise
+        return RegionLocale(Region.ir, AppLocale.ckb);
     }
   }
 }
@@ -419,7 +423,7 @@ class RegionDetector {
     }
   }
 
-  static const _langToRegion = <String, String>{'fa': 'IR', 'ps': 'AF', 'tr': 'TR', 'zh': 'CN', 'ru': 'RU', 'pt': 'BR'};
+  static const _langToRegion = <String, String>{'fa': 'IR', 'ckb': 'IR', 'ps': 'AF', 'tr': 'TR', 'zh': 'CN', 'ru': 'RU', 'pt': 'BR'};
 
   static const _ianaCities = <String, String>{
     'tehran': 'IR',

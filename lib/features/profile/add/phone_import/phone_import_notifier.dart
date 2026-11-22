@@ -72,7 +72,7 @@ class PhoneImport extends _$PhoneImport {
     final steps = page.steps;
     final server = await PhoneImportServer.start(address, (
       lang: lang,
-      rtl: const {'ar', 'fa', 'he', 'ur'}.contains(lang),
+      rtl: const {'ar', 'fa', 'he', 'ur', 'ckb', 'ps'}.contains(lang),
       title: page.title,
       intro: page.intro,
       network: (title: steps.network.title, body: steps.network.body),

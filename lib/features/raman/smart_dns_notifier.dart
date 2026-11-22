@@ -148,7 +148,9 @@ class SmartDnsNotifier extends StateNotifier<SmartDnsState> with InfraLogger {
         if (state.autoDirect && direct != null) {
           await _ref.read(ConfigOptions.directDnsAddress.notifier).update(direct.server.address);
         }
-        if (state.autoRemote && remote != null) {
+        // anti-leak mode keeps its own remote DNS (DNS over HTTPS through the proxy)
+        final antiLeak = p.getBool(ConfigOptionRepository.antiLeakKey) ?? false;
+        if (state.autoRemote && remote != null && !antiLeak) {
           await _ref.read(ConfigOptions.remoteDnsAddress.notifier).update(remote.server.remoteAddress);
         }
       }

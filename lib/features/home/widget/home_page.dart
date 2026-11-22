@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:hiddify/core/app_info/app_info_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hiddify/core/localization/translations.dart';
+import 'package:hiddify/features/raman/anti_leak.dart';
 import 'package:hiddify/features/raman/raman_strings.dart';
 import 'package:hiddify/features/raman/shield/shield_controller.dart';
 import 'package:hiddify/features/raman/shield/shield_page.dart';
@@ -105,6 +106,13 @@ class HomePage extends HookConsumerWidget {
           //     material: (context, platform) => MaterialIconButtonData(
           //           tooltip: t.profile.add.buttonText,
           //         )),
+          // Raman VPN 1.6: anti-leak mode at a glance
+          if (ref.watch(AntiLeak.enabled))
+            IconButton(
+              tooltip: s.antiLeakBadge,
+              icon: const Icon(Icons.shield_moon_rounded, color: Color(0xFF16A34A)),
+              onPressed: () => context.go(context.namedLocation('ramanTools')),
+            ),
           IconButton(
             tooltip: ref.watch(ramanStringsProvider).toolsTitle,
             icon: Icon(Icons.network_check_rounded, color: theme.colorScheme.primary),

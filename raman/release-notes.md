@@ -1,4 +1,23 @@
-**Raman VPN (رامان VPN) 1.4.1** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial.
+**Raman VPN (رامان VPN) 1.6** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial.
+
+### تازه‌های ۱.۶ (ضد نشتی + زبان کردی)
+- 🛡️ **حالت ضد نشتی** با یک لمس (ابزارهای رامان ← ضد نشتی؛ وقتی روشن است نشانش در صفحه‌ی اصلی دیده می‌شود): DNS راه‌دور به‌صورت DNS over HTTPS از داخل پروکسی، مسیر سخت‌گیرانه (strict route)، فقط IPv4، مسدود شدن QUIC، و پروفایل‌ها (اشتراک‌ها) دیگر نمی‌توانند DNS را به DNS محلی یا بیرون از تونل عوض کنند. خاموش کردن، تنظیمات قبلی را برمی‌گرداند. به‌طور پیش‌فرض خاموش است؛ اتصال معمولی مثل ۱.۴.۱ است.
+- 🔎 **آزمایش نشتی**: IP عمومی و کشور، و سرورهای DNS که نام‌ها را می‌پرسند (bash.ws و ipleak.net)، با نتیجه‌ی سبز یا قرمز.
+- 🔒 راهنمای «VPN همیشه روشن» و «مسدود کردن اتصال‌های بدون VPN» اندروید (قفل واقعی) با دکمه‌ی باز کردن تنظیمات VPN و نمایش وضعیتش.
+- ⚠️ هشدار وقتی تونل‌سازی جداگانه‌ی برنامه‌ها روشن است. گزینه‌ی اختیاری FakeIP و انتخاب «سایت‌های ایرانی مستقیم» با توضیح.
+- 🗣️ **زبان کردی (سورانی)** اضافه شد و زبان پیش‌فرض نصب‌های تازه است؛ فارسی و انگلیسی در تنظیمات می‌مانند. زبانی که قبلاً انتخاب کرده‌اید عوض نمی‌شود.
+- ↩️ ظاهر و رفتار اتصال نسخه‌ی ۱.۵ برگردانده شد؛ این نسخه بر پایه‌ی ۱.۴.۱ است.
+
+### نوێیەکانی ١.٦
+- 🛡️ **دۆخی دژە-دزە** بە یەک دەستلێدان، **تاقیکردنەوەی دزە**، ڕێنمایی قفڵی ئەندرۆید (VPNی هەمیشە داگیرساو).
+- 🗣️ **زمانی کوردی (سۆرانی)** زیاد کرا و زمانی بنەڕەتی دامەزراندنە نوێیەکانە.
+
+### New in 1.6 (anti-leak + Kurdish)
+- 🛡️ One-tap **anti-leak mode** (Raman tools → Anti-leak; a badge shows on home while on): remote DNS as DNS over HTTPS through the proxy, strict route, IPv4 only, QUIC blocked, and profiles can no longer switch the DNS to the system resolver. Off restores the previous settings. Off by default: normal connecting is as in 1.4.1.
+- 🔎 **Leak test**: public IP and country, and the DNS resolvers seen (bash.ws, ipleak.net), green or red.
+- 🔒 Android always-on VPN + "Block connections without VPN" guidance, a button to the VPN settings, and its status.
+- 🗣️ **Kurdish (Sorani)** added and the default for new installs; Persian and English stay. A language you already picked is kept.
+- ↩️ The 1.5 look and connection changes are reverted; this release is based on 1.4.1.
 
 ### تازه‌های ۱.۴.۱ (تنظیمات شیلد)
 - 🛡️ گزینه‌های «به‌زودی» شیلد که هسته‌ی رسمی ۵.۹.۱۵ پشتیبانی می‌کند، حالا کار می‌کنند:

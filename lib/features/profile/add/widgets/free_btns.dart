@@ -21,7 +21,7 @@ class FreeBtns extends ConsumerWidget {
     final freeProfilesFilteredByRegion = ref.watch(freeProfilesFilteredByRegionProvider);
     final theme = Theme.of(context);
     final locale = ref.watch(localePreferencesProvider);
-    final isFa = locale.name == AppLocale.fa.name;
+    final isFa = locale == AppLocale.fa || locale == AppLocale.ckb;
     return freeProfilesFilteredByRegion.when(
       data: (data) => data.isNotEmpty
           ? ScrollConfiguration(

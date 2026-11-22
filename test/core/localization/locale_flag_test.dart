@@ -9,7 +9,7 @@ void main() {
   test('every language has a flag, and no two share one', () {
     final codes = AppLocale.values.map((e) => e.flagCountryCode).toList();
     for (final (i, locale) in AppLocale.values.indexed) {
-      expect(codes[i], hasLength(2), reason: '${locale.name} has no flag');
+      expect(codes[i].length == 2 || codes[i] == 'kurdistan', isTrue, reason: '${locale.name} has no flag');
     }
     expect(codes.toSet(), hasLength(codes.length));
   });

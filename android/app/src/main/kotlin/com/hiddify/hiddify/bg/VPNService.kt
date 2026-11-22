@@ -23,6 +23,10 @@ class VPNService : VpnService(), PlatformInterfaceWrapper {
 
     companion object {
         private const val TAG = "A/VPNService"
+
+        /** The running service, for Raman VPN's kill switch status (ShieldHandler "vpnLockdown"). */
+        @Volatile
+        var running: VPNService? = null
     }
 
     private val service = BoxService(this, this)
@@ -30,6 +34,7 @@ class VPNService : VpnService(), PlatformInterfaceWrapper {
     override fun onCreate() {
         Application.initialize(this)
         super.onCreate()
+        running = this
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -51,6 +56,7 @@ class VPNService : VpnService(), PlatformInterfaceWrapper {
     }
 
     override fun onDestroy() {
+        if (running === this) running = null
         service.onDestroy()
     }
 

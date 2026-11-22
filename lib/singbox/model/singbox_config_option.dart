@@ -44,6 +44,9 @@ class SingboxConfigOption with _$SingboxConfigOption {
     required TunImplementation tunImplementation,
     required int mtu,
     required bool strictRoute,
+
+    /// Raman VPN 1.6: refuse QUIC through the proxy (the core's `block-quic`).
+    @Default(false) bool blockQuic,
     required String connectionTestUrl,
 
     /// Subscription `ipinfo-url` override — custom ipapi-compatible geolocation endpoint.

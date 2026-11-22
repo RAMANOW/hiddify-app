@@ -14,8 +14,16 @@ class _FallbackDelegate<T> extends LocalizationsDelegate<T> {
   @override
   bool isSupported(Locale locale) => true;
 
+  // Kurdish (Sorani) is not among Flutter's languages: it takes Persian's, so the app reads right to
+  // left and the few texts of Flutter's own widgets are in Persian rather than English
   @override
-  Future<T> load(Locale locale) => _inner.load(_inner.isSupported(locale) ? locale : const Locale('en'));
+  Future<T> load(Locale locale) => _inner.load(
+    _inner.isSupported(locale)
+        ? locale
+        : locale.languageCode == 'ckb' || locale.languageCode == 'ku'
+        ? const Locale('fa')
+        : const Locale('en'),
+  );
 
   @override
   bool shouldReload(_FallbackDelegate<T> old) => false;

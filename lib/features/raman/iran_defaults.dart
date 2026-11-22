@@ -12,11 +12,13 @@ const _kApplied = 'raman-iran-defaults-v1';
 
 /// The settings Raman VPN suggests for Iran's filtered internet: domestic sites go direct (region
 /// Iran), TLS fragment on, IPv4 only so connecting does not wait on IPv6, and Persian.
-Future<void> applyIranDefaults(RamanReader read, {bool locale = true}) async {
+Future<void> applyIranDefaults(RamanReader read, {bool locale = false}) async {
   await read(ConfigOptions.region.notifier).update(Region.ir);
   await read(ConfigOptions.enableTlsFragment.notifier).update(true);
   await read(ConfigOptions.ipv6Mode.notifier).update(IPv6Mode.ipv4Only);
-  if (locale) await read(localePreferencesProvider.notifier).changeLocale(AppLocale.fa);
+  // Raman VPN 1.6: Kurdish (Sorani) is the language of a new install; a language already
+  // picked is never changed here
+  if (locale) await read(localePreferencesProvider.notifier).changeLocale(AppLocale.ckb);
 }
 
 /// Applies [applyIranDefaults] once, on the first start, and never again, so the user's own
