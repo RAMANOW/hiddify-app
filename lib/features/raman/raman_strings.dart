@@ -54,16 +54,56 @@ class RamanStrings {
   String get ms => _t('میلی‌ثانیه', 'ms');
 
   String get iranIntro => _t(
-    'تنظیمات پیشنهادی برای اینترنت ایران: سایت‌های داخلی مستقیم باز می‌شوند، TLS fragment برای عبور از فیلترینگ روشن است و زبان برنامه فارسی است.',
-    'Suggested settings for Iran: domestic sites open directly, TLS fragment is on to get past filtering, and the app is in Persian.',
+    'حالت ایران تنظیماتی است که برای فیلترینگ امروز ایران پیشنهاد می‌شود: سایت‌های داخلی مستقیم باز می‌شوند، سریع‌ترین سرور سالم خودکار انتخاب می‌شود و با اولین خطا سرور بعدی جایگزین می‌شود، فقط IPv4 استفاده می‌شود و اتصال ناموفق دوباره امتحان می‌شود.',
+    'Iran mode is the set of settings suggested for Iran\'s filtering today: domestic sites open directly, the fastest working server is picked automatically and replaced at its first failure, only IPv4 is used, and a failed start is tried again.',
+  );
+  String get iranMode => _t('حالت ایران', 'Iran mode');
+  String get iranModeOn => _t('فعال است', 'On');
+  String get iranModeOff => _t('بعضی تنظیمات با حالت ایران فرق دارد', 'Some settings differ from Iran mode');
+  String get autoSelect => _t('انتخاب خودکار سریع‌ترین سرور (با جایگزینی هنگام خطا)', 'Use the fastest server (switch on failure)');
+  String get autoSelectSub => _t('سرورها هر ۵ دقیقه با تأخیر واقعی آزمایش می‌شوند', 'Servers are tested by real latency every 5 minutes');
+  String get autoRetry => _t('تلاش دوباره برای اتصال ناموفق', 'Retry a failed connection');
+  String get autoRetrySub => _t('تا دو بار دیگر، چند ثانیه بعد، پیش از نمایش خطا', 'Up to twice more, seconds apart, before the error shows');
+  String get tlsSection => _t('ترفند TLS', 'TLS trick');
+  String get tlsHelp => _t(
+    'در بعضی شبکه‌های ایران تکه‌تکه کردن ClientHello (فرگمنت) هنوز کمک می‌کند و در بعضی دیگر همان بسته‌های تکه‌شده دور ریخته می‌شوند. «یافتن بهترین ترفند» روی همین شبکه همه‌ی حالت‌ها را امتحان می‌کند و بهترین را نگه می‌دارد.',
+    'On some networks in Iran fragmenting the ClientHello still helps; on others those fragmented packets are dropped. "Find the best trick" tries every option on this network and keeps the best one.',
+  );
+  String get tlsCurrent => _t('حالت فعلی', 'Current');
+  String get tlsCustom => _t('دستی (مقادیر تنظیمات)', 'Custom (from settings)');
+  String tlsPresetName(String key) => switch (key) {
+    'off' => _t('بدون ترفند', 'No trick'),
+    'raman' => _t('فرگمنت ریز (پیش‌فرض رامان)', 'Small fragments (Raman default)'),
+    'hiddify' => _t('فرگمنت ۱۰۰–۲۰۰ (پیشنهاد هیدیفای)', 'Fragments 100–200 (Hiddify\'s values)'),
+    'tiny' => _t('فرگمنت خیلی ریز', 'Tiny fragments'),
+    'mixedSni' => _t('حروف درهم SNI', 'Mixed-case SNI'),
+    _ => key,
+  };
+  String get tlsFind => _t('یافتن بهترین ترفند روی این شبکه', 'Find the best trick on this network');
+  String tlsTrying(String name) => _t('در حال امتحان: $name', 'Trying: $name');
+  String get tlsNeedsConnection => _t('اول با یک کانفیگ وصل شوید، بعد امتحان کنید.', 'Connect with a config first, then try.');
+  String get tlsNoneWorked => _t(
+    'هیچ حالتی جواب نداد؛ تنظیمات قبلی برگردانده شد. احتمالاً خود سرور در دسترس نیست.',
+    'Nothing answered, so the settings from before are back. The server itself is probably unreachable.',
+  );
+  String tlsBest(String name) => _t('بهترین حالت: $name (اعمال شد)', 'Best: $name (applied)');
+  String tlsResult(int ok, int total) => _t('$ok از $total پاسخ', '$ok of $total answered');
+  String get statTime => _t('مدت اتصال', 'Connected');
+  String get statDownload => _t('دانلود', 'Download');
+  String get statUpload => _t('آپلود', 'Upload');
+  String get statPing => _t('پینگ', 'Ping');
+  String get ssCdnPresetIran => _t('پیشنهاد ایران: همه به‌جز Cloudflare', 'Suggested for Iran: all but Cloudflare');
+  String get ssCdnPresetIranSub => _t(
+    'از مهر ۱۴۰۵ ترافیک Cloudflare از ایران به‌شدت کند شده است',
+    'Cloudflare from Iran has been heavily throttled since October 2026',
   );
   String get regionIran => _t('منطقه: ایران (سایت‌های داخلی مستقیم)', 'Region: Iran (domestic sites go direct)');
   String get tlsFragment => _t('TLS fragment (عبور از فیلترینگ)', 'TLS fragment (gets past filtering)');
   String get mixedSni => _t('حروف درهم SNI', 'Mixed-case SNI');
   String get ipv4Only => _t('فقط IPv4 (اتصال سریع‌تر)', 'IPv4 only (faster connecting)');
   String get persian => _t('زبان فارسی', 'Persian language');
-  String get applyAll => _t('اعمال همه تنظیمات پیشنهادی', 'Apply all suggested settings');
-  String get appliedAll => _t('تنظیمات ایران اعمال شد', 'Iran settings applied');
+  String get applyAll => _t('روشن کردن حالت ایران', 'Turn on Iran mode');
+  String get appliedAll => _t('حالت ایران روشن شد', 'Iran mode is on');
   // home tabs
   String get tabRaman => _t('رامان', 'Raman');
   String get tabShield => _t('شیلد', 'Shield');

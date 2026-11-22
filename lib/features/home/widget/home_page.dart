@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:hiddify/core/app_info/app_info_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hiddify/core/localization/translations.dart';
+import 'package:hiddify/features/raman/home/raman_connection_stats.dart';
 import 'package:hiddify/features/raman/raman_strings.dart';
 import 'package:hiddify/features/raman/shield/shield_controller.dart';
 import 'package:hiddify/features/raman/shield/shield_page.dart';
@@ -139,7 +140,18 @@ class HomePage extends HookConsumerWidget {
           ),
         ),
       ),
-      body: IndexedStack(index: tab.value, children: [_ramanBody(context, ref, theme, t, activeProfile), const ShieldPage()]),
+      // both tabs stay built (their state kept, as with an IndexedStack); the one shown fades and
+      // slides in, the other fades out and stops its animations
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          for (final (index, child) in [
+            (0, _ramanBody(context, ref, theme, t, activeProfile)),
+            (1, const ShieldPage()),
+          ])
+            _TabLayer(active: tab.value == index, fromStart: index == 0, child: child),
+        ],
+      ),
     );
   }
 
@@ -228,7 +240,7 @@ class HomePage extends HookConsumerWidget {
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [ConnectionButton(), ActiveProxyDelayIndicator()],
+                                      children: [ConnectionButton(), ActiveProxyDelayIndicator(), RamanConnectionStats()],
                                     ),
                                   ),
                                   ActiveProxyFooter(),
@@ -319,6 +331,40 @@ class AppVersionLabel extends HookConsumerWidget {
           version,
           textDirection: TextDirection.ltr,
           style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSecondaryContainer),
+        ),
+      ),
+    );
+  }
+}
+
+/// One tab of the home page: shown, it fades and slides in from its side; hidden, it is
+/// transparent, takes no taps, and its tickers stop.
+class _TabLayer extends StatelessWidget {
+  const _TabLayer({required this.active, required this.fromStart, required this.child});
+
+  final bool active;
+  final bool fromStart;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    // the Raman tab comes from the start side, Shield from the end side
+    final dx = (fromStart ? -1 : 1) * (rtl ? -1 : 1) * .06;
+    return IgnorePointer(
+      ignoring: !active,
+      child: TickerMode(
+        enabled: active,
+        child: AnimatedSlide(
+          offset: active ? Offset.zero : Offset(dx, 0),
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+          child: AnimatedOpacity(
+            opacity: active ? 1 : 0,
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOut,
+            child: ExcludeSemantics(excluding: !active, child: child),
+          ),
         ),
       ),
     );

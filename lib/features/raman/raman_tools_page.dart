@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:hiddify/core/theme/raman_brand.dart';
 import 'package:hiddify/core/localization/locale_preferences.dart';
 import 'package:hiddify/core/model/region.dart';
 import 'package:hiddify/features/connection/notifier/connection_notifier.dart';
@@ -8,14 +9,15 @@ import 'package:hiddify/features/raman/iran_defaults.dart';
 import 'package:hiddify/features/raman/network_checker.dart';
 import 'package:hiddify/features/raman/raman_strings.dart';
 import 'package:hiddify/features/raman/smart_dns_notifier.dart';
+import 'package:hiddify/features/raman/tls_tuner.dart';
 import 'package:hiddify/features/settings/data/config_option_repository.dart';
 import 'package:hiddify/gen/translations.g.dart';
 import 'package:hiddify/singbox/model/singbox_config_enum.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-const _green = Color(0xFF16A34A);
-const _amber = Color(0xFFD97706);
-const _red = Color(0xFFDC2626);
+const _green = RamanBrand.connected;
+const _amber = RamanBrand.warning;
+const _red = RamanBrand.error;
 
 Color _latencyColor(int ms) => ms < 300 ? _green : (ms < 1200 ? _amber : _red);
 
@@ -263,57 +265,186 @@ class _IranTab extends ConsumerWidget {
     final s = ref.watch(ramanStringsProvider);
     final theme = Theme.of(context);
     final region = ref.watch(ConfigOptions.region);
+    // watched so the badge follows every switch below
+    ref.watch(ConfigOptions.ipv6Mode);
+    ref.watch(ConfigOptions.urlTestInterval);
+    final lowest = ref.watch(ConfigOptions.defaultProxy) == DefaultProxy.lowest;
+    final retry = ref.watch(RamanPrefs.autoRetry);
+    final iranMode = isIranMode(ref.read);
+    final tuner = ref.watch(tlsTunerProvider);
+    ref.watch(ConfigOptions.enableTlsFragment);
+    ref.watch(ConfigOptions.enableTlsMixedSniCase);
+    ref.watch(ConfigOptions.tlsFragmentSize);
+    ref.watch(ConfigOptions.tlsFragmentSleep);
+    ref.watch(ConfigOptions.enableTlsPadding);
+    final preset = TlsPreset.current(ref.read);
+
+    Widget header(String title, {String? help}) => Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w700)),
+          if (help != null) ...[
+            const Gap(4),
+            Text(help, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          ],
+        ],
+      ),
+    );
+    Widget group(List<Widget> children) => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Card(margin: EdgeInsets.zero, child: Column(mainAxisSize: MainAxisSize.min, children: children)),
+    );
+
     return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.only(top: 8, bottom: 32),
       children: [
+        // Iran mode at a glance
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(s.iranIntro, style: theme.textTheme.bodyMedium),
-        ),
-        SwitchListTile.adaptive(
-          secondary: const Icon(Icons.flag_rounded),
-          title: Text(s.regionIran),
-          value: region == Region.ir,
-          onChanged: (v) => ref.read(ConfigOptions.region.notifier).update(v ? Region.ir : Region.other),
-        ),
-        SwitchListTile.adaptive(
-          secondary: const Icon(Icons.content_cut_rounded),
-          title: Text(s.tlsFragment),
-          value: ref.watch(ConfigOptions.enableTlsFragment),
-          onChanged: ref.read(ConfigOptions.enableTlsFragment.notifier).update,
-        ),
-        SwitchListTile.adaptive(
-          secondary: const Icon(Icons.text_fields_rounded),
-          title: Text(s.mixedSni),
-          value: ref.watch(ConfigOptions.enableTlsMixedSniCase),
-          onChanged: ref.read(ConfigOptions.enableTlsMixedSniCase.notifier).update,
-        ),
-        SwitchListTile.adaptive(
-          secondary: const Icon(Icons.bolt_rounded),
-          title: Text(s.ipv4Only),
-          value: ref.watch(ConfigOptions.ipv6Mode) == IPv6Mode.ipv4Only,
-          onChanged: (v) =>
-              ref.read(ConfigOptions.ipv6Mode.notifier).update(v ? IPv6Mode.ipv4Only : IPv6Mode.preferIPv4),
-        ),
-        SwitchListTile.adaptive(
-          secondary: const Icon(Icons.translate_rounded),
-          title: Text(s.persian),
-          value: ref.watch(localePreferencesProvider) == AppLocale.fa,
-          onChanged: (v) => ref.read(localePreferencesProvider.notifier).changeLocale(v ? AppLocale.fa : AppLocale.en),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: FilledButton.icon(
-            onPressed: () async {
-              await applyIranDefaults(ref.read);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.appliedAll)));
-              }
-            },
-            icon: const Icon(Icons.auto_fix_high_rounded),
-            label: Text(s.applyAll),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: const BoxDecoration(shape: BoxShape.circle, gradient: RamanBrand.gradient),
+                        child: const Icon(Icons.shield_moon_rounded, color: Colors.white),
+                      ),
+                      const Gap(12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(s.iranMode, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                            Text(
+                              iranMode ? s.iranModeOn : s.iranModeOff,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: iranMode ? _green : theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (iranMode) const Icon(Icons.check_circle_rounded, color: _green),
+                    ],
+                  ),
+                  const Gap(12),
+                  Text(s.iranIntro, style: theme.textTheme.bodyMedium),
+                  if (!iranMode) ...[
+                    const Gap(12),
+                    FilledButton.icon(
+                      onPressed: () async {
+                        await applyIranDefaults(ref.read);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.appliedAll)));
+                        }
+                      },
+                      icon: const Icon(Icons.auto_fix_high_rounded),
+                      label: Text(s.applyAll),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
         ),
+        header(s.tabIran),
+        group([
+          SwitchListTile.adaptive(
+            secondary: const Icon(Icons.flag_rounded),
+            title: Text(s.regionIran),
+            value: region == Region.ir,
+            onChanged: (v) => ref.read(ConfigOptions.region.notifier).update(v ? Region.ir : Region.other),
+          ),
+          SwitchListTile.adaptive(
+            secondary: const Icon(Icons.speed_rounded),
+            title: Text(s.autoSelect),
+            subtitle: Text(s.autoSelectSub),
+            value: lowest,
+            onChanged: (v) async {
+              await ref.read(ConfigOptions.defaultProxy.notifier).update(v ? DefaultProxy.lowest : DefaultProxy.balance);
+              if (v) await ref.read(ConfigOptions.urlTestInterval.notifier).update(ramanUrlTestInterval);
+            },
+          ),
+          SwitchListTile.adaptive(
+            secondary: const Icon(Icons.bolt_rounded),
+            title: Text(s.ipv4Only),
+            value: ref.watch(ConfigOptions.ipv6Mode) == IPv6Mode.ipv4Only,
+            onChanged: (v) =>
+                ref.read(ConfigOptions.ipv6Mode.notifier).update(v ? IPv6Mode.ipv4Only : IPv6Mode.preferIPv4),
+          ),
+          SwitchListTile.adaptive(
+            secondary: const Icon(Icons.replay_rounded),
+            title: Text(s.autoRetry),
+            subtitle: Text(s.autoRetrySub),
+            value: retry,
+            onChanged: ref.read(RamanPrefs.autoRetry.notifier).update,
+          ),
+          SwitchListTile.adaptive(
+            secondary: const Icon(Icons.translate_rounded),
+            title: Text(s.persian),
+            value: ref.watch(localePreferencesProvider) == AppLocale.fa,
+            onChanged: (v) => ref.read(localePreferencesProvider.notifier).changeLocale(v ? AppLocale.fa : AppLocale.en),
+          ),
+        ]),
+        header(s.tlsSection, help: s.tlsHelp),
+        group([
+          ListTile(
+            leading: const Icon(Icons.content_cut_rounded),
+            title: Text(s.tlsCurrent),
+            subtitle: Text(preset == null ? s.tlsCustom : s.tlsPresetName(preset.name)),
+          ),
+          for (final p in TlsPreset.values)
+            RadioListTile<TlsPreset?>(
+              value: p,
+              groupValue: preset,
+              title: Text(s.tlsPresetName(p.name)),
+              subtitle: switch (tuner.trials.where((e) => e.preset == p).firstOrNull) {
+                final TlsTrial r => Text(
+                  r.medianMs == null ? s.tlsResult(r.ok, r.total) : '${s.tlsResult(r.ok, r.total)} · ${r.medianMs} ms',
+                  style: TextStyle(color: r.ok == 0 ? _red : (r.ok == r.total ? _green : _amber)),
+                ),
+                _ => null,
+              },
+              onChanged: tuner.running ? null : (v) => v?.apply(ref.read),
+            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FilledButton.tonalIcon(
+                  onPressed: tuner.running ? null : () => ref.read(tlsTunerProvider.notifier).run(),
+                  icon: tuner.running
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.travel_explore_rounded),
+                  label: Text(
+                    tuner.running && tuner.trying != null ? s.tlsTrying(s.tlsPresetName(tuner.trying!.name)) : s.tlsFind,
+                  ),
+                ),
+                if (!tuner.running && (tuner.error != null || tuner.best != null)) ...[
+                  const Gap(8),
+                  Text(
+                    switch (tuner.error) {
+                      'notConnected' => s.tlsNeedsConnection,
+                      'noneWorked' => s.tlsNoneWorked,
+                      _ => s.tlsBest(s.tlsPresetName(tuner.best!.name)),
+                    },
+                    style: theme.textTheme.bodySmall?.copyWith(color: tuner.error == null ? _green : _amber),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ]),
       ],
     );
   }
