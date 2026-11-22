@@ -121,10 +121,6 @@ abstract class ShieldPrefs {
     'curated-fronting',
     'legacy-android-overrides',
   ];
-
-  /// The CDN networks suggested for Iran: every built-in set but Cloudflare's, which was
-  /// throttled from Iran from October 2026 (uploads under 0.1 Mbps, per Filterwatch / MahsaNet).
-  static final iranCdnSets = builtInCdnSets.where((e) => e != 'cloudflare').toList();
 }
 
 enum ShieldProtocolMode { auto, direct }

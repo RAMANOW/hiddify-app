@@ -10,7 +10,6 @@ import 'package:hiddify/features/connection/data/connection_data_providers.dart'
 import 'package:hiddify/features/connection/data/connection_repository.dart';
 import 'package:hiddify/features/connection/model/connection_failure.dart';
 import 'package:hiddify/features/connection/model/connection_status.dart';
-import 'package:hiddify/features/raman/iran_defaults.dart';
 import 'package:hiddify/features/connection/model/startup_connection.dart';
 import 'package:hiddify/features/profile/data/profile_data_providers.dart';
 import 'package:hiddify/features/profile/data/profile_path_resolver.dart';
@@ -164,7 +163,7 @@ class ConnectionNotifier extends _$ConnectionNotifier with AppLogger {
         case Disconnected():
           await haptic.lightImpact();
           await ref.read(Preferences.startedByUser.notifier).update(true);
-          await _connectWithRetries();
+          await _connect();
         // the core cancels a start or a hot reload that a stop comes after, so a stop is always
         // allowed, however early
         case Connected() || Waiting() || NoAvailableProxies() || Connecting() || HotReloading():
@@ -175,33 +174,6 @@ class ConnectionNotifier extends _$ConnectionNotifier with AppLogger {
           loggy.warning("switching status, debounce");
       }
     }
-  }
-
-  /// Raman VPN: a start that fails for a passing reason (the core not ready yet after the app came
-  /// back, the VPN interface still held by the last run) is tried again twice, quietly, a few
-  /// seconds apart, before the error is shown. A wrong config or a missing permission is shown at
-  /// once. A stop, or a tap, in between ends the retries.
-  Future<void> _connectWithRetries() async {
-    final retries = ref.read(RamanPrefs.autoRetry) ? 2 : 0;
-    for (var attempt = 0; attempt < retries; attempt++) {
-      final epoch = _connectEpoch;
-      final failure = await _connect(reportFailure: false);
-      if (failure == null) return;
-      final passing = switch (failure) {
-        UnexpectedConnectionFailure() || TunAddressInUse() || BackgroundCoreNotAvailable() => true,
-        _ => false,
-      };
-      if (!passing) {
-        // shows this failure the usual way
-        break;
-      }
-      loggy.info("raman auto retry: attempt ${attempt + 1} of $retries failed, trying again");
-      // the button keeps showing that it connects; a tap now stops it (a new epoch)
-      state = const AsyncData(Connecting());
-      await Future<void>.delayed(Duration(seconds: 2 + attempt * 3));
-      if (epoch != _connectEpoch || !ref.read(Preferences.startedByUser)) return;
-    }
-    await _connect();
   }
 
   Future<void> reconnect(ProfileEntity? profile) async {

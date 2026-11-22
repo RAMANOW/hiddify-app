@@ -39,10 +39,8 @@ abstract class ConfigOptions {
 
   static final defaultProxy = PreferencesNotifier.create<DefaultProxy, String>(
     "default-proxy",
-    // Raman VPN 1.5: the fastest working proxy by real latency, left at its first failure, instead
-    // of spreading connections over every proxy (server addresses in Iran get blocked one by one)
-    DefaultProxy.lowest,
-    mapFrom: (value) => DefaultProxy.values.firstWhere((e) => e.key == value, orElse: () => DefaultProxy.lowest),
+    DefaultProxy.balance,
+    mapFrom: (value) => DefaultProxy.values.firstWhere((e) => e.key == value, orElse: () => DefaultProxy.balance),
     mapTo: (value) => value.key,
   );
 
@@ -178,8 +176,7 @@ abstract class ConfigOptions {
 
   static final urlTestInterval = PreferencesNotifier.create<Duration, int>(
     "url-test-interval",
-    // Raman VPN 1.5: every 5 minutes (was 10), so a blocked server is noticed sooner
-    const Duration(minutes: 5),
+    const Duration(minutes: 10),
     mapFrom: const IntervalInSecondsConverter().fromJson,
     mapTo: const IntervalInSecondsConverter().toJson,
   );

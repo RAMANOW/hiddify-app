@@ -1,30 +1,4 @@
-**Raman VPN (رامان VPN) 1.5** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial.
-
-### تازه‌های ۱.۵ (ظاهر نو و تنظیمات ضدفیلتر برای ایران)
-- 🎨 ظاهر تازه با رنگ آبی لوگوی رامان در حالت روشن و تیره؛ کارت‌های گرد و تمیزتر و فاصله‌گذاری بهتر
-- 🔤 فونت فارسی **وزیرمتن** همراه برنامه (مجوز آزاد OFL) و چیدمان کامل راست‌به‌چپ
-- 📊 در صفحه‌ی اصلی، هنگام اتصال: مدت اتصال، سرعت دانلود و آپلود، پینگ، و نام و پرچم سرور فعلی
-- 🛡️ دکمه‌ی اتصال شیلد نو: حلقه‌ی چرخان هنگام اتصال و درخشش سبز پس از وصل شدن
-- ↔️ جابه‌جایی نرم بین تب‌های رامان و شیلد
-- 🗂️ تنظیمات شیلد در گروه‌های جدا (کارت‌ها) مرتب شده؛ گزینه‌های غیرفعال با دلیلشان باقی مانده‌اند
-- 🇮🇷 **حالت ایران** در «ابزارهای رامان»: سایت‌های داخلی مستقیم، انتخاب خودکار سریع‌ترین سرور با جایگزینی هنگام خطا، آزمایش سرورها هر ۵ دقیقه، فقط IPv4، و تلاش دوباره برای اتصال ناموفق
-- ✂️ **یافتن بهترین ترفند TLS**: روی همین شبکه، بدون ترفند، چند حالت فرگمنت و حروف درهم SNI را امتحان می‌کند و بهترین را نگه می‌دارد (چون در ۱۴۰۵ فرگمنت روی بعضی شبکه‌ها کمک می‌کند و روی بعضی دیگر مسدود می‌شود)
-- ☁️ شیلد: پیشنهاد «همه‌ی CDNها به‌جز Cloudflare» در انتخاب شبکه‌های CDN (Cloudflare از مهر ۱۴۰۵ در ایران به‌شدت کند شده است)
-- ⚙️ تغییر پیش‌فرض‌ها: پروکسی پیش‌فرض «کمترین تأخیر» به‌جای «پخش بین همه»، و فاصله‌ی آزمایش سرورها ۵ دقیقه به‌جای ۱۰. تنظیماتی که خودتان عوض کرده‌اید دست نمی‌خورد
-- 🔁 اگر شروع اتصال به دلیلی گذرا ناموفق شود (مثلاً هسته هنوز آماده نیست)، دو بار دیگر بی‌صدا امتحان می‌شود
-
-### New in 1.5 (new look, Iran anti-filtering settings)
-- 🎨 A new look in the Raman logo's blue, light and dark; cleaner rounded cards and spacing
-- 🔤 Bundled Persian font **Vazirmatn** (SIL OFL) and full right-to-left layout
-- 📊 Home shows, while connected: time connected, download and upload speed, ping, and the server in use with its flag
-- 🛡️ A new Shield connect button: a turning ring while connecting, a green glow once connected
-- ↔️ Smooth switching between the Raman and Shield tabs
-- 🗂️ Shield settings grouped in cards; disabled options keep their reasons
-- 🇮🇷 **Iran mode** in Raman tools: domestic sites direct, the fastest server picked automatically and replaced on failure, servers tested every 5 minutes, IPv4 only, and a failed start retried
-- ✂️ **Find the best TLS trick**: tries no trick, several fragment settings and mixed-case SNI on the network in use and keeps the best (in 2026 fragment helps on some Iranian networks and is dropped on others)
-- ☁️ Shield: a "all CDNs but Cloudflare" suggestion in the CDN networks picker (Cloudflare from Iran is heavily throttled since October 2026)
-- ⚙️ Changed defaults: the default proxy is "lowest delay" instead of "balance", and servers are tested every 5 minutes instead of 10. Settings you changed yourself stay as they are
-- 🔁 A start that fails for a passing reason (the core not ready yet) is quietly tried twice more
+**Raman VPN (رامان VPN) 1.4.1** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial.
 
 ### تازه‌های ۱.۴.۱ (تنظیمات شیلد)
 - 🛡️ گزینه‌های «به‌زودی» شیلد که هسته‌ی رسمی ۵.۹.۱۵ پشتیبانی می‌کند، حالا کار می‌کنند:

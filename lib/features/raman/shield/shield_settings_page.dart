@@ -171,15 +171,6 @@ class _CdnSetsDialog extends HookWidget {
               title: Text(s.ssCdnSetsAll),
               onChanged: (_) => picked.value = <String>{},
             ),
-            // Raman VPN 1.5: Cloudflare from Iran was heavily throttled from October 2026
-            // (Filterwatch / MahsaNet), so a preset tries every other network first
-            ListTile(
-              leading: const Icon(Icons.auto_awesome_rounded),
-              title: Text(s.ssCdnPresetIran),
-              subtitle: Text(s.ssCdnPresetIranSub),
-              onTap: () => picked.value = ShieldPrefs.iranCdnSets.toSet(),
-            ),
-            const Divider(height: 1),
             for (final name in ShieldPrefs.builtInCdnSets)
               CheckboxListTile(
                 value: picked.value.contains(name),
@@ -247,7 +238,19 @@ class ShieldSettingsPage extends HookConsumerWidget {
       changed.value = true;
     }
 
-    Widget section(String title, {String? help}) => _SectionHeader(title: title, help: help);
+    Widget section(String title, {String? help}) => Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary)),
+          if (help != null) ...[
+            const Gap(4),
+            Text(help, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          ],
+        ],
+      ),
+    );
 
     /// An option the official core cannot do, with the reason.
     Widget unavailable(IconData icon, String title, String why) => ListTile(
@@ -329,8 +332,7 @@ class ShieldSettingsPage extends HookConsumerWidget {
           : null,
       body: ListView(
         padding: const EdgeInsets.only(bottom: 32),
-        // each section's settings in a card of their own under its title
-        children: _grouped([
+        children: [
           // region
           section(s.ssSecRegion),
           ListTile(
@@ -670,71 +672,10 @@ class ShieldSettingsPage extends HookConsumerWidget {
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: () => context.goNamed('about'),
           ),
-        ]),
-      ),
-    );
-  }
-}
-
-/// A section's title (and help) on Shield's settings page; [_grouped] puts the settings after it
-/// into one card.
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title, this.help});
-
-  final String title;
-  final String? help;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w700),
-          ),
-          if (help != null) ...[
-            const Gap(4),
-            Text(help!, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-          ],
         ],
       ),
     );
   }
-}
-
-/// The page's flat list as sections: every [_SectionHeader] stays, and the settings up to the next
-/// one go into a card under it.
-List<Widget> _grouped(List<Widget> items) {
-  final out = <Widget>[];
-  var group = <Widget>[];
-  void flush() {
-    if (group.isEmpty) return;
-    out.add(
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Card(
-          margin: EdgeInsets.zero,
-          child: Column(mainAxisSize: MainAxisSize.min, children: group),
-        ),
-      ),
-    );
-    group = <Widget>[];
-  }
-
-  for (final item in items) {
-    if (item is _SectionHeader) {
-      flush();
-      out.add(item);
-    } else {
-      group.add(item);
-    }
-  }
-  flush();
-  return out;
 }
 
 String? Function(String) _validateUrl(RamanStrings s) => (v) {

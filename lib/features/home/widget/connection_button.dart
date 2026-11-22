@@ -91,7 +91,7 @@ class ConnectionButton extends HookConsumerWidget {
     final degraded = look == _Look.connected && (health?.degraded ?? false);
     final hopPending = look == _Look.connected && (health?.hopPending ?? false);
 
-    final buttonTheme = Theme.of(context).extension<ConnectionButtonTheme>() ?? ConnectionButtonTheme.light;
+    const buttonTheme = ConnectionButtonTheme.light;
     final today = DateTime.now();
     final button = _ConnectionButton(
       look: look,
