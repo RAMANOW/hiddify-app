@@ -11,6 +11,7 @@ Download the APK from [Releases](https://github.com/RAMANOW/hiddify-app/releases
 
 Raman VPN is based on **[Hiddify](https://github.com/hiddify/hiddify-app)** by the Hiddify team, and all credit for the app and its core goes to them.
 It is distributed under the same license as the original, the **Hiddify Extended GPL v3** — see [LICENSE.md](LICENSE.md) and the [original license](https://github.com/hiddify/hiddify-app/blob/main/LICENSE.md).
+The Google Relay tab (1.7) uses **[mhrv-rs](https://github.com/therealaleph/MasterHttpRelayVPN-RUST)** by therealaleph, the Rust port of **[MasterHttpRelayVPN](https://github.com/masterking32/MasterHttpRelayVPN)** by masterking32, under the **MIT license** (notice in [`assets/raman/relay/LICENSE-mhrv-rs.txt`](assets/raman/relay/LICENSE-mhrv-rs.txt)); its `Code.gs` is shipped unchanged in `assets/raman/relay/`. The native library is built from the pinned tag by CI (`raman/relay/`).
 This fork is public, its full source is here, it is built by GitHub Actions ([`.github/workflows/raman-android.yml`](.github/workflows/raman-android.yml)), and it is not sold or used commercially.
 
 ## Changes from Hiddify
@@ -26,6 +27,7 @@ This fork is public, its full source is here, it is built by GitHub Actions ([`.
 
 ## Changelog
 
+- **1.7.0** (2026-11-23): new **Google Relay** (رله گوگل) tab in Raman tools: web traffic goes through your own Google Apps Script deployment with domain fronting (TLS name www.google.com on a Google IP), no VPS. mhrv-rs runs in the app on 127.0.0.1 (SOCKS5 18086, HTTP 18085); the normal Hiddify VPN connects to it through a hidden local profile with one socks outbound, and the relay's own traffic leaves outside the tunnel (the app is always excluded from its VPN). Deployment IDs (several), AUTH_KEY (or a random one), optional google_ip / front SNI with a reachability test; copy of Code.gs with your key filled in and the deploy steps; a per-install MITM CA (made on the phone, never shipped) saved to Downloads with the install steps and an installed check. While the relay is on, FakeIP is on and QUIC is blocked; both come back when it stops. Nothing else changes and nothing runs unless the tab is used.
 - **1.3.0** (2026-11-15): merged upstream Hiddify **v5.9.8** (smart keep-top: only the fastest proxies stay active; less battery, data and memory; region pick and instant refresh from cache; pin a proxy by long press; Android lag fix; steadier WireGuard/UDP; UI and crash fixes) with the official hiddify-core 5.9.8. Shield unchanged from 1.2. Crash and problem reports stay on the device (save or share the file); the Telegram channel offer and Hiddify's report bot, mail and upload are not used. The custom-core build (`raman/core/`) is an opt-in, experimental CI job (`custom-core` input, off by default).
 - **1.2.0**: Shield settings screen.
 - **1.1.0**: Raman + Shield tabs, disguise icon.

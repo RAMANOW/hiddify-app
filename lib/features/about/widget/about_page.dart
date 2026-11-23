@@ -140,6 +140,17 @@ class AboutPage extends HookConsumerWidget {
                   await UriUtils.tryLaunch(Uri.parse(Constants.licenseUrl));
                 },
               ),
+              // Google Relay: mhrv-rs and its Code.gs are MIT; the notice ships in the app
+              ListTile(
+                dense: true,
+                title: const Text(
+                  "Google Relay: MasterHttpRelayVPN by masterking32, Rust port mhrv-rs by therealaleph — MIT",
+                ),
+                trailing: const Icon(FluentIcons.open_24_regular),
+                onTap: () async {
+                  await UriUtils.tryLaunch(Uri.parse("https://github.com/therealaleph/MasterHttpRelayVPN-RUST"));
+                },
+              ),
             ]),
           ),
         ],

@@ -14,6 +14,7 @@ import 'package:hiddify/features/profile/model/profile_sort_enum.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
 import 'package:hiddify/features/profile/notifier/profiles_update_notifier.dart';
 import 'package:hiddify/features/raman/shield/shield_controller.dart';
+import 'package:hiddify/features/raman/relay/relay_controller.dart';
 import 'package:hiddify/features/settings/data/config_option_repository.dart';
 import 'package:hiddify/utils/utils.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -77,9 +78,11 @@ class ProfilesNotifier extends _$ProfilesNotifier with AppLogger {
     final sort = ref.watch(profilesSortNotifierProvider);
     // Shield's own profile is not one of the user's
     final shieldId = ref.watch(shieldProfileIdProvider);
+    // nor is the Google Relay's
+    final relayId = ref.watch(relayProfileIdProvider);
     return _profilesRepo
         .watchAll(sort: sort.by, sortMode: sort.mode)
-        .map((event) => event.getOrElse((l) => throw l).where((p) => p.id != shieldId).toList());
+        .map((event) => event.getOrElse((l) => throw l).where((p) => p.id != shieldId && p.id != relayId).toList());
   }
 
   ProfileRepository get _profilesRepo => ref.read(profileRepositoryProvider).requireValue;

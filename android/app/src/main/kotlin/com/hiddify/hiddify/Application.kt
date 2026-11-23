@@ -21,6 +21,8 @@ class Application : Application() {
     override fun onCreate() {
         super.onCreate()
         initialize(this)
+        // Raman VPN: the Google Relay comes back with the process only when the user runs it
+        RelayCore.autoStart(this)
     }
 
     companion object {

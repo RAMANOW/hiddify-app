@@ -1,4 +1,25 @@
-**Raman VPN (رامان VPN) 1.6** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial.
+**Raman VPN (رامان VPN) 1.7** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial. The Google Relay uses mhrv-rs (therealaleph) / MasterHttpRelayVPN (masterking32), MIT.
+
+### تازه‌های ۱.۷ (رله گوگل)
+- ☁️ زبانه‌ی تازه‌ی **رله گوگل** در ابزارهای رامان: ترافیک وب از راه Google Apps Script خودتان می‌رود و اینترنت‌دهنده فقط اتصال به www.google.com را می‌بیند. **به VPS نیاز ندارد**؛ فقط یک حساب گوگل.
+- وارد کردن یک یا چند Deployment ID و AUTH_KEY (یا ساخت کلید تصادفی)، IP گوگل و SNI دلخواه با دکمه‌ی آزمایش.
+- دکمه‌ی **کپی Code.gs** (با AUTH_KEY شما) و مراحل کوتاه ساخت Web app.
+- **گواهی امنیتی مخصوص همین گوشی** (روی گوشی ساخته می‌شود) برای HTTPS در مرورگرها، با ذخیره در Downloads و راهنمای نصب.
+- اتصال از همان دکمه و VPN معمولی برنامه انجام می‌شود. تا وقتی رله روشن است FakeIP روشن و QUIC بسته است و با خاموش کردن رله برمی‌گردد.
+- محدودیت‌ها: فقط وب (HTTP/HTTPS)؛ برنامه‌هایی که به گواهی اعتماد نمی‌کنند و تلگرام از رله عبور نمی‌کنند؛ حدود ۲۰٬۰۰۰ درخواست در روز برای هر حساب گوگل.
+- بقیه‌ی برنامه (زبانه‌های رامان و شیلد، اتصال، ضد نشتی) همان ۱.۶ است.
+
+### نوێیەکانی ١.٧
+- ☁️ **ڕیلەی گووگڵ**: هاتوچۆی وێب لە ڕێی Google Apps Scriptی خۆتەوە، بێ VPS.
+
+### New in 1.7 (Google Relay)
+- ☁️ New **Google Relay** tab in Raman tools: web traffic goes through your own Google Apps Script deployment with domain fronting; your ISP sees www.google.com. **No VPS needed.**
+- One or more Deployment IDs, AUTH_KEY (or a random one), optional Google IP / front SNI with a test; copy Code.gs with your key filled in, short deploy steps.
+- A **per-install CA** made on the phone for HTTPS in browsers, saved to Downloads with install steps.
+- Connects through the app's normal VPN. While the relay is on, FakeIP is on and QUIC is blocked; both come back when it stops.
+- Limits: web only (HTTP/HTTPS); apps that do not trust user CAs and Telegram do not go through the relay; about 20,000 calls a day per Google account.
+- Everything else (Raman and Shield tabs, connecting, anti-leak) is unchanged from 1.6.
+
 
 ### تازه‌های ۱.۶ (ضد نشتی + زبان کردی)
 - 🛡️ **حالت ضد نشتی** با یک لمس (ابزارهای رامان ← ضد نشتی؛ وقتی روشن است نشانش در صفحه‌ی اصلی دیده می‌شود): DNS راه‌دور به‌صورت DNS over HTTPS از داخل پروکسی، مسیر سخت‌گیرانه (strict route)، فقط IPv4، مسدود شدن QUIC، و پروفایل‌ها (اشتراک‌ها) دیگر نمی‌توانند DNS را به DNS محلی یا بیرون از تونل عوض کنند. خاموش کردن، تنظیمات قبلی را برمی‌گرداند. به‌طور پیش‌فرض خاموش است؛ اتصال معمولی مثل ۱.۴.۱ است.

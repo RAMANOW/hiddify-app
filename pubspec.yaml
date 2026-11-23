@@ -1,7 +1,7 @@
 name: hiddify
 description: Cross Platform Multi Protocol Proxy Frontend.
 publish_to: "none"
-version: 1.6.0-raman+51600
+version: 1.7.0-raman+51700
 
 environment:
   sdk: ^3.10.4
@@ -180,6 +180,8 @@ flutter:
     - assets/images/disconnect_norouz.PNG
     - assets/images/world_map.png
     - assets/images/source/ic_launcher_border.png
+    - assets/raman/relay/Code.gs
+    - assets/raman/relay/LICENSE-mhrv-rs.txt
 
   fonts:
     - family: Shabnam

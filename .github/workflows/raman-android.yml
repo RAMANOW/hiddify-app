@@ -6,6 +6,9 @@
 # (downloaded by `make android-apk-prepare`, as upstream does). Its built-in Psiphon config is what
 # Shield connects with.
 #
+# Job "relay" builds libmhrv_rs.so (mhrv-rs, MIT: the Google Apps Script relay of the
+# "رله گوگل" tab) from the tag pinned in raman/relay/, cached by those files.
+#
 # Experimental, opt-in (input custom-core, default off): job "core" builds hiddify-core from source
 # with the patches of raman/core-patches (raman/core/build-core.sh) so Shield could pass its own
 # Psiphon settings. That build embeds a Psiphon config only from the HIDDIFY_SECRET_KEY and
@@ -19,7 +22,7 @@ on:
       release-tag:
         description: Publish a GitHub release with this tag (empty = build only)
         type: string
-        default: 'v1.6.0-raman'
+        default: 'v1.7.0-raman'
       custom-core:
         description: 'Experimental: build the core from source with the Raman patches (needs the PSIPHON_CONFIG and HIDDIFY_SECRET_KEY secrets, otherwise Shield breaks)'
         type: boolean
@@ -133,10 +136,59 @@ jobs:
           compression-level: 0
           if-no-files-found: error
 
+  relay:
+    # Google Relay (رله گوگل): libmhrv_rs.so of mhrv-rs (MIT), pinned in raman/relay/MHRV_*
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache key
+        id: key
+        run: echo "relay=raman-relay-${{ hashFiles('raman/relay/**') }}" >> "$GITHUB_OUTPUT"
+
+      - name: Cached relay libraries
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: build/relay-jni
+          key: ${{ steps.key.outputs.relay }}
+
+      - name: Set up Rust
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+
+      - name: Set up the Android NDK
+        if: steps.cache.outputs.cache-hit != 'true'
+        id: ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r28
+
+      - name: Install cargo-ndk
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: cargo install cargo-ndk --locked
+
+      - name: Build libmhrv_rs.so
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+        run: bash raman/relay/build-relay.sh
+
+      - name: Upload the relay libraries
+        uses: actions/upload-artifact@v4
+        with:
+          name: relay-jni
+          path: build/relay-jni
+          retention-days: 30
+          if-no-files-found: error
+
   android:
-    needs: core
-    # runs after the custom core, or without it when that job is skipped
-    if: ${{ !failure() && !cancelled() }}
+    needs: [core, relay]
+    # runs after the custom core, or without it when that job is skipped; needs the relay libraries
+    if: ${{ !failure() && !cancelled() && needs.relay.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -181,6 +233,20 @@ jobs:
         with:
           name: hiddify-core-aar
           path: android/app/libs
+
+      - name: Google Relay libraries (libmhrv_rs.so)
+        uses: actions/download-artifact@v4
+        with:
+          name: relay-jni
+          path: build/relay-jni
+
+      - name: Add the relay libraries to the app
+        run: |
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            mkdir -p android/app/src/main/jniLibs/$abi
+            cp build/relay-jni/$abi/libmhrv_rs.so android/app/src/main/jniLibs/$abi/
+          done
+          ls -laR android/app/src/main/jniLibs
 
       - name: Check the core
         run: |
