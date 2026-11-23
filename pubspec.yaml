@@ -1,7 +1,7 @@
 name: hiddify
 description: Cross Platform Multi Protocol Proxy Frontend.
 publish_to: "none"
-version: 1.8.1-raman+51810
+version: 1.8.2-raman+51820
 
 environment:
   sdk: ^3.10.4
@@ -186,6 +186,9 @@ flutter:
     - assets/raman/dnstunnel/LICENSE-soar.txt
     - assets/raman/dnstunnel/THIRD_PARTY-soar-data.md
     - assets/raman/dnstunnel/LICENSE-cottendns.txt
+    - assets/raman/dnstunnel/LICENSE-dnstt.txt
+    - assets/raman/dnstunnel/LICENSE-slipstream.txt
+    - assets/raman/dnstunnel/LICENSE-masterdnsvpn.txt
     - assets/raman/dnstunnel/THIRD_PARTY_NOTICES-cottendns.md
     - assets/raman/dnstunnel/LICENSE-quic-go.txt
     - assets/raman/dnstunnel/LICENSE-qpack.txt

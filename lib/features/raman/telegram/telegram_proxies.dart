@@ -192,7 +192,7 @@ Future<bool> _portOpen(int port) async {
 Future<int?> ramanLocalSocksPort(WidgetRef ref) async {
   final candidates = <int>[
     if (ref.read(relayControllerProvider).inUse) RelayPlatform.socksPort,
-    if (ref.read(dnsTunnelControllerProvider).inUse) DnsTunnelPlatform.socksPort,
+    if (ref.read(dnsTunnelControllerProvider).inUse) ref.read(dnsTunnelControllerProvider).socksPort,
     if ((ref.read(connectionNotifierProvider).valueOrNull?.isConnected ?? false) &&
         !ref.read(ConfigOptions.localProxyAuth))
       ref.read(ConfigOptions.mixedPort),

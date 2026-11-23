@@ -170,6 +170,31 @@ class AboutPage extends HookConsumerWidget {
                   await UriUtils.tryLaunch(Uri.parse("https://github.com/TaJirax/cottenDNS"));
                 },
               ),
+              // 1.8.2: dnstt (CC0), Slipstream (Apache-2.0), MasterDnsVPN (MIT); notices in assets/raman/dnstunnel
+              ListTile(
+                dense: true,
+                title: const Text("DNS tunnel: dnstt by David Fifield — public domain (CC0)"),
+                trailing: const Icon(FluentIcons.open_24_regular),
+                onTap: () async {
+                  await UriUtils.tryLaunch(Uri.parse("https://www.bamsoftware.com/software/dnstt/"));
+                },
+              ),
+              ListTile(
+                dense: true,
+                title: const Text("DNS tunnel: Slipstream by EndPositive — Apache-2.0 (with picoquic, picotls — MIT; SPCDNS — LGPL-3.0)"),
+                trailing: const Icon(FluentIcons.open_24_regular),
+                onTap: () async {
+                  await UriUtils.tryLaunch(Uri.parse("https://github.com/EndPositive/slipstream"));
+                },
+              ),
+              ListTile(
+                dense: true,
+                title: const Text("DNS tunnel: MasterDnsVPN by Amin Mahmoudi (masterking32) — MIT"),
+                trailing: const Icon(FluentIcons.open_24_regular),
+                onTap: () async {
+                  await UriUtils.tryLaunch(Uri.parse("https://github.com/masterking32/MasterDnsVPN"));
+                },
+              ),
             ]),
           ),
         ],

@@ -1,4 +1,22 @@
-**Raman VPN (رامان VPN) 1.8** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial. The Google Relay uses mhrv-rs (therealaleph) / MasterHttpRelayVPN (masterking32), MIT. The shutdown DNS tunnel uses Soar (Lantern team, Apache-2.0) and CottenDNS (TaJirax, MIT; from StormDNS by NullRoute1970 and MasterDnsVPN by Amin Mahmoudi).
+**Raman VPN (رامان VPN) 1.8.2** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial. The Google Relay uses mhrv-rs (therealaleph) / MasterHttpRelayVPN (masterking32), MIT. The shutdown DNS tunnel uses Soar (Lantern team, Apache-2.0), CottenDNS (TaJirax, MIT; from StormDNS by NullRoute1970 and MasterDnsVPN by Amin Mahmoudi), dnstt (David Fifield, public domain / CC0), Slipstream (EndPositive, Apache-2.0) and MasterDnsVPN (Amin Mahmoudi, MIT).
+
+### تازه‌های ۱.۸.۲ (موتورهای تازهٔ DNS قطعی)
+- سه موتور متن‌باز تازه در زبانهٔ **DNS قطعی**، هر کدوم روی پورت محلی خودش:
+  - **dnstt**: لینک dnstt:// ، لینک dnst:// ، چسباندن دستور dnstt-client، یا فرم دستی (دامنه + کلید عمومی + ریزالور DoH/DoT/IP اختیاری). به یه سرور dnstt در حالت SOCKS نیاز داره.
+  - **Slipstream**: لینک slipstream:// یا dnst:// یا فرم دستی. **سرور عمومی نداره؛ سرور خودت لازمه.**
+  - **MasterDnsVPN**: لینک‌های masterdns:// کانال @whitedns حالا وارد می‌شن.
+- همهٔ این لینک‌ها از دکمهٔ «کانفیگ DNS» صفحهٔ افزودن، کلیپ‌بورد، QR و فایل هم وارد می‌شن (بدون تکرار).
+- فهرست «موتورها و سرور» نشون می‌ده هر موتور چی لازم داره.
+- soar:// و cottendns:// مثل قبل کار می‌کنن؛ بقیهٔ برنامه همون ۱.۸.۱ است.
+
+### نوێیەکانی ١.٨.٢
+- سێ بزوێنەری نوێ لە **DNSی بڕان**دا: dnstt، Slipstream (سێرڤەری خۆت پێویستە) و MasterDnsVPN (لینکەکانی masterdns://).
+
+### New in 1.8.2 (more Shutdown DNS engines)
+- Three more open-source engines in the **Shutdown DNS** tab, each a local SOCKS5 on its own port: **dnstt** (dnstt:// / dnst:// links, pasted dnstt-client commands, or a by-hand form: domain + public key + optional DoH/DoT/IP resolver; needs a dnstt server in SOCKS mode), **Slipstream** (slipstream:// / dnst:// or the form; **no public servers, needs your own**) and **MasterDnsVPN** (the channel's masterdns:// links now import).
+- The add sheet's «DNS config» dialog, clipboard, QR and file imports take them too (deduplicated). An "Engines and servers" list says what each engine needs.
+- soar:// and cottendns:// unchanged; everything else is as in 1.8.1.
+
 
 ### تازه‌های ۱.۸ (DNS قطعی)
 - 📡 زبانه‌ی تازه‌ی **DNS قطعی** در ابزارهای رامان، برای وقتی که اینترنت قطع می‌شه و فقط DNS جواب می‌ده: ترافیک توی درخواست‌های DNS از راه DNS اپراتور یا DNSهای داخلی رد می‌شه.

@@ -607,3 +607,18 @@ more useful to permit linking proprietary applications with the library. If this
 what you want to do, use the GNU Lesser General Public License instead of this
 License. But first, please read
 &lt;<http://www.gnu.org/philosophy/why-not-lgpl.html>&gt;.
+
+---
+
+# Third-party components in Raman VPN
+
+Raman VPN (this fork) also ships these open-source components in its Android app, each under its
+own license; the full texts are in `assets/raman/` and the list is in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md):
+
+- Google Relay: mhrv-rs (therealaleph) / MasterHttpRelayVPN (masterking32) — MIT.
+- DNS قطعی: Soar (the Lantern team) — Apache-2.0; CottenDNS (TaJirax; from StormDNS by NullRoute1970
+  and MasterDnsVPN by Amin Mahmoudi) — MIT; dnstt (David Fifield) — public domain / CC0 1.0;
+  Slipstream (EndPositive) — Apache-2.0, with picoquic, picotls, micro-ecc, cifra,
+  lua-resty-base-encoding, quick_arg_parser and SPCDNS (LGPL-3.0); MasterDnsVPN (Amin Mahmoudi /
+  masterking32) — MIT.

@@ -12,22 +12,42 @@ import java.net.InetSocketAddress
 import java.net.Socket
 
 /**
- * Raman VPN's shutdown DNS tunnel ("DNS قطعی"): one of two open-source DNS-tunnel clients, shipped
+ * Raman VPN's shutdown DNS tunnel ("DNS قطعی"): one of the open-source DNS-tunnel clients, shipped
  * as executables in the native library dir and run as a child process, listening as SOCKS5 on
  * 127.0.0.1 only:
  *  - soar: libsoarsocks.so (raman/dnstunnel/soarsocks; github.com/getlantern/soar, Apache-2.0)
  *  - cotten: libcottendns.so (the CottenDNS client by TaJirax, MIT, unchanged)
+ *  - dnstt (1.8.2): libdnstt.so (dnstt-client by David Fifield, public domain / CC0, unchanged): a
+ *    TCP forwarder to the server end, which hands each stream to its SOCKS5 proxy
+ *  - slipstream (1.8.2): libslipstream.so (EndPositive/slipstream client, Apache-2.0): a TCP
+ *    forwarder like dnstt; the server end must forward to a SOCKS5 proxy
+ *  - masterdns (1.8.2): libmasterdns.so (the MasterDnsVPN client by Amin Mahmoudi, MIT, unchanged)
+ * Each engine has its own loopback port (soar and cotten share 18096 as in 1.8); a test runs on the
+ * port after it.
  * The Hiddify core reaches it through a local profile with one socks outbound
  * (lib/features/raman/dnstunnel). The engine's DNS queries leave directly: the VPN service always
  * excludes this app's package (and so its child processes, same uid) from the tunnel.
  *
  * A run spec (JSON from Dart) is {"engine":"soar"|"cotten","profile":{...link profile...},
- * "resolvers":[...],"useSystemDns":bool}.
+ * "resolvers":[...],"useSystemDns":bool}; engine is also dnstt / slipstream / masterdns.
  */
 object DnsTunnelCore {
     private const val TAG = "RamanDnsTunnel"
     const val PORT = 18096
     const val TEST_PORT = 18097
+
+    /** engine -> (executable, main port); the test port is main + 1. */
+    private val ENGINES = linkedMapOf(
+        "soar" to ("libsoarsocks.so" to PORT),
+        "cotten" to ("libcottendns.so" to PORT),
+        "dnstt" to ("libdnstt.so" to 18098),
+        "slipstream" to ("libslipstream.so" to 18100),
+        "masterdns" to ("libmasterdns.so" to 18102),
+    )
+
+    fun engineOf(name: String?): String = if (name != null && ENGINES.containsKey(name)) name else "soar"
+
+    fun portOf(engine: String, test: Boolean = false): Int = ENGINES.getValue(engineOf(engine)).second + if (test) 1 else 0
 
     private const val PREFS = "FlutterSharedPreferences"
     private const val PREF_ACTIVE = "flutter.raman-dns-active"
@@ -67,18 +87,32 @@ object DnsTunnelCore {
     private val progress = Regex("WD_PROGRESS phase=(\\S+) percent=(\\d+)")
     private val hostRe = Regex("^[A-Za-z0-9.-]{3,253}$")
     private val keyRe = Regex("^[A-Za-z0-9+/=_-]{16,256}$")
+    private val hexKeyRe = Regex("^[0-9A-Fa-f]{64}$")
+    private val v4Re = Regex("^\\d{1,3}(\\.\\d{1,3}){3}(:\\d{1,5})?$")
+    private val v6PortRe = Regex("^\\[[0-9A-Fa-f:.]+\\](:\\d{1,5})?$")
+    private val v6Re = Regex("^[0-9A-Fa-f:.]*:[0-9A-Fa-f:.]*$")
+    private val dohRe = Regex("^https://[A-Za-z0-9.\\-\\[\\]:]+(/[A-Za-z0-9._~%!$&'()*+,;=:@/?-]*)?$")
+    private val hostPortRe = Regex("^[A-Za-z0-9.-]{1,253}(:\\d{1,5})?$")
 
     fun binary(ctx: Context, engine: String): File =
-        File(ctx.applicationInfo.nativeLibraryDir, if (engine == "cotten") "libcottendns.so" else "libsoarsocks.so")
+        File(ctx.applicationInfo.nativeLibraryDir, ENGINES.getValue(engineOf(engine)).first)
 
     fun available(ctx: Context): Map<String, Any?> {
-        val soar = binary(ctx, "soar")
-        val cotten = binary(ctx, "cotten")
-        return mapOf(
-            "soar" to (soar.isFile && soar.canExecute()),
-            "cotten" to (cotten.isFile && cotten.canExecute()),
-            "dir" to ctx.applicationInfo.nativeLibraryDir,
-        )
+        val out = LinkedHashMap<String, Any?>()
+        for (e in ENGINES.keys) {
+            val f = binary(ctx, e)
+            out[e] = f.isFile && f.canExecute()
+        }
+        out["dir"] = ctx.applicationInfo.nativeLibraryDir
+        return out
+    }
+
+    /** A UDP resolver as host:port (53 when none; IPv6 in brackets), or null when it is not one. */
+    private fun udpAddr(r: String): String? = when {
+        v4Re.matches(r) -> if (r.contains(':')) r else "$r:53"
+        v6PortRe.matches(r) -> if (r.endsWith("]")) "$r:53" else r
+        v6Re.matches(r) -> "[$r]:53"
+        else -> null
     }
 
     /** The resolvers of the phone's own network (Wi-Fi / mobile operator), never the VPN's. */
@@ -133,7 +167,7 @@ object DnsTunnelCore {
         val pid = runCatching { f.readText().trim().toInt() }.getOrNull() ?: return
         runCatching {
             val cmd = File("/proc/$pid/cmdline").readText()
-            if (cmd.contains("libsoarsocks.so") || cmd.contains("libcottendns.so")) {
+            if (ENGINES.values.any { cmd.contains(it.first) }) {
                 android.os.Process.killProcess(pid)
                 Thread.sleep(300)
             }
@@ -149,6 +183,41 @@ object DnsTunnelCore {
         val domain = server.optString("domain").trim().trimEnd('.')
         if (!hostRe.matches(domain)) throw IllegalArgumentException("bad domain")
         val bin = binary(ctx, engine).absolutePath
+        if (engine == "dnstt") return prepareDnstt(bin, profile, server, domain, resolvers, port)
+        if (engine == "slipstream") {
+            // one family only (the client cannot mix IPv4 and IPv6 resolvers); IPv4 first
+            val udp = resolvers.mapNotNull { udpAddr(it) }
+            val v4 = udp.filter { !it.startsWith("[") }
+            val use = (v4.ifEmpty { udp }).distinct().take(16)
+            if (use.isEmpty()) throw IllegalArgumentException("no resolvers")
+            val cmd = mutableListOf(bin, "--tcp-listen-port", port.toString(), "--domain", domain)
+            for (r in use) { cmd += "--resolver"; cmd += r }
+            return cmd
+        }
+        if (engine == "masterdns") {
+            val key = server.optString("encryption_key").trim()
+            if (!keyRe.matches(key)) throw IllegalArgumentException("bad encryption_key")
+            val method = server.optInt("encryption_method", 5).coerceIn(0, 5)
+            if (resolvers.isEmpty()) throw IllegalArgumentException("no resolvers")
+            // MasterDnsVPN's own client_config.toml keys; everything else keeps the client's defaults
+            val toml = """
+                PROTOCOL_TYPE = "SOCKS5"
+                LISTEN_IP = "127.0.0.1"
+                LISTEN_PORT = $port
+                SOCKS5_AUTH = false
+                DOMAINS = [${tomlString(domain)}]
+                ENCRYPTION_KEY = ${tomlString(key)}
+                DATA_ENCRYPTION_METHOD = $method
+                LOCAL_DNS_ENABLED = false
+                AUTO_SAVE_RANKED_RESOLVERS = false
+                INTERACTIVE_STATS_ENABLED = false
+                SAVE_MTU_SERVERS_TO_FILE = false
+                LOG_LEVEL = "INFO"
+            """.trimIndent() + "\n"
+            File(dir, "masterdns.toml").writeText(toml)
+            File(dir, "masterdns-resolvers.txt").writeText(resolvers.joinToString("\n") + "\n")
+            return listOf(bin, "-config", File(dir, "masterdns.toml").absolutePath, "-resolvers", File(dir, "masterdns-resolvers.txt").absolutePath)
+        }
         if (engine == "cotten") {
             val key = server.optString("encryption_key").trim()
             if (!keyRe.matches(key)) throw IllegalArgumentException("bad encryption_key")
@@ -197,8 +266,34 @@ object DnsTunnelCore {
         return listOf(bin, "-config", File(dir, "soar.json").absolutePath, "-listen", "127.0.0.1:$port")
     }
 
-    private fun spawn(ctx: Context, spec: JSONObject, port: Int, slot: String): Run {
-        val engine = if (spec.optString("engine") == "cotten") "cotten" else "soar"
+    /**
+     * dnstt-client [-doh URL | -dot HOST:PORT | -udp ADDR] -pubkey HEX DOMAIN 127.0.0.1:PORT. The
+     * config's own resolver (a DoH URL, tls://host[:853], or an IP[:port]) when it has one, else the
+     * first usable resolver of the list (phone's DNS first) over plain UDP; dnstt takes one only.
+     */
+    private fun prepareDnstt(bin: String, profile: JSONObject, server: JSONObject, domain: String, resolvers: List<String>, port: Int): List<String> {
+        val key = server.optString("public_key").trim()
+        if (!hexKeyRe.matches(key)) throw IllegalArgumentException("bad public_key (64 hex digits)")
+        val own = profile.optString("resolver").trim()
+        val transport: List<String> = when {
+            own.startsWith("https://") -> {
+                if (!dohRe.matches(own)) throw IllegalArgumentException("bad DoH URL")
+                listOf("-doh", own)
+            }
+            own.startsWith("tls://") -> {
+                val hp = own.removePrefix("tls://").trimEnd('/')
+                if (!hostPortRe.matches(hp)) throw IllegalArgumentException("bad DoT address")
+                listOf("-dot", if (hp.contains(':')) hp else "$hp:853")
+            }
+            own.isNotEmpty() -> listOf("-udp", udpAddr(own.removePrefix("udp://")) ?: throw IllegalArgumentException("bad resolver"))
+            else -> listOf("-udp", resolvers.firstNotNullOfOrNull { udpAddr(it) } ?: throw IllegalArgumentException("no resolvers"))
+        }
+        return listOf(bin) + transport + listOf("-pubkey", key.lowercase(), domain, "127.0.0.1:$port")
+    }
+
+    private fun spawn(ctx: Context, spec: JSONObject, test: Boolean, slot: String): Run {
+        val engine = engineOf(spec.optString("engine"))
+        val port = portOf(engine, test)
         val profile = spec.optJSONObject("profile") ?: throw IllegalArgumentException("no profile")
         val resolvers = mergedResolvers(ctx, spec)
         val dir = slotDir(ctx, slot)
@@ -211,7 +306,7 @@ object DnsTunnelCore {
         val process = pb.start()
         runCatching { process.outputStream.close() }
         val run = Run(engine, port, process)
-        run.resolvers = resolvers
+        run.resolvers = if (engine == "dnstt") listOf(cmd[2]) else resolvers
         runCatching {
             val f = process.javaClass.getDeclaredField("pid")
             f.isAccessible = true
@@ -273,7 +368,7 @@ object DnsTunnelCore {
             kill(main)
             main = null
             try {
-                spawn(ctx, JSONObject(specJson), PORT, "main").also { main = it }
+                spawn(ctx, JSONObject(specJson), false, "main").also { main = it }
             } catch (t: Throwable) {
                 Log.w(TAG, "start", t)
                 t.message ?: t.javaClass.simpleName
@@ -296,8 +391,9 @@ object DnsTunnelCore {
         val r = main
         return mapOf(
             "running" to (r?.alive() == true),
-            "listening" to (r?.alive() == true && portOpen(PORT, 150)),
+            "listening" to (r?.alive() == true && portOpen(r.port, 150)),
             "engine" to r?.engine,
+            "port" to r?.port,
             "phase" to r?.phase,
             "percent" to r?.percent,
             "exitCode" to r?.exitCode,
@@ -318,7 +414,7 @@ object DnsTunnelCore {
             kill(testRun)
             testRun = null
             try {
-                spawn(ctx, JSONObject(specJson), TEST_PORT, "test").also { testRun = it }
+                spawn(ctx, JSONObject(specJson), true, "test").also { testRun = it }
             } catch (t: Throwable) {
                 t.message ?: t.javaClass.simpleName
             }
@@ -328,7 +424,10 @@ object DnsTunnelCore {
             val err = waitListening(run, timeoutMs)
             if (err != null) return out.put("ok", false).put("error", err).toString()
             val left = (timeoutMs - (System.currentTimeMillis() - started)).coerceAtLeast(15_000)
-            val status = socksHttp(TEST_PORT, "www.gstatic.com", 80, "/generate_204", left.toInt())
+            // dnstt / slipstream servers may want a SOCKS5 login (from the link)
+            val socks = JSONObject(specJson).optJSONObject("profile")?.optJSONObject("socks")
+            val status = socksHttp(run.port, "www.gstatic.com", 80, "/generate_204", left.toInt(),
+                socks?.optString("user").orEmpty(), socks?.optString("password").orEmpty())
             val ms = System.currentTimeMillis() - started
             return if (status in 200..399) {
                 out.put("ok", true).put("ms", ms).put("status", status).toString()
@@ -349,16 +448,27 @@ object DnsTunnelCore {
     }
 
     /** SOCKS5 CONNECT (host name sent as is) and a plain HTTP GET; returns the status code. */
-    private fun socksHttp(port: Int, host: String, dport: Int, path: String, timeoutMs: Int): Int {
+    private fun socksHttp(port: Int, host: String, dport: Int, path: String, timeoutMs: Int, user: String = "", pass: String = ""): Int {
         Socket().use { s ->
             s.connect(InetSocketAddress("127.0.0.1", port), 3000)
             s.soTimeout = timeoutMs
             val o = s.getOutputStream()
             val i = s.getInputStream()
-            o.write(byteArrayOf(5, 1, 0)); o.flush()
+            val login = user.isNotEmpty()
+            o.write(if (login) byteArrayOf(5, 2, 0, 2) else byteArrayOf(5, 1, 0)); o.flush()
             val g = ByteArray(2)
             readFully(i, g)
-            if (g[0].toInt() != 5 || g[1].toInt() != 0) throw IllegalStateException("socks auth refused")
+            if (g[0].toInt() != 5) throw IllegalStateException("not a SOCKS5 answer")
+            if (g[1].toInt() == 2 && login) {
+                val u = user.toByteArray().take(255).toByteArray()
+                val p = pass.toByteArray().take(255).toByteArray()
+                o.write(byteArrayOf(1, u.size.toByte()) + u + byteArrayOf(p.size.toByte()) + p); o.flush()
+                val a = ByteArray(2)
+                readFully(i, a)
+                if (a[1].toInt() != 0) throw IllegalStateException("socks login refused")
+            } else if (g[1].toInt() != 0) {
+                throw IllegalStateException("socks auth refused")
+            }
             val hb = host.toByteArray()
             val req = byteArrayOf(5, 1, 0, 3, hb.size.toByte()) + hb + byteArrayOf((dport shr 8).toByte(), (dport and 0xff).toByte())
             o.write(req); o.flush()

@@ -9,9 +9,11 @@
 # Job "relay" builds libmhrv_rs.so (mhrv-rs, MIT: the Google Apps Script relay of the
 # "رله گوگل" tab) from the tag pinned in raman/relay/, cached by those files.
 #
-# Job "dnstunnel" builds the two engines of the "DNS قطعی" tab as Android executables
+# Job "dnstunnel" builds the engines of the "DNS قطعی" tab as Android executables
 # (libsoarsocks.so: raman/dnstunnel/soarsocks over getlantern/soar, Apache-2.0; libcottendns.so: the
-# CottenDNS client, MIT, from the tag in raman/dnstunnel/COTTEN_TAG), cached by raman/dnstunnel/**.
+# CottenDNS client, MIT; 1.8.2: libdnstt.so: dnstt-client, public domain / CC0; libmasterdns.so: the
+# MasterDnsVPN client, MIT; libslipstream.so: the Slipstream client, Apache-2.0, C), each from the
+# version pinned in raman/dnstunnel/, cached by raman/dnstunnel/**.
 #
 # Experimental, opt-in (input custom-core, default off): job "core" builds hiddify-core from source
 # with the patches of raman/core-patches (raman/core/build-core.sh) so Shield could pass its own
@@ -26,7 +28,7 @@ on:
       release-tag:
         description: Publish a GitHub release with this tag ('none' = build only; an empty value falls back to this default)
         type: string
-        default: 'v1.8.1-raman'
+        default: 'v1.8.2-raman'
       custom-core:
         description: 'Experimental: build the core from source with the Raman patches (needs the PSIPHON_CONFIG and HIDDIFY_SECRET_KEY secrets, otherwise Shield breaks)'
         type: boolean
@@ -190,7 +192,7 @@ jobs:
           if-no-files-found: error
 
   dnstunnel:
-    # DNS قطعی engines: libsoarsocks.so (Soar, Apache-2.0) and libcottendns.so (CottenDNS, MIT)
+    # DNS قطعی engines: Soar (Apache-2.0), CottenDNS (MIT), dnstt (CC0), MasterDnsVPN (MIT), Slipstream (Apache-2.0)
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -226,6 +228,15 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
         run: bash raman/dnstunnel/build-dnstunnel.sh
+
+      - name: Build the Slipstream client
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+        run: |
+          pip install --user meson ninja
+          export PATH="$HOME/.local/bin:$PATH"
+          bash raman/dnstunnel/build-slipstream.sh
 
       - name: Upload the engines
         uses: actions/upload-artifact@v4
@@ -299,7 +310,7 @@ jobs:
           done
           ls -laR android/app/src/main/jniLibs
 
-      - name: DNS tunnel engines (libsoarsocks.so, libcottendns.so)
+      - name: DNS tunnel engines (libsoarsocks, libcottendns, libdnstt, libmasterdns, libslipstream)
         uses: actions/download-artifact@v4
         with:
           name: dnstunnel-jni
@@ -309,7 +320,9 @@ jobs:
         run: |
           for abi in arm64-v8a armeabi-v7a x86_64; do
             mkdir -p android/app/src/main/jniLibs/$abi
-            cp build/dnstunnel-jni/$abi/libsoarsocks.so build/dnstunnel-jni/$abi/libcottendns.so android/app/src/main/jniLibs/$abi/
+            for lib in libsoarsocks libcottendns libdnstt libmasterdns libslipstream; do
+              cp build/dnstunnel-jni/$abi/$lib.so android/app/src/main/jniLibs/$abi/
+            done
             chmod 755 android/app/src/main/jniLibs/$abi/*.so
           done
           ls -laR android/app/src/main/jniLibs

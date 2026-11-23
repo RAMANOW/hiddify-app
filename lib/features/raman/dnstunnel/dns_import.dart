@@ -10,11 +10,11 @@ import 'package:hiddify/features/raman/telegram/telegram_proxies.dart';
 import 'package:hiddify/utils/link_parsers.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-/// soar:// and cottendns:// links in the add profile sheet (Raman VPN 1.8.1): they go to the
-/// "DNS قطعی" tab's config store, not to the profiles; Telegram proxy links (tg://proxy, t.me/socks,
-/// …) go to the Telegram proxy list.
+/// DNS-tunnel links in the add profile sheet (Raman VPN 1.8.1; 1.8.2 adds masterdns://, dnstt://,
+/// slipstream:// and dnst://): they go to the "DNS قطعی" tab's config store, not to the profiles;
+/// Telegram proxy links (tg://proxy, t.me/socks, …) go to the Telegram proxy list.
 
-final _dnsScheme = RegExp(r'(soar|cottendns)://[A-Za-z0-9_\-+/=]*', caseSensitive: false);
+final _dnsScheme = dnsLinkSchemeRe;
 
 /// What is left of a text once those links are taken out counts as a normal import only when it
 /// still looks like a config or a link; a label or an emoji around a copied link does not.

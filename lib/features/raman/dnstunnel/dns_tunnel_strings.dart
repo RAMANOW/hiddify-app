@@ -72,7 +72,11 @@ class DnsTunnelStrings {
   String get neverFetched => _t('هنوز کانفیگی نگرفتی', 'Not fetched yet', 'هێشتا وەرنەگیراوە');
   String get paste => _t('چسباندن', 'Paste', 'لکاندن');
   String get addManual => _t('افزودن دستی', 'Add by hand', 'زیادکردن بە دەست');
-  String get addHint => _t('لینک soar:// یا cottendns:// رو اینجا بذار', 'Put a soar:// or cottendns:// link here', 'لینکی soar:// یان cottendns:// لێرە دابنێ');
+  String get addHint => _t(
+    'لینک soar:// ، cottendns:// ، masterdns:// ، dnstt:// ، slipstream:// یا dnst:// (یا دستور dnstt-client) رو اینجا بذار',
+    'Put a soar://, cottendns://, masterdns://, dnstt://, slipstream:// or dnst:// link (or a dnstt-client command) here',
+    'لینکی soar:// ، cottendns:// ، masterdns:// ، dnstt:// ، slipstream:// یان dnst:// (یان فەرمانی dnstt-client) لێرە دابنێ',
+  );
   String get add => _t('افزودن', 'Add', 'زیادکردن');
   String get cancel => _t('لغو', 'Cancel', 'هەڵوەشاندنەوە');
   String added(int n) => _t('$n کانفیگ اضافه شد', '$n configs added', '$n کانفیگ زیادکرا');
@@ -108,22 +112,70 @@ class DnsTunnelStrings {
   String get sheetButton => _t('کانفیگ DNS', 'DNS config', 'کانفیگی DNS');
   String get sheetTitle => _t('افزودن کانفیگ DNS', 'Add DNS configs', 'زیادکردنی کانفیگی DNS');
   String get sheetHint => _t(
-    'یک یا چند لینک soar:// یا cottendns:// رو اینجا بذار',
-    'Put one or more soar:// or cottendns:// links here',
-    'یەک یان چەند لینکی soar:// یان cottendns:// لێرە دابنێ',
+    'یک یا چند لینک DNS (soar:// ، cottendns:// ، masterdns:// ، dnstt:// ، slipstream:// ، dnst://) رو اینجا بذار',
+    'Put one or more DNS links here (soar://, cottendns://, masterdns://, dnstt://, slipstream://, dnst://)',
+    'یەک یان چەند لینکی DNS (soar:// ، cottendns:// ، masterdns:// ، dnstt:// ، slipstream:// ، dnst://) لێرە دابنێ',
   );
   String get pasteClipboard => _t('چسباندن از کلیپ‌بورد', 'Paste from clipboard', 'لکاندن لە کلیپبۆرد');
   String dnsAdded(int n) => _t('$n کانفیگ DNS اضافه شد', '$n DNS configs added', '$n کانفیگی DNS زیادکرا');
   String get dnsAlreadySaved => _t('این کانفیگ‌های DNS از قبل ذخیره بودن', 'These DNS configs were already saved', 'ئەم کانفیگانەی DNS پێشتر پاشەکەوت کرابوون');
   String get openTab => _t('باز کردن', 'Open', 'کردنەوە');
 
+  // engines (1.8.2)
+  String get engines => _t('موتورها و سرور', 'Engines and servers', 'بزوێنەرەکان و سێرڤەر');
+  String get notInBuild => _t('توی این نسخه نیست', 'not in this build', 'لەم وەشانەدا نییە');
+  String savedCount(int n) => _t('$n کانفیگ ذخیره‌شده', '$n saved configs', '$n کانفیگی پاشەکەوتکراو');
+  String get needsServerBadge => _t('سرور خودت لازمه', 'needs your own server', 'سێرڤەری خۆت پێویستە');
+  String engineHint(String engine) => switch (engine) {
+    'soar' || 'cotten' => _t(
+      'کانفیگ عمومی از کانال @whitedns با دکمهٔ «گرفتن کانفیگ‌ها».',
+      'Public configs from the @whitedns channel with "Get configs".',
+      'کانفیگی گشتی لە کەناڵی @whitedns بە «وەرگرتنی کانفیگەکان».',
+    ),
+    'masterdns' => _t(
+      'لینک‌های masterdns:// از کانال @whitedns هم گرفته می‌شن، یا لینک سرور MasterDnsVPN خودت (کلید رمز + دامنه).',
+      'masterdns:// links also come from the @whitedns channel, or use your own MasterDnsVPN server\'s link (key + domain).',
+      'لینکەکانی masterdns:// لە کەناڵی @whitedns یش وەردەگیرێن، یان لینکی سێرڤەری MasterDnsVPN ی خۆت (کلیل + دۆمەین).',
+    ),
+    'dnstt' => _t(
+      'به یه سرور dnstt در حالت SOCKS نیاز داره: دامنه + کلید عمومی. سرورهای عمومی گاهی در net4people/bbs (گیت‌هاب) منتشر می‌شن، یا سرور خودت. بدون کانفیگ ذخیره‌شده وصل نمی‌شه.',
+      'Needs a dnstt server in SOCKS mode: domain + public key. Public servers are sometimes posted on net4people/bbs (GitHub), or run your own. It cannot connect without a saved config.',
+      'پێویستی بە سێرڤەرێکی dnstt لە دۆخی SOCKS هەیە: دۆمەین + کلیلی گشتی. سێرڤەری گشتی هەندێک جار لە net4people/bbs (گیتهەب) بڵاو دەکرێنەوە، یان سێرڤەری خۆت. بێ کانفیگی پاشەکەوتکراو پەیوەست نابێت.',
+    ),
+    'slipstream' => _t(
+      'سرور عمومی شناخته‌شده نداره: سرور slipstream خودت لازمه (slipstream-server که به یه پروکسی SOCKS5 وصله) و یه کانفیگ ذخیره‌شده (دامنه). بدون اینا وصل نمی‌شه.',
+      'No public servers are known: it needs your own slipstream server (slipstream-server forwarding to a SOCKS5 proxy) and a saved config (its domain). It cannot connect without them.',
+      'هیچ سێرڤەرێکی گشتی ناسراو نییە: سێرڤەری slipstream ی خۆت پێویستە (slipstream-server کە بە پرۆکسییەکی SOCKS5 وە بەستراوە) و کانفیگێکی پاشەکەوتکراو (دۆمەینەکەی). بێ ئەوانە پەیوەست نابێت.',
+    ),
+    _ => '',
+  };
+
+  // the by-hand form (1.8.2)
+  String get formLink => _t('لینک', 'Link', 'لینک');
+  String get formDomain => _t('دامنهٔ تونل (مثلاً t.example.com)', 'Tunnel domain (e.g. t.example.com)', 'دۆمەینی تونێل (بۆ نموونە t.example.com)');
+  String get formPubkey => _t('کلید عمومی سرور (۶۴ رقم هگز)', 'Server public key (64 hex digits)', 'کلیلی گشتیی سێرڤەر (٦٤ ژمارەی هێکس)');
+  String get formDnsttResolver => _t(
+    'ریزالور (اختیاری): آدرس DoH مثل https://dns.google/dns-query ، یا tls://host ، یا IP. خالی = DNSهای پایین',
+    'Resolver (optional): a DoH URL like https://dns.google/dns-query, tls://host, or an IP. Empty = the resolvers below',
+    'ڕیزۆڵڤەر (ئارەزوومەندانە): ناونیشانی DoH وەک https://dns.google/dns-query ، یان tls://host ، یان IP. بەتاڵ = DNSەکانی خوارەوە',
+  );
+  String get formSlipResolvers => _t(
+    'ریزالورها (اختیاری، IP با ویرگول). خالی = DNSهای پایین',
+    'Resolvers (optional, IPs separated by commas). Empty = the resolvers below',
+    'ڕیزۆڵڤەرەکان (ئارەزوومەندانە، IP بە کۆما). بەتاڵ = DNSەکانی خوارەوە',
+  );
+  String get formName => _t('اسم (اختیاری)', 'Name (optional)', 'ناو (ئارەزوومەندانە)');
+  String get formBadDomain => _t('دامنه درست نیست', 'Not a valid domain', 'دۆمەینەکە دروست نییە');
+  String get formBadKey => _t('کلید باید ۶۴ رقم هگز باشه', 'The key must be 64 hex digits', 'کلیلەکە دەبێت ٦٤ ژمارەی هێکس بێت');
+  String get formBadResolver => _t('ریزالور درست نیست', 'Not a valid resolver', 'ڕیزۆڵڤەرەکە دروست نییە');
+
   String get log => _t('گزارش موتور', 'Engine log', 'تۆماری بزوێنەر');
   String get noLog => _t('چیزی نیست', 'Nothing yet', 'هیچ نییە');
 
   String get credits => _t(
-    'موتورها: Soar از تیم Lantern (Apache-2.0) و CottenDNS از TaJirax (MIT، برگرفته از StormDNS از NullRoute1970 و MasterDnsVPN از امین محمودی). کانفیگ‌های عمومی از کانال تلگرام @whitedns.',
-    'Engines: Soar by the Lantern team (Apache-2.0) and CottenDNS by TaJirax (MIT, derived from StormDNS by NullRoute1970 and MasterDnsVPN by Amin Mahmoudi). Public configs from the @whitedns Telegram channel.',
-    'بزوێنەرەکان: Soar لە تیمی Lantern (Apache-2.0) و CottenDNS لە TaJirax (MIT، لە StormDNS ی NullRoute1970 و MasterDnsVPN ی ئەمین مەحموودی). کانفیگە گشتییەکان لە کەناڵی تێلیگرامی @whitedns.',
+    'موتورها: Soar از تیم Lantern (Apache-2.0)، CottenDNS از TaJirax (MIT، برگرفته از StormDNS از NullRoute1970 و MasterDnsVPN از امین محمودی)، dnstt از David Fifield (مالکیت عمومی / CC0)، Slipstream از EndPositive (Apache-2.0) و MasterDnsVPN از امین محمودی (masterking32، MIT). کانفیگ‌های عمومی از کانال تلگرام @whitedns.',
+    'Engines: Soar by the Lantern team (Apache-2.0), CottenDNS by TaJirax (MIT, derived from StormDNS by NullRoute1970 and MasterDnsVPN by Amin Mahmoudi), dnstt by David Fifield (public domain / CC0), Slipstream by EndPositive (Apache-2.0) and MasterDnsVPN by Amin Mahmoudi (masterking32, MIT). Public configs from the @whitedns Telegram channel.',
+    'بزوێنەرەکان: Soar لە تیمی Lantern (Apache-2.0)، CottenDNS لە TaJirax (MIT، لە StormDNS ی NullRoute1970 و MasterDnsVPN ی ئەمین مەحموودی)، dnstt لە David Fifield (موڵکی گشتی / CC0)، Slipstream لە EndPositive (Apache-2.0) و MasterDnsVPN لە ئەمین مەحموودی (masterking32، MIT). کانفیگە گشتییەکان لە کەناڵی تێلیگرامی @whitedns.',
   );
 }
 

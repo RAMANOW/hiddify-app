@@ -20,9 +20,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// "DNS قطعی": a last-resort tunnel for internet shutdowns, carried inside DNS queries through the
-/// resolvers that still answer (the operator's, domestic ones). Two open-source engines run on the
-/// phone as a local SOCKS5 server (Soar on soar:// links, CottenDNS on cottendns:// links); the VPN
-/// is the usual Hiddify core with a hidden local profile of one socks outbound to it, like the
+/// resolvers that still answer (the operator's, domestic ones). Open-source engines run on the
+/// phone as a local SOCKS5 server (Soar on soar:// links, CottenDNS on cottendns:// links; 1.8.2:
+/// dnstt, Slipstream and MasterDnsVPN), each on its own loopback port; the VPN is the usual Hiddify
+/// core with a hidden local profile of one socks outbound to the selected config's engine, like the
 /// Google Relay tab. Very slow; TCP only.
 abstract class DnsTunnelPrefs {
   /// Saved configs: JSON list of {link, src: channel|manual, at}.
@@ -89,9 +90,10 @@ abstract class DnsTunnelPlatform {
 
   static bool get supported => Platform.isAndroid;
 
+  /// Soar's and CottenDNS's port (1.8); every engine's own is [DnsEngine.port].
   static const socksPort = 18096;
 
-  /// Which engines are in this build: {soar: bool, cotten: bool}.
+  /// Which engines are in this build: {soar: bool, cotten: bool, dnstt: bool, slipstream: bool, masterdns: bool}.
   static Future<Map<String, dynamic>> available() async {
     if (!supported) return const {};
     try {
@@ -192,17 +194,35 @@ class DnsTunnelController with InfraLogger {
   static const tunnelTag = 'DNS Tunnel';
   static const profileName = 'DNS قطعی';
 
-  static String profileContent() => jsonEncode({
-    'outbounds': [
-      {
-        'type': 'socks',
-        'tag': tunnelTag,
-        'server': '127.0.0.1',
-        'server_port': DnsTunnelPlatform.socksPort,
-        'version': '5',
-      },
-    ],
-  });
+  /// The hidden profile: one socks outbound to [c]'s engine (with the server's SOCKS5 login, if
+  /// the link has one).
+  static String profileContent([DnsTunnelConfig? c]) {
+    final login = c?.socksLogin;
+    return jsonEncode({
+      'outbounds': [
+        {
+          'type': 'socks',
+          'tag': tunnelTag,
+          'server': '127.0.0.1',
+          'server_port': c?.engine.port ?? DnsTunnelPlatform.socksPort,
+          'version': '5',
+          if (login != null) 'username': login.user,
+          if (login != null) 'password': login.password,
+        },
+      ],
+    });
+  }
+
+  /// The local SOCKS5 port of the engine in use (from the run it was started with).
+  int get socksPort {
+    try {
+      final spec = jsonDecode(_prefs.getString(DnsTunnelPrefs.run) ?? '{}') as Map<String, dynamic>;
+      final e = DnsEngine.values.where((v) => v.name == spec['engine']).firstOrNull;
+      return e?.port ?? DnsTunnelPlatform.socksPort;
+    } catch (_) {
+      return DnsTunnelPlatform.socksPort;
+    }
+  }
 
   // ---- saved configs ----
 
@@ -390,6 +410,8 @@ class DnsTunnelController with InfraLogger {
     final useSystem = _ref.read(DnsTunnelPrefs.useSystemDns);
     final own = dnsResolverList(_ref.read(DnsTunnelPrefs.extraResolvers));
     final link = _ref.read(DnsTunnelPrefs.useLinkResolvers) ? c.resolvers : const <String>[];
+    // dnstt with its own resolver (DoH / DoT / an IP in the link) needs no other
+    if (c.engine == DnsEngine.dnstt && c.resolver.isNotEmpty) return null;
     if (!useSystem && own.isEmpty && link.isEmpty) return 'resolvers';
     return null;
   }
@@ -452,11 +474,14 @@ class DnsTunnelController with InfraLogger {
     ProfileEntity? existing;
     if (id != null) existing = (await repo.getById(id).run()).getOrElse((_) => null);
     if (existing != null) {
+      // the engine (and so the port) may differ from the last run's
+      final updated = await repo.offlineUpdate(existing, profileContent(c)).run();
+      if (updated.isLeft()) loggy.warning('could not update the dns tunnel profile: $updated');
       final activated = await repo.setAsActive(existing.id).run();
       if (activated.isLeft()) return 'profile:$activated';
     } else {
       final added = await repo
-          .addLocal(profileContent(), userOverride: const UserOverride(name: profileName, isAutoUpdateDisable: true))
+          .addLocal(profileContent(c), userOverride: const UserOverride(name: profileName, isAutoUpdateDisable: true))
           .run();
       final failure = added.getLeft().toNullable();
       if (failure != null) {

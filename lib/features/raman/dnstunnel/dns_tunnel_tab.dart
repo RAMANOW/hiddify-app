@@ -9,6 +9,7 @@ import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
 import 'package:hiddify/features/connection/model/connection_status.dart';
 import 'package:hiddify/features/connection/notifier/connection_notifier.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_links.dart';
+import 'package:hiddify/features/raman/dnstunnel/dns_manual_dialog.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_controller.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_strings.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -164,28 +165,8 @@ class DnsTunnelTab extends HookConsumerWidget {
     }
 
     Future<void> onAddManual() async {
-      final ctl = TextEditingController();
-      final text = await showDialog<String>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(s.addManual),
-          content: TextField(
-            controller: ctl,
-            autofocus: true,
-            minLines: 3,
-            maxLines: 8,
-            textDirection: TextDirection.ltr,
-            autocorrect: false,
-            enableSuggestions: false,
-            decoration: InputDecoration(hintText: s.addHint, border: const OutlineInputBorder()),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(s.cancel)),
-            FilledButton(onPressed: () => Navigator.of(context).pop(ctl.text), child: Text(s.add)),
-          ],
-        ),
-      );
-      ctl.dispose();
+      // a link, or a dnstt / Slipstream server typed in (1.8.2)
+      final text = await showDnsManualDialog(context, s);
       if (text == null || text.trim().isEmpty) return;
       final n = await controller.addFromText(text);
       toast(n > 0 ? s.added(n) : s.nothingToAdd, error: n == 0);
@@ -337,7 +318,9 @@ class DnsTunnelTab extends HookConsumerWidget {
                             children: [
                               Text(c.config.name, textDirection: ltr, style: theme.textTheme.titleSmall),
                               Text(
-                                '${c.config.engine.label}${c.manual ? ' · ${s.manualBadge}' : ''}',
+                                '${c.config.engine.label}${c.manual ? ' · ${s.manualBadge}' : ''}'
+                                '${c.config.engine.needsOwnServer ? ' · ${s.needsServerBadge}' : ''}'
+                                '${engineIn(c.config.engine) ? '' : ' · ${s.notInBuild}'}',
                                 style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline),
                               ),
                             ],
@@ -364,6 +347,22 @@ class DnsTunnelTab extends HookConsumerWidget {
               ),
             ),
           ),
+        // 1.8.2: every engine, whether it is in this build, and what it needs (a server of the user's)
+        ExpansionTile(
+          leading: const Icon(Icons.memory_rounded),
+          title: Text(s.engines),
+          children: [
+            for (final e in DnsEngine.values)
+              ListTile(
+                dense: true,
+                title: Text(
+                  '${e.label} · ${s.savedCount(list.where((c) => c.config.engine == e).length)}'
+                  '${engineIn(e) ? '' : ' · ${s.notInBuild}'}',
+                ),
+                subtitle: Text(s.engineHint(e.name)),
+              ),
+          ],
+        ),
         const Divider(),
         section(s.resolvers, Icons.dns_rounded),
         SwitchListTile(

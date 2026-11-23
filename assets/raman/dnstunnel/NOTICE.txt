@@ -1,7 +1,7 @@
 Raman VPN — "DNS قطعی" (shutdown DNS tunnel) tab — third-party notices
 
-This tab runs two open-source DNS-tunnel clients on the phone, each as a local SOCKS5 server on
-127.0.0.1 that the Hiddify core (Raman VPN's normal VPN) uses as its only outbound.
+This tab runs open-source DNS-tunnel clients on the phone, each as a local server on 127.0.0.1
+that the Hiddify core (Raman VPN's normal VPN) uses as its only (SOCKS5) outbound.
 
 1. Soar — https://github.com/getlantern/soar (tag v0.2.4)
    By the Lantern team (https://lantern.io).
@@ -18,7 +18,26 @@ This tab runs two open-source DNS-tunnel clients on the phone, each as a local S
    transport derived from Soar v0.2.3 (Apache-2.0), KevinNet DNS data (MIT), quic-go (MIT,
    LICENSE-quic-go.txt) and qpack (MIT, LICENSE-qpack.txt).
 
-Licenses of every other Go module compiled into the two engines: LICENSES-go-modules.txt.
+3. dnstt — https://www.bamsoftware.com/software/dnstt/ (tag v1.20260501.0), by David Fifield.
+   Public domain (CC0 1.0, LICENSE-dnstt.txt). libdnstt.so is dnstt-client, built unmodified.
+   (Added in Raman VPN 1.8.2.)
+
+4. Slipstream — https://github.com/EndPositive/slipstream (commit e158a681), by EndPositive.
+   Apache License 2.0 (LICENSE-slipstream.txt, with the licenses of the code compiled into it:
+   picoquic MIT, picotls MIT, micro-ecc BSD-2-Clause, cifra CC0, lua-resty-base-encoding MIT,
+   quick_arg_parser MIT, SPCDNS LGPL-3.0). libslipstream.so is its client, built with these changes
+   made by raman/dnstunnel/build-slipstream.sh (Apache-2.0 section 4b):
+     - picoquic is configured without OpenSSL (WITH_OPENSSL=OFF) and without picotls "fusion", so
+       TLS uses picotls "minicrypto";
+     - picoquic's cmake/FindPTLS.cmake no longer lists the picotls-openssl library;
+     - the client's local TCP listener binds 127.0.0.1 instead of 0.0.0.0.
+   (Added in Raman VPN 1.8.2.)
+
+5. MasterDnsVPN — https://github.com/masterking32/MasterDnsVPN (tag v2026.11.18.210322-7198b45), by
+   Amin Mahmoudi (MasterkinG32). MIT License (LICENSE-masterdnsvpn.txt). libmasterdns.so is its
+   client (cmd/client), built unmodified. (Added in Raman VPN 1.8.2.)
+
+Licenses of every other Go module compiled into the Go engines: LICENSES-go-modules.txt.
 
 Public configs that the tab can download are read from the public web preview of the @whitedns
 Telegram channel (https://t.me/s/whitedns). Raman VPN is not affiliated with that channel or with
