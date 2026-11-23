@@ -6,61 +6,89 @@ import 'package:hiddify/core/router/go_router/go_router_notifier.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_links.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_controller.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_strings.dart';
+import 'package:hiddify/features/raman/telegram/telegram_proxies.dart';
 import 'package:hiddify/utils/link_parsers.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// soar:// and cottendns:// links in the add profile sheet (Raman VPN 1.8.1): they go to the
-/// "DNS قطعی" tab's config store, not to the profiles.
+/// "DNS قطعی" tab's config store, not to the profiles; Telegram proxy links (tg://proxy, t.me/socks,
+/// …) go to the Telegram proxy list.
 
 final _dnsScheme = RegExp(r'(soar|cottendns)://[A-Za-z0-9_\-+/=]*', caseSensitive: false);
 
-/// What is left of a text once its DNS links are taken out counts as a normal import only when it
+/// What is left of a text once those links are taken out counts as a normal import only when it
 /// still looks like a config or a link; a label or an emoji around a copied link does not.
 final _normalContent = RegExp(r'[a-z][a-z0-9+.\-]*://|^\s*\{|\[Interface\]|proxies:|outbounds', caseSensitive: false);
+
+bool _hasOurs(String s) => _dnsScheme.hasMatch(s) || telegramLinkRe.hasMatch(s);
 
 /// Shows "N کانفیگ DNS اضافه شد" with a button to the DNS tab. Made while [ref] is still usable,
 /// so it can be called after the add profile sheet is gone.
 void Function(int added) dnsAddedToaster(WidgetRef ref) {
-  final s = ref.read(dnsTunnelStringsProvider);
-  final router = ref.read(goRouterNotiferProvider);
-  final notification = ref.read(inAppNotificationControllerProvider);
-  return (added) => notification.showSuccessToast(
-    added > 0 ? s.dnsAdded(added) : s.dnsAlreadySaved,
-    action: (label: s.openTab, onPressed: () => router.goNamed('ramanTools', queryParameters: const {'tab': 'dns'})),
-  );
+  final toast = _ramanAddedToaster(ref);
+  return (added) => toast(added, null);
 }
 
-/// For the clipboard, QR code and file imports: takes the soar:// / cottendns:// links out of
-/// [text] into the DNS tab. [rest] is what is left for the normal import, null when nothing is
-/// (the sheet is then closed here and the toast shown); [dnsAdded] is set when DNS configs were
-/// found next to normal content, for the caller to show after its import. A text without such
+/// The toast for DNS configs and / or Telegram proxies (null = none of that kind found); its
+/// button opens the DNS tab, or the Telegram proxy sheet when only proxies came.
+void Function(int? dns, int? tg) _ramanAddedToaster(WidgetRef ref) {
+  final s = ref.read(dnsTunnelStringsProvider);
+  final tgs = ref.read(telegramStringsProvider);
+  final router = ref.read(goRouterNotiferProvider);
+  final notification = ref.read(inAppNotificationControllerProvider);
+  return (dns, tg) {
+    final parts = [
+      if (dns != null) dns > 0 ? s.dnsAdded(dns) : s.dnsAlreadySaved,
+      if (tg != null) tg > 0 ? tgs.added(tg) : tgs.alreadySaved,
+    ];
+    notification.showSuccessToast(
+      parts.join(' · '),
+      action: (
+        label: s.openTab,
+        onPressed: () => dns != null
+            ? router.goNamed('ramanTools', queryParameters: const {'tab': 'dns'})
+            : showTelegramProxySheet(),
+      ),
+    );
+  };
+}
+
+/// For the clipboard, QR code and file imports: takes the soar:// / cottendns:// links into the DNS
+/// tab and the Telegram proxy links into their list. [rest] is what is left for the normal import,
+/// null when nothing is (the sheet is then closed here and the toast shown); [after] is the toast
+/// for the caller to show after its import when both kinds came together. A text without such
 /// links comes back unchanged.
-Future<({String? rest, int? dnsAdded})> routeDnsLinks(BuildContext context, WidgetRef ref, String text) async {
+Future<({String? rest, void Function()? after})> routeRamanLinks(BuildContext context, WidgetRef ref, String text) async {
   var source = text;
-  if (!_dnsScheme.hasMatch(source)) {
+  if (!_hasOurs(source)) {
     // a base64 subscription text can carry them too
     final trimmed = text.trim();
     final decoded = safeDecodeBase64(trimmed);
-    if (decoded == trimmed || !_dnsScheme.hasMatch(decoded)) return (rest: text, dnsAdded: null);
+    if (decoded == trimmed || !_hasOurs(decoded)) return (rest: text, after: null);
     source = decoded;
   }
-  final controller = ref.read(dnsTunnelControllerProvider);
-  final toast = dnsAddedToaster(ref);
-  final found = extractDnsConfigs(source).length;
-  final rest = source.replaceAll(_dnsScheme, '').trim();
-  if (_normalContent.hasMatch(rest)) {
-    // both kinds: the DNS ones here, the rest the usual way
-    if (found == 0) return (rest: rest, dnsAdded: null);
-    return (rest: rest, dnsAdded: await controller.addFromText(source));
+  final dns = ref.read(dnsTunnelControllerProvider);
+  final tg = ref.read(telegramProxyStoreProvider);
+  final toast = _ramanAddedToaster(ref);
+  final dnsFound = extractDnsConfigs(source).isNotEmpty;
+  final tgFound = extractTelegramProxies(source).isNotEmpty;
+  final rest = source.replaceAll(_dnsScheme, '').replaceAll(telegramLinkRe, '').trim();
+  final hasNormal = _normalContent.hasMatch(rest);
+  if (!dnsFound && !tgFound) {
+    if (hasNormal) return (rest: rest, after: null);
+    final error = _dnsScheme.hasMatch(source)
+        ? ref.read(dnsTunnelStringsProvider).nothingToAdd
+        : ref.read(telegramStringsProvider).nothingToAdd;
+    ref.read(inAppNotificationControllerProvider).showErrorToast(error);
+    return (rest: null, after: null);
   }
-  if (found == 0) {
-    ref.read(inAppNotificationControllerProvider).showErrorToast(ref.read(dnsTunnelStringsProvider).nothingToAdd);
-    return (rest: null, dnsAdded: null);
-  }
-  final added = await controller.addFromText(source);
+  final dnsAdded = dnsFound ? await dns.addFromText(source) : null;
+  final tgAdded = tgFound ? await tg.addFromText(source) : null;
+  // both kinds: these here, the rest the usual way
+  if (hasNormal) return (rest: rest, after: () => toast(dnsAdded, tgAdded));
   if (context.mounted && context.canPop()) context.pop();
-  toast(added);
-  return (rest: null, dnsAdded: null);
+  toast(dnsAdded, tgAdded);
+  return (rest: null, after: null);
 }
 
 /// The sheet's «کانفیگ DNS» button: a dialog to paste one or more links.

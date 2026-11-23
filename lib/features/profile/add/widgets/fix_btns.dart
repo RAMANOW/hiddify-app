@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/core/model/constants.dart';
 import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
@@ -12,6 +13,9 @@ import 'package:hiddify/features/profile/add/widgets/widgets.dart';
 import 'package:hiddify/features/profile/notifier/profile_notifier.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_import.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_strings.dart';
+import 'package:hiddify/features/raman/relay/relay_import.dart';
+import 'package:hiddify/features/raman/relay/relay_strings.dart';
+import 'package:hiddify/features/raman/telegram/telegram_proxies.dart';
 import 'package:hiddify/utils/utils.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -39,25 +43,24 @@ class FixBtns extends ConsumerWidget {
   const FixBtns({super.key, required this.height, this.canScan = true});
   final double height;
 
-  /// Raman VPN 1.8.1: the «کانفیگ DNS» button, on a row of its own under the others (five do not
-  /// fit in one row on a phone). Android only, where the DNS tunnel runs.
-  static bool get hasDnsRow => Platform.isAndroid;
-  static const dnsRowHeight = 56.0;
+  /// Raman VPN 1.8.1: «کانفیگ DNS», «کانفیگ رله» and «پروکسی تلگرام» on a row of their own under
+  /// the others (seven do not fit in one row on a phone). Android only, where those run.
+  static bool get hasRamanRow => Platform.isAndroid;
+  static const ramanRowHeight = 76.0;
 
   /// False on a device with no camera to scan a QR code with, such as a TV.
   final bool canScan;
 
-  /// The usual import of [text], with its soar:// / cottendns:// links taken to the DNS tab first.
+  /// The usual import of [text], with its soar:// / cottendns:// links taken to the DNS tab and its
+  /// Telegram proxy links to their list first.
   static Future<void> _import(BuildContext context, WidgetRef ref, String text) async {
-    final routed = await routeDnsLinks(context, ref, text);
+    final routed = await routeRamanLinks(context, ref, text);
     final rest = routed.rest;
     if (rest == null || !context.mounted) return;
     // the sheet shows its loading view (and drops these buttons) while the import runs
     final notifier = ref.read(addProfileNotifierProvider.notifier);
-    final dnsAdded = routed.dnsAdded;
-    final toast = dnsAdded == null ? null : dnsAddedToaster(ref);
     await notifier.addClipboard(rest);
-    if (toast != null) toast(dnsAdded!);
+    routed.after?.call();
   }
 
   @override
@@ -135,26 +138,49 @@ class FixBtns extends ConsumerWidget {
         ],
       ),
     );
-    if (!hasDnsRow) return buttons;
+    if (!hasRamanRow) return buttons;
     final dns = ref.watch(dnsTunnelStringsProvider);
+    final relay = ref.watch(relayStringsProvider);
+    final tg = ref.watch(telegramStringsProvider);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         buttons,
         const Gap(AddProfileModalConst.fixBtnsGap),
-        Row(
-          children: [
-            const Gap(AddProfileModalConst.fixBtnsGap),
-            FixBtn(
-              key: const ValueKey('add_dns_config_button'),
-              height: dnsRowHeight,
-              title: dns.sheetButton,
-              icon: Icons.cell_tower_rounded,
-              horizontal: true,
-              onTap: () => showAddDnsDialog(context, ref),
-            ),
-            const Gap(AddProfileModalConst.fixBtnsGap),
-          ],
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Gap(AddProfileModalConst.fixBtnsGap),
+              FixBtn(
+                key: const ValueKey('add_dns_config_button'),
+                height: ramanRowHeight,
+                title: dns.sheetButton,
+                icon: Icons.cell_tower_rounded,
+                onTap: () => showAddDnsDialog(context, ref),
+              ),
+              const Gap(AddProfileModalConst.fixBtnsGap),
+              FixBtn(
+                key: const ValueKey('add_relay_config_button'),
+                height: ramanRowHeight,
+                title: relay.sheetButton,
+                icon: Icons.cloud_sync_rounded,
+                onTap: () => showAddRelayDialog(context, ref),
+              ),
+              const Gap(AddProfileModalConst.fixBtnsGap),
+              FixBtn(
+                key: const ValueKey('telegram_proxy_button'),
+                height: ramanRowHeight,
+                title: tg.button,
+                icon: Icons.send_rounded,
+                onTap: () {
+                  if (context.canPop()) context.pop();
+                  showTelegramProxySheet();
+                },
+              ),
+              const Gap(AddProfileModalConst.fixBtnsGap),
+            ],
+          ),
         ),
       ],
     );

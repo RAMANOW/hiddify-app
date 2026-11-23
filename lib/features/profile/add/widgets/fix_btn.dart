@@ -4,22 +4,12 @@ import 'package:hiddify/core/router/go_router/helper/active_breakpoint_notifier.
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class FixBtn extends ConsumerWidget {
-  const FixBtn({
-    super.key,
-    required this.height,
-    required this.title,
-    required this.icon,
-    required this.onTap,
-    this.horizontal = false,
-  });
+  const FixBtn({super.key, required this.height, required this.title, required this.icon, required this.onTap});
 
   final double height;
   final String title;
   final IconData icon;
   final GestureTapCallback onTap;
-
-  /// The icon beside the title instead of above it, for a button on a row of its own.
-  final bool horizontal;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,25 +31,7 @@ class FixBtn extends ConsumerWidget {
             borderRadius: borderRadius,
             border: Border.all(color: theme.colorScheme.outlineVariant),
           ),
-          child: horizontal
-              ? Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(icon, size: isMobile ? 32 : 40, color: color),
-                    const Gap(12),
-                    Flexible(
-                      child: Text(
-                        title,
-                        style: isMobile
-                            ? theme.textTheme.titleSmall!.copyWith(color: color)
-                            : theme.textTheme.titleMedium!.copyWith(color: color),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ),
-                  ],
-                )
-              : Column(
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: isMobile ? 32 : 40, color: color),

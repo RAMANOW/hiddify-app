@@ -255,7 +255,13 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
                           customTransition(
                             TransitionType.slide,
                             state.pageKey,
-                            RamanToolsPage(initialTab: state.uri.queryParameters['tab'] == 'dns' ? 5 : 0),
+                            RamanToolsPage(
+                              initialTab: switch (state.uri.queryParameters['tab']) {
+                                'relay' => 4,
+                                'dns' => 5,
+                                _ => 0,
+                              },
+                            ),
                           ),
                     ),
                     GoRoute(

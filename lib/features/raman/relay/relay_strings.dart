@@ -139,6 +139,21 @@ class RelayStrings {
         '• Video and large downloads use up the daily quota fast.\n'
         '• Non-web connections (such as Telegram) go out directly, outside the tunnel.',
   );
+  // the add profile sheet (1.8.1)
+  String get sheetButton => _t('کانفیگ رله', 'Relay config', 'کانفیگی ڕیلە');
+  String get sheetTitle => _t('تنظیمات رله گوگل', 'Google Relay settings', 'ڕێکخستنەکانی ڕیلەی گووگڵ');
+  String get sheetHint => _t(
+    'Deployment ID یا لینک /exec، یا کل کانفیگ (JSON یا متن) رو بچسبون. AUTH_KEY اگه توش باشه خودش پر می‌شه.',
+    'Paste the Deployment IDs or /exec links, or a whole config (JSON or text). An AUTH_KEY in it fills itself in.',
+    'Deployment ID یان لینکی /exec، یان هەموو کانفیگەکە (JSON یان دەق) بلکێنە. ئەگەر AUTH_KEY تێیدا بێت خۆی پڕ دەبێتەوە.',
+  );
+  String get pasteClipboard => _t('چسباندن از کلیپ‌بورد', 'Paste from clipboard', 'لکاندن لە کلیپبۆرد');
+  String get noIds => _t('Deployment ID درستی پیدا نشد', 'No valid Deployment ID found', 'هیچ Deployment IDێکی دروست نەدۆزرایەوە');
+  String get save => _t('ذخیره', 'Save', 'پاشەکەوتکردن');
+  String get cancel => _t('لغو', 'Cancel', 'هەڵوەشاندنەوە');
+  String savedN(int n) => _t('تنظیمات رله ذخیره شد ($n Deployment ID)', 'Relay settings saved ($n Deployment IDs)', 'ڕێکخستنەکانی ڕیلە پاشەکەوت کران ($n Deployment ID)');
+  String get openTab => _t('باز کردن', 'Open', 'کردنەوە');
+
   String get logs => _t('گزارش رله', 'Relay log', 'تۆماری ڕیلە');
   String get refresh => _t('تازه کردن', 'Refresh', 'نوێکردنەوە');
   String get noLogs => _t('گزارشی نیست', 'No log lines', 'هیچ تۆمارێک نییە');

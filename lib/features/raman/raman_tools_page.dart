@@ -31,7 +31,8 @@ Color _latencyColor(int ms) => ms < 300 ? _green : (ms < 1200 ? _amber : _red);
 class RamanToolsPage extends ConsumerWidget {
   const RamanToolsPage({super.key, this.initialTab = 0});
 
-  /// The tab it opens on: 5 = «DNS قطعی» (`raman-tools?tab=dns`, from the add profile sheet).
+  /// The tab it opens on: 4 = «رله گوگل» (`raman-tools?tab=relay`), 5 = «DNS قطعی» (`?tab=dns`),
+  /// from the add profile sheet.
   final int initialTab;
 
   @override
