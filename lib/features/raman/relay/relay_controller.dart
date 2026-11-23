@@ -336,6 +336,17 @@ class RelayController with InfraLogger {
     return null;
   }
 
+  /// Raman VPN 1.8.1: the hidden profile left active while the relay is off (a stop cut short, say by
+  /// the app being closed in the middle) showed in the home selector as the profile in use. With
+  /// nothing connected and the relay not in use, this finishes that stop: the previous profile comes
+  /// back and the hidden one goes. Rechecked after a moment so it never runs beside a start or stop.
+  Future<void> healStale() async {
+    await Future<void>.delayed(const Duration(seconds: 3));
+    if (inUse || isBusy || _ref.read(shieldActiveProvider) || !_ref.read(relayActiveProvider)) return;
+    loggy.info('the relay profile is active while the relay is off: restoring the previous profile');
+    await stop();
+  }
+
   /// Stops the connection and the relay, gives the app back the profile used before, removes the
   /// relay profile and brings back the parked FakeIP / QUIC settings.
   Future<String?> stop() async {

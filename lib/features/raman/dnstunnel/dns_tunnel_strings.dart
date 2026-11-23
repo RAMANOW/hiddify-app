@@ -104,6 +104,19 @@ class DnsTunnelStrings {
     'بۆ نموونە DNSی ناوخۆیی کە لە کاتی بڕاندا وەڵام دەدەنەوە. IP یان IP:پۆرت.',
   );
 
+  // the add profile sheet (1.8.1)
+  String get sheetButton => _t('کانفیگ DNS', 'DNS config', 'کانفیگی DNS');
+  String get sheetTitle => _t('افزودن کانفیگ DNS', 'Add DNS configs', 'زیادکردنی کانفیگی DNS');
+  String get sheetHint => _t(
+    'یک یا چند لینک soar:// یا cottendns:// رو اینجا بذار',
+    'Put one or more soar:// or cottendns:// links here',
+    'یەک یان چەند لینکی soar:// یان cottendns:// لێرە دابنێ',
+  );
+  String get pasteClipboard => _t('چسباندن از کلیپ‌بورد', 'Paste from clipboard', 'لکاندن لە کلیپبۆرد');
+  String dnsAdded(int n) => _t('$n کانفیگ DNS اضافه شد', '$n DNS configs added', '$n کانفیگی DNS زیادکرا');
+  String get dnsAlreadySaved => _t('این کانفیگ‌های DNS از قبل ذخیره بودن', 'These DNS configs were already saved', 'ئەم کانفیگانەی DNS پێشتر پاشەکەوت کرابوون');
+  String get openTab => _t('باز کردن', 'Open', 'کردنەوە');
+
   String get log => _t('گزارش موتور', 'Engine log', 'تۆماری بزوێنەر');
   String get noLog => _t('چیزی نیست', 'Nothing yet', 'هیچ نییە');
 

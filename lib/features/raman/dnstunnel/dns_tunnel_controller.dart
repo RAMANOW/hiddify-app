@@ -477,6 +477,17 @@ class DnsTunnelController with InfraLogger {
     return null;
   }
 
+  /// Raman VPN 1.8.1: the hidden profile left active while the DNS tunnel is off (a stop cut short, say by
+  /// the app being closed in the middle) showed in the home selector as the profile in use. With
+  /// nothing connected and the DNS tunnel not in use, this finishes that stop: the previous profile comes
+  /// back and the hidden one goes. Rechecked after a moment so it never runs beside a start or stop.
+  Future<void> healStale() async {
+    await Future<void>.delayed(const Duration(seconds: 3));
+    if (inUse || isBusy || _ref.read(shieldActiveProvider) || !_ref.read(dnsTunnelActiveProvider)) return;
+    loggy.info('the DNS tunnel profile is active while the DNS tunnel is off: restoring the previous profile');
+    await stop();
+  }
+
   /// Stops the connection and the engine, gives the app back the profile used before, removes the
   /// tunnel's profile and brings back the parked FakeIP / QUIC settings.
   Future<String?> stop() async {

@@ -5,6 +5,8 @@ import 'package:hiddify/core/app_info/app_info_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/features/raman/anti_leak.dart';
+import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_controller.dart';
+import 'package:hiddify/features/raman/relay/relay_controller.dart';
 import 'package:hiddify/features/raman/raman_strings.dart';
 import 'package:hiddify/features/raman/shield/shield_controller.dart';
 import 'package:hiddify/features/raman/shield/shield_page.dart';
@@ -40,6 +42,19 @@ class HomePage extends HookConsumerWidget {
       if (shieldActive && tab.value != 1) tab.value = 1;
       return null;
     }, [shieldActive]);
+    // Raman VPN 1.8.1: a relay / DNS tunnel profile still active once that tunnel is off goes back
+    // to the previous profile (see healStale)
+    final relayProfileActive = ref.watch(relayActiveProvider);
+    final dnsProfileActive = ref.watch(dnsTunnelActiveProvider);
+    useEffect(() {
+      if (relayProfileActive && !ref.read(relayControllerProvider).inUse) {
+        ref.read(relayControllerProvider).healStale();
+      }
+      if (dnsProfileActive && !ref.read(dnsTunnelControllerProvider).inUse) {
+        ref.read(dnsTunnelControllerProvider).healStale();
+      }
+      return null;
+    }, [relayProfileActive, dnsProfileActive]);
 
     /// Only one VPN runs at a time: leaving a tab whose connection runs asks first, then stops it.
     Future<void> selectTab(int index) async {

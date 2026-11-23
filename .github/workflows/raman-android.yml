@@ -26,7 +26,7 @@ on:
       release-tag:
         description: Publish a GitHub release with this tag ('none' = build only; an empty value falls back to this default)
         type: string
-        default: 'v1.8.0-raman'
+        default: 'v1.8.1-raman'
       custom-core:
         description: 'Experimental: build the core from source with the Raman patches (needs the PSIPHON_CONFIG and HIDDIFY_SECRET_KEY secrets, otherwise Shield breaks)'
         type: boolean

@@ -252,7 +252,11 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
                       name: 'ramanTools',
                       path: 'raman-tools',
                       pageBuilder: (_, state) =>
-                          customTransition(TransitionType.slide, state.pageKey, const RamanToolsPage()),
+                          customTransition(
+                            TransitionType.slide,
+                            state.pageKey,
+                            RamanToolsPage(initialTab: state.uri.queryParameters['tab'] == 'dns' ? 5 : 0),
+                          ),
                     ),
                     GoRoute(
                       name: 'dnsOptions',

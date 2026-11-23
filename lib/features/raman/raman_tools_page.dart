@@ -29,7 +29,10 @@ Color _latencyColor(int ms) => ms < 300 ? _green : (ms < 1200 ? _amber : _red);
 
 /// Raman VPN's own tools: smart DNS, the network checker and the Iran settings.
 class RamanToolsPage extends ConsumerWidget {
-  const RamanToolsPage({super.key});
+  const RamanToolsPage({super.key, this.initialTab = 0});
+
+  /// The tab it opens on: 5 = «DNS قطعی» (`raman-tools?tab=dns`, from the add profile sheet).
+  final int initialTab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,7 +40,9 @@ class RamanToolsPage extends ConsumerWidget {
     final relay = ref.watch(relayStringsProvider);
     final dns = ref.watch(dnsTunnelStringsProvider);
     return DefaultTabController(
+      key: ValueKey(initialTab),
       length: 6,
+      initialIndex: initialTab.clamp(0, 5),
       child: Scaffold(
         appBar: AppBar(
           title: Text(s.toolsTitle),
