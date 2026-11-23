@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/features/raman/anti_leak.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_controller.dart';
+import 'package:hiddify/features/raman/finder/finder_controller.dart';
 import 'package:hiddify/features/raman/relay/relay_controller.dart';
 import 'package:hiddify/features/raman/raman_strings.dart';
 import 'package:hiddify/features/raman/shield/shield_controller.dart';
@@ -55,6 +56,11 @@ class HomePage extends HookConsumerWidget {
       }
       return null;
     }, [relayProfileActive, dnsProfileActive]);
+    // Raman VPN 1.8.3: «کانفیگ‌یاب» auto refresh (off unless the user set it)
+    useEffect(() {
+      ref.read(finderControllerProvider).startAutoRefresh();
+      return null;
+    }, const []);
 
     /// Only one VPN runs at a time: leaving a tab whose connection runs asks first, then stops it.
     Future<void> selectTab(int index) async {

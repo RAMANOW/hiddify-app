@@ -45,7 +45,9 @@ abstract interface class ProfileRepository {
   });
 
   /// Adds [content] as a local profile; returns its id.
-  TaskEither<ProfileFailure, String> addLocal(String content, {UserOverride? userOverride});
+  /// [activate] false (Raman VPN 1.8.3, «کانفیگ‌یاب») adds it without making it the active profile,
+  /// so a running connection is not switched.
+  TaskEither<ProfileFailure, String> addLocal(String content, {UserOverride? userOverride, bool activate = true});
   TaskEither<ProfileFailure, Unit> offlineUpdate(ProfileEntity nProfile, String nContent);
   TaskEither<ProfileFailure, Unit> validateConfig(String path, String tempPath, String? profileOverride, bool debug);
   TaskEither<ProfileFailure, String> generateConfig(String id);
@@ -246,7 +248,7 @@ class ProfileRepositoryImpl with ExceptionHandler, InfraLogger implements Profil
       });
 
   @override
-  TaskEither<ProfileFailure, String> addLocal(String content, {UserOverride? userOverride}) =>
+  TaskEither<ProfileFailure, String> addLocal(String content, {UserOverride? userOverride, bool activate = true}) =>
       TaskEither.tryCatch(() async {
         final id = const Uuid().v4();
         final file = _profilePathResolver.file(id);
@@ -264,7 +266,7 @@ class ProfileRepositoryImpl with ExceptionHandler, InfraLogger implements Profil
                       false,
                     ).flatMap(
                       (_) => TaskEither.tryCatch(() async {
-                        await _profileDataSource.insert(profEntity);
+                        await _profileDataSource.insert(activate ? profEntity : profEntity.copyWith(active: const Value(false)));
                         return id;
                       }, ProfileFailure.unexpected),
                     ),

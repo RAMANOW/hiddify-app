@@ -13,6 +13,8 @@ import 'package:hiddify/features/profile/add/widgets/widgets.dart';
 import 'package:hiddify/features/profile/notifier/profile_notifier.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_import.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_strings.dart';
+import 'package:hiddify/features/raman/finder/finder_page.dart';
+import 'package:hiddify/features/raman/finder/finder_strings.dart';
 import 'package:hiddify/features/raman/relay/relay_import.dart';
 import 'package:hiddify/features/raman/relay/relay_strings.dart';
 import 'package:hiddify/features/raman/telegram/telegram_proxies.dart';
@@ -44,7 +46,8 @@ class FixBtns extends ConsumerWidget {
   final double height;
 
   /// Raman VPN 1.8.1: «کانفیگ DNS», «کانفیگ رله» and «پروکسی تلگرام» on a row of their own under
-  /// the others (seven do not fit in one row on a phone). Android only, where those run.
+  /// the others (seven do not fit in one row on a phone); 1.8.3 adds «کانفیگ‌یاب» there (four, as
+  /// in the first row). Android only, where those run.
   static bool get hasRamanRow => Platform.isAndroid;
   static const ramanRowHeight = 76.0;
 
@@ -142,6 +145,7 @@ class FixBtns extends ConsumerWidget {
     final dns = ref.watch(dnsTunnelStringsProvider);
     final relay = ref.watch(relayStringsProvider);
     final tg = ref.watch(telegramStringsProvider);
+    final finder = ref.watch(finderStringsProvider);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -176,6 +180,17 @@ class FixBtns extends ConsumerWidget {
                 onTap: () {
                   if (context.canPop()) context.pop();
                   showTelegramProxySheet();
+                },
+              ),
+              const Gap(AddProfileModalConst.fixBtnsGap),
+              FixBtn(
+                key: const ValueKey('config_finder_button'),
+                height: ramanRowHeight,
+                title: finder.button,
+                icon: Icons.travel_explore_rounded,
+                onTap: () {
+                  if (context.canPop()) context.pop();
+                  showConfigFinderPage();
                 },
               ),
               const Gap(AddProfileModalConst.fixBtnsGap),

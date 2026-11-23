@@ -1,4 +1,19 @@
-**Raman VPN (رامان VPN) 1.8.2** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial. The Google Relay uses mhrv-rs (therealaleph) / MasterHttpRelayVPN (masterking32), MIT. The shutdown DNS tunnel uses Soar (Lantern team, Apache-2.0), CottenDNS (TaJirax, MIT; from StormDNS by NullRoute1970 and MasterDnsVPN by Amin Mahmoudi), dnstt (David Fifield, public domain / CC0), Slipstream (EndPositive, Apache-2.0) and MasterDnsVPN (Amin Mahmoudi, MIT).
+**Raman VPN (رامان VPN) 1.8.3** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial. The Google Relay uses mhrv-rs (therealaleph) / MasterHttpRelayVPN (masterking32), MIT. The shutdown DNS tunnel uses Soar (Lantern team, Apache-2.0), CottenDNS (TaJirax, MIT; from StormDNS by NullRoute1970 and MasterDnsVPN by Amin Mahmoudi), dnstt (David Fifield, public domain / CC0), Slipstream (EndPositive, Apache-2.0) and MasterDnsVPN (Amin Mahmoudi, MIT).
+
+### تازه‌های ۱.۸.۳ (کانفیگ‌یاب)
+- دکمهٔ تازهٔ **کانفیگ‌یاب** در ردیف دوم صفحهٔ افزودن پروفایل (کنار «کانفیگ DNS»، «کانفیگ رله» و «پروکسی تلگرام»).
+- کانفیگ‌های رایگانِ عمومی رو موقعِ زدنِ دکمه از چند فهرستِ گیت‌هاب و صفحهٔ عمومیِ چند کانال تلگرام می‌گیره (هیچ فهرستی توی برنامه نیست). منبعِ خودت رو هم می‌تونی اضافه کنی (لینک خام سابسکریپشن یا t.me/… یا @کانال) و منبع‌های آماده رو خاموش کنی.
+- vless / vmess / trojan / ss رو از همین گوشی و همین اینترنت امتحان می‌کنه (اتصال TCP و دست‌دادن TLS، ۱۶ تا هم‌زمان، حداکثر ۳۰۰ کانفیگ) و بهترین‌ها (پیش‌فرض ۲۰) رو در یک پروفایل به اسم **«کانفیگ‌یاب»** می‌ذاره که هر بار همون به‌روز می‌شه. با «استفاده از این پروفایل» انتخابش کن؛ تست تأخیرِ خودِ برنامه بهترین رو برمی‌داره.
+- لینک‌های DNS (soar / cotten / dnstt / slipstream / masterdns) که توی منبع‌ها باشن به زبانهٔ «DNS قطعی» می‌رن.
+- اتصالِ روشن دست نمی‌خوره. به‌روزرسانی خودکار (هر ۶ / ۱۲ / ۲۴ ساعت) اختیاریه و پیش‌فرض خاموشه.
+- ⚠️ کانفیگ‌های رایگانِ عمومی ممکنه کند باشن یا ترافیک رو ثبت کنن؛ برای حساب‌های حساس ازشون استفاده نکنین.
+
+### نوێیەکانی ١.٨.٣
+- دوگمەی **کانفیگ‌یاب**: کانفیگە بێبەرامبەرە گشتییەکان لە گیتهەب و کەناڵەکانی تێلیگرام وەردەگرێت، لەم مۆبایلەوە تاقییان دەکاتەوە و باشترینەکان دەخاتە پرۆفایلی «کانفیگ‌یاب». ئاگاداربە: لەوانەیە خاو بن یان تۆمار بکرێن.
+
+### New in 1.8.3 (config finder)
+- A **Config finder** («کانفیگ‌یاب») button in the add sheet's second row. It reads public free-config lists (a few GitHub raw files and Telegram channel previews, fetched when you tap; no list ships in the app; add or turn off sources), tests vless/vmess/trojan/ss from this phone (TCP connect + TLS handshake, 16 at a time, up to 300) and keeps the best ones (default 20) in one profile named «کانفیگ‌یاب», updated in place on each run. DNS-tunnel links found go to the Shutdown DNS tab. The running connection is not touched; optional auto-refresh (off by default) runs only while the app is open.
+- ⚠️ Public free configs may be slow or logged; do not use them for sensitive accounts.
 
 ### تازه‌های ۱.۸.۲ (موتورهای تازهٔ DNS قطعی)
 - سه موتور متن‌باز تازه در زبانهٔ **DNS قطعی**، هر کدوم روی پورت محلی خودش:
