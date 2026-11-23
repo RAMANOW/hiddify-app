@@ -15,6 +15,7 @@ import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
 import 'package:hiddify/features/profile/notifier/profiles_update_notifier.dart';
 import 'package:hiddify/features/raman/shield/shield_controller.dart';
 import 'package:hiddify/features/raman/relay/relay_controller.dart';
+import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_controller.dart';
 import 'package:hiddify/features/settings/data/config_option_repository.dart';
 import 'package:hiddify/utils/utils.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -80,9 +81,11 @@ class ProfilesNotifier extends _$ProfilesNotifier with AppLogger {
     final shieldId = ref.watch(shieldProfileIdProvider);
     // nor is the Google Relay's
     final relayId = ref.watch(relayProfileIdProvider);
+    // nor the shutdown DNS tunnel's
+    final dnsId = ref.watch(dnsTunnelProfileIdProvider);
     return _profilesRepo
         .watchAll(sort: sort.by, sortMode: sort.mode)
-        .map((event) => event.getOrElse((l) => throw l).where((p) => p.id != shieldId && p.id != relayId).toList());
+        .map((event) => event.getOrElse((l) => throw l).where((p) => p.id != shieldId && p.id != relayId && p.id != dnsId).toList());
   }
 
   ProfileRepository get _profilesRepo => ref.read(profileRepositoryProvider).requireValue;

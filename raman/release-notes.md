@@ -1,4 +1,26 @@
-**Raman VPN (رامان VPN) 1.7** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial. The Google Relay uses mhrv-rs (therealaleph) / MasterHttpRelayVPN (masterking32), MIT.
+**Raman VPN (رامان VPN) 1.8** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial. The Google Relay uses mhrv-rs (therealaleph) / MasterHttpRelayVPN (masterking32), MIT. The shutdown DNS tunnel uses Soar (Lantern team, Apache-2.0) and CottenDNS (TaJirax, MIT; from StormDNS by NullRoute1970 and MasterDnsVPN by Amin Mahmoudi).
+
+### تازه‌های ۱.۸ (DNS قطعی)
+- 📡 زبانه‌ی تازه‌ی **DNS قطعی** در ابزارهای رامان، برای وقتی که اینترنت قطع می‌شه و فقط DNS جواب می‌ده: ترافیک توی درخواست‌های DNS از راه DNS اپراتور یا DNSهای داخلی رد می‌شه.
+- دو موتور متن‌باز: **Soar** (لینک‌های soar://) و **CottenDNS** (لینک‌های cottendns://).
+- دکمه‌ی **گرفتن کانفیگ‌ها** از صفحه‌ی عمومی کانال @whitedns (و به‌روزرسانی خودکار با باز کردن زبانه)، چسباندن از کلیپ‌بورد و افزودن دستی. کانفیگ‌ها روی گوشی می‌مونن و موقع قطعی هم کار می‌کنن؛ **تا اینترنت وصله بگیرینشون.**
+- دکمه‌ی **تست** برای هر کانفیگ (یه اتصال کوتاه واقعی با زمانش).
+- DNSها: اول DNS خود گوشی (اپراتور)، بعد DNSهای کانفیگ و هر DNSی که خودتون اضافه کنین.
+- اتصال از همون VPN معمولی برنامه. تا وقتی روشنه FakeIP روشن و QUIC بسته‌ست و بعد برمی‌گرده.
+- محدودیت‌ها: **خیلی کُنده**؛ برای پیام متنی تلگرام و پیام‌رسانی سبک. فقط TCP؛ تماس صوتی و تصویری کار نمی‌کنه.
+- بقیه‌ی برنامه همون ۱.۷ است.
+
+### نوێیەکانی ١.٨
+- 📡 **DNSی بڕان**: تونێلی DNS بۆ کاتی بڕانی ئینتەرنێت (Soar و CottenDNS)، زۆر خاوە، تەنها بۆ نامەی دەقی.
+
+### New in 1.8 (Shutdown DNS)
+- 📡 New **Shutdown DNS** (DNS قطعی) tab in Raman tools: a last-resort tunnel inside DNS queries through your operator's or domestic resolvers, for internet shutdowns.
+- Two open-source engines: **Soar** v0.2.4 (soar:// links) and **CottenDNS** (cottendns:// links), run on the phone as a local SOCKS5 server that the normal VPN uses.
+- **Get configs** from the public web preview of the @whitedns channel (also refreshed when the tab opens), paste from the clipboard, or add by hand. Configs stay on the phone for offline use; get them while the internet is up.
+- **Test** per config (a short real connection, with its time). Resolvers: the phone's own DNS first, then the config's, plus your own list.
+- While on, FakeIP is on and QUIC is blocked; both come back when it stops. Very slow; TCP only (no voice/video calls).
+- Everything else is unchanged from 1.7.
+
 
 ### تازه‌های ۱.۷ (رله گوگل)
 - ☁️ زبانه‌ی تازه‌ی **رله گوگل** در ابزارهای رامان: ترافیک وب از راه Google Apps Script خودتان می‌رود و اینترنت‌دهنده فقط اتصال به www.google.com را می‌بیند. **به VPS نیاز ندارد**؛ فقط یک حساب گوگل.

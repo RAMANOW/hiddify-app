@@ -151,6 +151,25 @@ class AboutPage extends HookConsumerWidget {
                   await UriUtils.tryLaunch(Uri.parse("https://github.com/therealaleph/MasterHttpRelayVPN-RUST"));
                 },
               ),
+              // DNS قطعی: Soar (Apache-2.0) and CottenDNS (MIT); notices ship in assets/raman/dnstunnel
+              ListTile(
+                dense: true,
+                title: const Text("DNS tunnel: Soar by the Lantern team — Apache-2.0"),
+                trailing: const Icon(FluentIcons.open_24_regular),
+                onTap: () async {
+                  await UriUtils.tryLaunch(Uri.parse("https://github.com/getlantern/soar"));
+                },
+              ),
+              ListTile(
+                dense: true,
+                title: const Text(
+                  "DNS tunnel: CottenDNS by TaJirax, from StormDNS by NullRoute1970 and MasterDnsVPN by Amin Mahmoudi — MIT",
+                ),
+                trailing: const Icon(FluentIcons.open_24_regular),
+                onTap: () async {
+                  await UriUtils.tryLaunch(Uri.parse("https://github.com/TaJirax/cottenDNS"));
+                },
+              ),
             ]),
           ),
         ],

@@ -10,6 +10,7 @@ import 'package:hiddify/features/connection/notifier/connection_notifier.dart';
 import 'package:hiddify/features/profile/data/profile_data_providers.dart';
 import 'package:hiddify/features/profile/model/profile_entity.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
+import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_controller.dart';
 import 'package:hiddify/features/raman/shield/shield_controller.dart';
 import 'package:hiddify/features/settings/data/config_option_repository.dart';
 import 'package:hiddify/utils/custom_loggers.dart';
@@ -278,6 +279,8 @@ class RelayController with InfraLogger {
   /// must be stopped first (the caller asks the user). Returns an error code or null.
   Future<String?> start() async {
     if (_ref.read(shieldActiveProvider)) return 'shield';
+    // one local tunnel at a time: the DNS tab parks FakeIP / QUIC the same way
+    if (_ref.read(dnsTunnelControllerProvider).inUse) return 'start:DNS';
     final miss = missing();
     if (miss != null) return miss;
     final config = buildConfig();

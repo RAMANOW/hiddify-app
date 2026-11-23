@@ -23,6 +23,8 @@ class Application : Application() {
         initialize(this)
         // Raman VPN: the Google Relay comes back with the process only when the user runs it
         RelayCore.autoStart(this)
+        // and the shutdown DNS tunnel, the same way
+        DnsTunnelCore.autoStart(this)
     }
 
     companion object {

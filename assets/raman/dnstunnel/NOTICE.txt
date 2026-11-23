@@ -1,0 +1,25 @@
+Raman VPN — "DNS قطعی" (shutdown DNS tunnel) tab — third-party notices
+
+This tab runs two open-source DNS-tunnel clients on the phone, each as a local SOCKS5 server on
+127.0.0.1 that the Hiddify core (Raman VPN's normal VPN) uses as its only outbound.
+
+1. Soar — https://github.com/getlantern/soar (tag v0.2.4)
+   By the Lantern team (https://lantern.io).
+   Licensed under the Apache License, Version 2.0 (LICENSE-soar.txt). The upstream repository has
+   no NOTICE file. Soar is used unmodified as a Go library by Raman VPN's small SOCKS5 front end
+   (raman/dnstunnel/soarsocks in the Raman VPN source). Soar's bundled Iran resolver and range
+   lists come from KevinNet DNS (MIT, THIRD_PARTY-soar-data.md).
+
+2. CottenDNS — https://github.com/TaJirax/cottenDNS (tag v2026.11.04.181149-ac8e86e), by tajirax,
+   MIT License (LICENSE-cottendns.txt). Built unmodified from that tag (its cmd/client).
+   CottenDNS is a derivative of StormDNS by NullRoute1970 (MIT), itself a derivative of
+   MasterDnsVPN by Amin Mahmoudi (MIT). Their notices are kept in LICENSE-cottendns.txt.
+   CottenDNS's own third-party notices (THIRD_PARTY_NOTICES-cottendns.md) cover its CottenMax
+   transport derived from Soar v0.2.3 (Apache-2.0), KevinNet DNS data (MIT), quic-go (MIT,
+   LICENSE-quic-go.txt) and qpack (MIT, LICENSE-qpack.txt).
+
+Licenses of every other Go module compiled into the two engines: LICENSES-go-modules.txt.
+
+Public configs that the tab can download are read from the public web preview of the @whitedns
+Telegram channel (https://t.me/s/whitedns). Raman VPN is not affiliated with that channel or with
+the authors above; no code, assets, name or UI of any other app are used.

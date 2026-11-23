@@ -11,6 +11,8 @@ import 'package:hiddify/features/raman/shield/shield_controller.dart';
 import 'package:hiddify/features/raman/iran_defaults.dart';
 import 'package:hiddify/features/raman/network_checker.dart';
 import 'package:hiddify/features/raman/raman_strings.dart';
+import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_strings.dart';
+import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_tab.dart';
 import 'package:hiddify/features/raman/relay/relay_strings.dart';
 import 'package:hiddify/features/raman/relay/relay_tab.dart';
 import 'package:hiddify/features/raman/smart_dns_notifier.dart';
@@ -33,8 +35,9 @@ class RamanToolsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(ramanStringsProvider);
     final relay = ref.watch(relayStringsProvider);
+    final dns = ref.watch(dnsTunnelStringsProvider);
     return DefaultTabController(
-      length: 5,
+      length: 6,
       child: Scaffold(
         appBar: AppBar(
           title: Text(s.toolsTitle),
@@ -47,10 +50,11 @@ class RamanToolsPage extends ConsumerWidget {
               Tab(icon: const Icon(Icons.tune_rounded), text: s.tabIran),
               Tab(icon: const Icon(Icons.shield_moon_rounded), text: s.tabAntiLeak),
               Tab(icon: const Icon(Icons.cloud_sync_rounded), text: relay.tab),
+              Tab(icon: const Icon(Icons.cell_tower_rounded), text: dns.tab),
             ],
           ),
         ),
-        body: const TabBarView(children: [_SmartDnsTab(), _NetworkTab(), _IranTab(), _AntiLeakTab(), RelayTab()]),
+        body: const TabBarView(children: [_SmartDnsTab(), _NetworkTab(), _IranTab(), _AntiLeakTab(), RelayTab(), DnsTunnelTab()]),
       ),
     );
   }
