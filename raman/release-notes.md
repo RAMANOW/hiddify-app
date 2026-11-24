@@ -1,5 +1,20 @@
 **Raman VPN (رامان VPN) 1.9.0** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial. The Google Relay uses mhrv-rs (therealaleph) / MasterHttpRelayVPN (masterking32), MIT. The shutdown DNS tunnel uses Soar (Lantern team, Apache-2.0), CottenDNS (TaJirax, MIT; from StormDNS by NullRoute1970 and MasterDnsVPN by Amin Mahmoudi), dnstt (David Fifield, public domain / CC0), Slipstream (EndPositive, Apache-2.0) and MasterDnsVPN (Amin Mahmoudi, MIT).
 
+### ظاهر تازه (۱.۹)
+- **صفحهٔ اصلی**: یک دکمهٔ گرد و بزرگِ روشن/خاموش وسط صفحه؛ رنگ و کلمهٔ کوتاهِ وضعیت (قطع / در حال اتصال / متصل)، زمان‌سنجِ اتصال، سرعت دانلود و آپلود و پینگ زیرش، و کارتِ «کانفیگ انتخاب‌شده» که با یک ضربه فهرست کانفیگ‌ها رو باز می‌کنه. حلقهٔ دورِ دکمه فقط موقع اتصال می‌چرخه.
+- **فهرست سرورها**: جستجو، ستاره برای علاقه‌مندی‌ها، بخش «اخیر» بالای فهرست، ردیف‌های گرد.
+- **تنظیمات** در سه گروهِ «رامان»، «اتصال» و «برنامه»؛ صفحهٔ افزودن با دو بخشِ «افزودن کانفیگ» و «ابزارهای رامان».
+- یک رنگِ برند (آبیِ رامان) در تم روشن و تیره، فونت وزیرمتن برای فارسی و کردی. کدِ اتصال، زبانه‌ها و همهٔ ابزارها مثل قبل.
+
+### ڕووکاری نوێ (١.٩)
+- دوگمەیەکی گەورەی خڕ بۆ پەیوەندی، دۆخ بە ڕەنگ و وشەیەکی کورت، کاتژمێری پەیوەندی، خێرایی و پینگ؛ گەڕان و دڵخوازەکان لە لیستی ڕاژەکارەکان؛ ڕێکخستنەکان لە سێ گرووپدا؛ فۆنتی وەزیرمەتن.
+
+### New look (1.9)
+- Home: one large round connect button, a short coloured state word (Disconnected / Connecting / Connected), a connection timer, live download / upload speed and ping, and a "Selected config" card that opens the config list. Only the ring round the button animates, and only while connecting.
+- Server list: search, favourites (star), recently used at the top, rounded rows.
+- Settings grouped into Raman / Connection / App; the add sheet has "Add a config" and "Raman tools" sections.
+- One brand palette (Raman blue) in light and dark themes; Vazirmatn font (SIL OFL 1.1) for Persian and Kurdish. Connection code, tabs and every tool are unchanged.
+
 ### تازه‌های ۱.۹ (کانفیگ‌یابِ هوشمندتر، IP تمیز، حافظهٔ شبکه، رفتن به DNS قطعی)
 - **کانفیگ‌یاب** حالا اول REALITY، بعد XHTTP، بعد بقیهٔ TLS رو بالا می‌ذاره (هستهٔ رامان XHTTP رو پشتیبانی می‌کنه؛ XHTTP روی h3 مثل hy2/tuic کنار گذاشته می‌شه).
 - **کانال‌های کانفیگِ قطعی**: شش کانال عمومی که در قطعیِ اسفند ۱۴۰۴ تا خرداد ۱۴۰۵ کانفیگ DNS و کانفیگِ مخصوصِ نت ملی گذاشتن، اول خونده می‌شن (هر کدوم قابلِ خاموش کردن). لینک‌های DNS (حالا stormdns:// هم) به «DNS قطعی» می‌رن و بقیه به پروفایل «کانفیگ‌یاب».

@@ -7,6 +7,8 @@ import 'package:hiddify/core/router/go_router/helper/active_breakpoint_notifier.
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
 import 'package:hiddify/features/raman/disguise_icon.dart';
 import 'package:hiddify/features/raman/raman_strings.dart';
+import 'package:hiddify/features/raman/ui/raman_home_widgets.dart';
+import 'package:hiddify/features/raman/ui/raman_ui_strings.dart';
 import 'package:hiddify/features/settings/notifier/config_option/config_option_notifier.dart';
 import 'package:hiddify/features/settings/notifier/reset_tunnel/reset_tunnel_notifier.dart';
 import 'package:hiddify/hiddifycore/hiddify_core_service_provider.dart';
@@ -35,6 +37,7 @@ class SettingsPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = ref.watch(translationsProvider).requireValue;
+    final ui = ref.watch(ramanUiStringsProvider);
     // final scrollController = useScrollController();
 
     // useMemoized(
@@ -142,73 +145,108 @@ class SettingsPage extends HookConsumerWidget {
           const Gap(8),
         ],
       ),
+      // Raman VPN 1.9: the same pages, grouped into three rounded cards
       body: ListView(
+        padding: const EdgeInsets.only(bottom: 24),
         children: [
           // TipCard(message: t.settings.experimentalMsg),
-          SettingsSection(
-            title: ref.watch(ramanStringsProvider).toolsTitle,
-            subtitle: Text(ref.watch(ramanStringsProvider).toolsSubtitle),
-            icon: Icons.shield_rounded,
-            namedLocation: context.namedLocation('ramanTools'),
-          ),
-          const DisguiseIconTile(),
-          SettingsSection(
-            title: t.pages.settings.general.title,
-            icon: Icons.layers_rounded,
-            namedLocation: context.namedLocation('general'),
-          ),
-          if (ref.watch(hasAnyProfileProvider).value ?? false)
-            SettingsSection(
-              title: t.pages.settings.chain.title,
-              icon: Icons.webhook_rounded,
-              subtitle: Text(t.pages.settings.chain.subtitle),
-              namedLocation: context.namedLocation('chainOptions'),
-            ),
-          SettingsSection(
-            title: t.pages.settings.routing.title,
-            icon: Icons.route_rounded,
-            namedLocation: context.namedLocation('routingOptions'),
-          ),
-          SettingsSection(
-            title: t.pages.settings.dns.title,
-            icon: Icons.dns_rounded,
-            namedLocation: context.namedLocation('dnsOptions'),
-          ),
-          SettingsSection(
-            title: t.pages.settings.inbound.title,
-            icon: Icons.input_rounded,
-            namedLocation: context.namedLocation('inboundOptions'),
-          ),
-          SettingsSection(
-            title: t.pages.settings.tlsTricks.title,
-            icon: Icons.content_cut_rounded,
-            namedLocation: context.namedLocation('tlsTricks'),
-          ),
-          if ((PlatformUtils.isIOS || PlatformUtils.isMacOS) &&
-              ref.watch(hiddifyCoreServiceProvider).core.hasVpnProfile)
-            Material(
-              child: ListTile(
-                title: Text(t.pages.settings.resetTunnel),
-                leading: const Icon(Icons.autorenew_rounded),
-                onTap: () async {
-                  await ref.read(resetTunnelNotifierProvider.notifier).run();
-                },
+          RamanSectionLabel(ui.groupRaman),
+          _SettingsGroup(
+            children: [
+              SettingsSection(
+                title: ref.watch(ramanStringsProvider).toolsTitle,
+                subtitle: Text(ref.watch(ramanStringsProvider).toolsSubtitle),
+                icon: Icons.shield_rounded,
+                namedLocation: context.namedLocation('ramanTools'),
               ),
-            ),
-          if (Breakpoint(context).isMobile()) ...[
-            SettingsSection(
-              title: t.pages.logs.title,
-              icon: Icons.description_rounded,
-              namedLocation: context.namedLocation('logs'),
-            ),
-            SettingsSection(
-              title: t.pages.about.title,
-              icon: Icons.info_rounded,
-              namedLocation: context.namedLocation('about'),
-            ),
-          ],
+              const DisguiseIconTile(),
+            ],
+          ),
+          RamanSectionLabel(ui.groupConnection),
+          _SettingsGroup(
+            children: [
+              if (ref.watch(hasAnyProfileProvider).value ?? false)
+                SettingsSection(
+                  title: t.pages.settings.chain.title,
+                  icon: Icons.webhook_rounded,
+                  subtitle: Text(t.pages.settings.chain.subtitle),
+                  namedLocation: context.namedLocation('chainOptions'),
+                ),
+              SettingsSection(
+                title: t.pages.settings.routing.title,
+                icon: Icons.route_rounded,
+                namedLocation: context.namedLocation('routingOptions'),
+              ),
+              SettingsSection(
+                title: t.pages.settings.dns.title,
+                icon: Icons.dns_rounded,
+                namedLocation: context.namedLocation('dnsOptions'),
+              ),
+              SettingsSection(
+                title: t.pages.settings.inbound.title,
+                icon: Icons.input_rounded,
+                namedLocation: context.namedLocation('inboundOptions'),
+              ),
+              SettingsSection(
+                title: t.pages.settings.tlsTricks.title,
+                icon: Icons.content_cut_rounded,
+                namedLocation: context.namedLocation('tlsTricks'),
+              ),
+              if ((PlatformUtils.isIOS || PlatformUtils.isMacOS) &&
+                  ref.watch(hiddifyCoreServiceProvider).core.hasVpnProfile)
+                ListTile(
+                  title: Text(t.pages.settings.resetTunnel),
+                  leading: const RamanTileIcon(Icons.autorenew_rounded),
+                  onTap: () async {
+                    await ref.read(resetTunnelNotifierProvider.notifier).run();
+                  },
+                ),
+            ],
+          ),
+          RamanSectionLabel(ui.groupApp),
+          _SettingsGroup(
+            children: [
+              SettingsSection(
+                title: t.pages.settings.general.title,
+                icon: Icons.layers_rounded,
+                namedLocation: context.namedLocation('general'),
+              ),
+              if (Breakpoint(context).isMobile()) ...[
+                SettingsSection(
+                  title: t.pages.logs.title,
+                  icon: Icons.description_rounded,
+                  namedLocation: context.namedLocation('logs'),
+                ),
+                SettingsSection(
+                  title: t.pages.about.title,
+                  icon: Icons.info_rounded,
+                  namedLocation: context.namedLocation('about'),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
+    );
+  }
+}
+
+/// One rounded card holding a group of settings rows, with thin dividers between them.
+class _SettingsGroup extends StatelessWidget {
+  const _SettingsGroup({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = <Widget>[];
+    for (final child in children) {
+      if (rows.isNotEmpty) rows.add(const Divider(indent: 64, endIndent: 16));
+      rows.add(child);
+    }
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Material(type: MaterialType.transparency, child: Column(mainAxisSize: MainAxisSize.min, children: rows)),
     );
   }
 }
@@ -230,7 +268,7 @@ class SettingsSection extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListTile(
-      leading: Icon(icon),
+      leading: RamanTileIcon(icon),
       title: Text(title),
       subtitle: subtitle,
       trailing: const Icon(Icons.chevron_right_rounded),

@@ -16,35 +16,42 @@ class FixBtn extends ConsumerWidget {
     final theme = Theme.of(context);
     final isMobile = Breakpoint(context).isMobile();
     final color = theme.colorScheme.primary;
-    final borderRadius = BorderRadius.circular(18);
+    final borderRadius = BorderRadius.circular(16);
 
+    // Raman VPN 1.9: a soft tinted tile with the icon in a round badge, no outline
+    final bg = Color.alphaBlend(color.withValues(alpha: .06), theme.colorScheme.surfaceContainerLow);
     return Expanded(
-      child: InkWell(
-        onTap: onTap,
+      child: Material(
+        color: bg,
         borderRadius: borderRadius,
-        child: Container(
-          alignment: Alignment.center,
-          // a minimum: a language whose letters are taller (Chinese, Burmese) needs more than the square
-          constraints: BoxConstraints(minHeight: height),
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-          decoration: BoxDecoration(
-            borderRadius: borderRadius,
-            border: Border.all(color: theme.colorScheme.outlineVariant),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: isMobile ? 32 : 40, color: color),
-              Gap(isMobile ? 4 : 8),
-              Text(
-                title,
-                style: isMobile
-                    ? theme.textTheme.titleSmall!.copyWith(color: color)
-                    : theme.textTheme.titleMedium!.copyWith(color: color),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ],
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: borderRadius,
+          child: Container(
+            alignment: Alignment.center,
+            // a minimum: a language whose letters are taller (Chinese, Burmese) needs more than the square
+            constraints: BoxConstraints(minHeight: height),
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: isMobile ? 36 : 48,
+                  height: isMobile ? 36 : 48,
+                  decoration: BoxDecoration(color: theme.colorScheme.primaryContainer, shape: BoxShape.circle),
+                  child: Icon(icon, size: isMobile ? 20 : 26, color: theme.colorScheme.onPrimaryContainer),
+                ),
+                Gap(isMobile ? 4 : 8),
+                Text(
+                  title,
+                  style: isMobile
+                      ? theme.textTheme.labelLarge!.copyWith(color: theme.colorScheme.onSurface)
+                      : theme.textTheme.titleSmall!.copyWith(color: theme.colorScheme.onSurface),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ],
+            ),
           ),
         ),
       ),

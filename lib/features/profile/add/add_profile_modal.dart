@@ -117,7 +117,9 @@ class AddProfileOptions extends HookConsumerWidget {
         final phoneHeight = showPhonePanel ? PhoneImportPanel.heightOf(context) + AddProfileModalConst.fixBtnsGap : 0;
         // Raman VPN 1.8.1: the DNS / relay / Telegram row under the buttons
         final ramanRowHeight = FixBtns.hasRamanRow ? FixBtns.ramanRowHeight + AddProfileModalConst.fixBtnsGap : 0;
-        final fullHeight = fixBtnsHeight + ramanRowHeight + phoneHeight + AddProfileModalConst.navBarHeight + 32;
+        // Raman VPN 1.9: the captions over the two rows
+        final fullHeight =
+            fixBtnsHeight + ramanRowHeight + FixBtns.labelsHeight + phoneHeight + AddProfileModalConst.navBarHeight + 32;
         final initial = !freeSwitch ? fullHeight : fullHeight + 180;
         var min = !freeSwitch ? fullHeight : fullHeight + 100;
         var max = !freeSwitch ? fullHeight / constraints.maxHeight : 0.85;

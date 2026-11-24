@@ -23,10 +23,11 @@ import 'package:hiddify/features/profile/model/profile_entity.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
 import 'package:hiddify/features/profile/widget/profile_tile.dart';
 import 'package:hiddify/features/proxy/active/active_proxy_card.dart';
-import 'package:hiddify/features/proxy/active/active_proxy_delay_indicator.dart';
+import 'package:hiddify/core/theme/raman_brand.dart';
+import 'package:hiddify/features/raman/ui/raman_home_widgets.dart';
+import 'package:hiddify/features/raman/ui/raman_ui_strings.dart';
 import 'package:hiddify/gen/assets.gen.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:sliver_tools/sliver_tools.dart';
 
 class HomePage extends HookConsumerWidget {
   const HomePage({super.key});
@@ -184,43 +185,17 @@ class HomePage extends HookConsumerWidget {
     return Stack(
         fit: StackFit.expand,
         children: [
+          // Raman VPN 1.9: a soft brand-blue light behind the connect button instead of the map
           RepaintBoundary(
             child: DecoratedBox(
               decoration: BoxDecoration(
-                // A sky behind the connect button, as at an eclipse: in dark mode a touch lighter round
-                // the button, fading to the theme's own dark; in light mode brightest there, a touch
-                // darker towards the edges. Both barely there, centred on where the button sits.
-                gradient: theme.brightness == Brightness.dark
-                    ? RadialGradient(
-                        center: const Alignment(0, -.15),
-                        radius: .85,
-                        colors: [
-                          Colors.white.withValues(alpha: .045),
-                          Colors.white.withValues(alpha: .015),
-                          Colors.white.withValues(alpha: 0),
-                        ],
-                        stops: const [0, .45, 1],
-                      )
-                    : RadialGradient(
-                        center: const Alignment(0, -.15),
-                        radius: 1.1,
-                        colors: [
-                          Colors.white.withValues(alpha: .55),
-                          Colors.white.withValues(alpha: 0),
-                          Colors.black.withValues(alpha: .045),
-                        ],
-                        stops: const [0, .5, 1],
-                      ),
-                image: DecorationImage(
-                  image: const AssetImage('assets/images/world_map.png'), // Replace with your image path
-                  fit: BoxFit.cover,
-                  opacity: 0.09,
-                  colorFilter: theme.brightness == Brightness.dark
-                      ? ColorFilter.mode(Colors.white.withValues(alpha: .15), BlendMode.srcIn) //
-                      : ColorFilter.mode(
-                          Colors.grey.withValues(alpha: 1),
-                          BlendMode.srcATop,
-                        ), // Apply white tint in dark mode
+                gradient: RadialGradient(
+                  center: const Alignment(0, -.35),
+                  radius: .9,
+                  colors: [
+                    RamanBrand.blue.withValues(alpha: theme.brightness == Brightness.dark ? .14 : .10),
+                    RamanBrand.blue.withValues(alpha: 0),
+                  ],
                 ),
               ),
             ),
@@ -230,9 +205,7 @@ class HomePage extends HookConsumerWidget {
             children: [
               Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: 600, // Set the maximum width here
-                  ),
+                  constraints: const BoxConstraints(maxWidth: 600),
                   // The page does not move under the finger: no bounce (iOS) or stretch (Android) when it
                   // fits the screen. It still scrolls, without them, when it does not (a small screen or a
                   // large font).
@@ -241,45 +214,38 @@ class HomePage extends HookConsumerWidget {
                     child: CustomScrollView(
                       physics: const ClampingScrollPhysics(),
                       slivers: [
-                        // switch (activeProfile) {
-                        // AsyncData(value: final profile?) =>
-                        MultiSliver(
-                          children: [
-                            // const Gap(100),
-                            switch (activeProfile) {
-                              AsyncData(value: final profile?) => ProfileTile(
-                                profile: profile,
-                                isMain: true,
-                                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              ),
-                              _ => const Text(""),
-                            },
-                            const SliverFillRemaining(
-                              hasScrollBody: false,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Column(
+                            children: [
+                              const RamanConnectionSinceKeeper(),
+                              // the button, its state and the live speeds / ping, centred
+                              const Expanded(
+                                child: Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 16),
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [ConnectionButton(), ActiveProxyDelayIndicator()],
+                                      children: [ConnectionButton(), Gap(8), RamanLiveStatsRow()],
                                     ),
                                   ),
-                                  ActiveProxyFooter(),
-                                  Gap(32),
-                                ],
+                                ),
                               ),
-                            ),
-                          ],
+                              // the selected config: a tap opens the config list
+                              if (activeProfile case AsyncData(value: final profile?)) ...[
+                                RamanSectionLabel(ref.watch(ramanUiStringsProvider).selectedConfig),
+                                ProfileTile(
+                                  profile: profile,
+                                  isMain: true,
+                                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                                ),
+                              ],
+                              // the server in use (flag, name, IP; a tap opens the server list), while connected
+                              const ActiveProxyFooter(),
+                              const Gap(40),
+                            ],
+                          ),
                         ),
-                        // AsyncData() => switch (hasAnyProfile) {
-                        //     AsyncData(value: true) => const EmptyActiveProfileHomeBody(),
-                        //     _ => const EmptyProfilesHomeBody(),
-                        //   },
-                        // AsyncError(:final error) => SliverErrorBodyPlaceholder(t.presentShortError(error)),
-                        // _ => const SliverToBoxAdapter(),
-                        // },
                       ],
                     ),
                   ),

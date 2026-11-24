@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hiddify/core/notification/in_app_notification_controller.dart';
 import 'package:hiddify/features/raman/raman_strings.dart';
+import 'package:hiddify/features/raman/ui/raman_home_widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// The launcher icons the app can show itself as. The names match the activity-aliases in
@@ -68,7 +69,7 @@ class DisguiseIconTile extends ConsumerWidget {
     final s = ref.watch(ramanStringsProvider);
     final current = ref.watch(disguiseIconProvider).valueOrNull ?? DisguiseIcon.defaultIcon;
     return ListTile(
-      leading: const Icon(Icons.theater_comedy_rounded),
+      leading: const RamanTileIcon(Icons.theater_comedy_rounded),
       title: Text(s.disguiseTitle),
       subtitle: Text('${s.disguiseSubtitle} — ${current.present(s)}'),
       onTap: () async {

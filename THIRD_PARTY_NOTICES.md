@@ -11,6 +11,7 @@ Raman VPN is based on [Hiddify](https://github.com/hiddify/hiddify-app) (Hiddify
 | DNS قطعی (1.8.2) | [dnstt](https://www.bamsoftware.com/software/dnstt/) v1.20260501.0 (dnstt-client, unmodified) | David Fifield | Public domain (CC0 1.0) | `assets/raman/dnstunnel/LICENSE-dnstt.txt` |
 | DNS قطعی (1.8.2) | [Slipstream](https://github.com/EndPositive/slipstream) e158a681 (client; built without OpenSSL, listener on 127.0.0.1) with picoquic (MIT), picotls (MIT), micro-ecc (BSD-2-Clause), cifra (CC0), lua-resty-base-encoding (MIT), quick_arg_parser (MIT), SPCDNS (LGPL-3.0) | EndPositive | Apache-2.0 | `assets/raman/dnstunnel/LICENSE-slipstream.txt` |
 | DNS قطعی (1.8.2) | [MasterDnsVPN](https://github.com/masterking32/MasterDnsVPN) v2026.11.18.210322-7198b45 (client, unmodified) | Amin Mahmoudi (masterking32) | MIT | `assets/raman/dnstunnel/LICENSE-masterdnsvpn.txt` |
+| App UI font (1.9) | [Vazirmatn](https://github.com/rastikerdar/vazirmatn) 33.003 (Regular, Medium, Bold) | Saber Rastikerdar | SIL Open Font License 1.1 | `assets/fonts/Vazirmatn-OFL.txt` |
 
 The Go modules compiled into the DNS tunnel engines and their licenses: `assets/raman/dnstunnel/LICENSES-go-modules.txt`.
 Summary notice: `assets/raman/dnstunnel/NOTICE.txt`. The engines are built by CI from the pinned versions

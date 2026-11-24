@@ -6,9 +6,15 @@ class ConnectionButtonTheme extends ThemeExtension<ConnectionButtonTheme> {
   final Color? idleColor;
   final Color? connectedColor;
 
+  /// Raman VPN 1.9: the brand blue at rest, the brand green once connected (RamanBrand).
   static const ConnectionButtonTheme light = ConnectionButtonTheme(
-    idleColor: Color(0xFF4a4d8b),
-    connectedColor: Color(0xFF44a334),
+    idleColor: Color(0xFF2E78DD),
+    connectedColor: Color(0xFF16A34A),
+  );
+
+  static const ConnectionButtonTheme dark = ConnectionButtonTheme(
+    idleColor: Color(0xFF4B8FEA),
+    connectedColor: Color(0xFF22C55E),
   );
 
   @override

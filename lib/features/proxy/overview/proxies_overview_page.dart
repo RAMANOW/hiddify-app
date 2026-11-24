@@ -2,19 +2,29 @@ import 'dart:math';
 
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/core/preferences/general_preferences.dart';
+import 'package:hiddify/core/preferences/preferences_provider.dart';
 import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
+import 'package:hiddify/core/theme/raman_brand.dart';
 import 'package:hiddify/core/widget/adaptive_icon.dart';
 import 'package:hiddify/features/connection/notifier/connection_notifier.dart';
 import 'package:hiddify/features/proxy/keep_top/keep_top_widgets.dart';
 import 'package:hiddify/features/proxy/model/proxy_entity.dart';
 import 'package:hiddify/features/proxy/overview/proxies_overview_notifier.dart';
 import 'package:hiddify/features/proxy/widget/proxy_tile.dart';
+import 'package:hiddify/features/raman/ui/raman_home_widgets.dart';
+import 'package:hiddify/features/raman/ui/raman_ui_strings.dart';
 import 'package:hiddify/hiddifycore/generated/v2/hcore/hcore.pb.dart';
 import 'package:hiddify/utils/utils.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+/// Raman VPN 1.9: starred servers and the last picked ones, by tag, per install.
+const _kFavorites = 'raman-fav-proxies';
+const _kRecent = 'raman-recent-proxies';
+const _recentCount = 5;
 
 class ProxiesOverviewPage extends HookConsumerWidget with PresLogger {
   const ProxiesOverviewPage({super.key});
@@ -22,11 +32,36 @@ class ProxiesOverviewPage extends HookConsumerWidget with PresLogger {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = ref.watch(translationsProvider).requireValue;
+    final theme = Theme.of(context);
 
     final proxies = ref.watch(proxiesOverviewNotifierProvider);
     final sortBy = ref.watch(proxiesSortNotifierProvider);
     // the proxies keep top left at rest, under the list: shown at first, then folded or not as the user left them
     final showResting = ref.watch(Preferences.showSleepingProxies);
+    // Raman VPN 1.9: a search field, favourites (star) and recently picked servers at the top
+    final ui = ref.watch(ramanUiStringsProvider);
+    final prefs = ref.watch(sharedPreferencesProvider).valueOrNull;
+    final query = useState('');
+    final searchController = useTextEditingController();
+    final favorites = useState<Set<String>>(
+      useMemoized(() => (prefs?.getStringList(_kFavorites) ?? const <String>[]).toSet(), [prefs]),
+    );
+    final recent = useState<List<String>>(
+      useMemoized(() => prefs?.getStringList(_kRecent) ?? const <String>[], [prefs]),
+    );
+    void toggleFavorite(String tag) {
+      final next = {...favorites.value};
+      if (!next.remove(tag)) next.add(tag);
+      favorites.value = next;
+      prefs?.setStringList(_kFavorites, next.toList());
+    }
+
+    void remember(String tag) {
+      if (tag == lowestGroupTag || tag == balanceGroupTag) return;
+      final next = [tag, ...recent.value.where((e) => e != tag)].take(_recentCount).toList();
+      recent.value = next;
+      prefs?.setStringList(_kRecent, next);
+    }
 
     // final selectActiveProxyMutation = useMutation(
     //   initialOnFailure: (error) => CustomToast.error(t.presentShortError(error)).show(context),
@@ -113,31 +148,119 @@ class ProxiesOverviewPage extends HookConsumerWidget with PresLogger {
                     itemCount: items.length,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: crossAxisCount,
-                      mainAxisExtent: 72,
+                      mainAxisExtent: 76,
                     ),
                     itemBuilder: (context, index) {
                       final proxy = items[index];
-                      return ProxyTile(
-                        proxy,
-                        // a row keeps its own proxy when the list re-sorts, so a pop plays only on arrival
-                        key: ValueKey(proxy.tag),
-                        selected: group.selected == proxy.tag,
-                        // a pick goes through hundreds of proxies, a row or two change every second:
-                        // their values change in place, nothing pops or loops
-                        quiet: group.keepTopPicking,
-                        // selecting one at rest loads it and tests it
-                        onTap: () async {
-                          await ref.read(proxiesOverviewNotifierProvider.notifier).changeProxy(group.tag, proxy.tag);
-                        },
+                      final isFavorite = favorites.value.contains(proxy.tag);
+                      final canStar = !proxy.isGroup;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                        child: Material(
+                          color: theme.colorScheme.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(RamanBrand.radiusSmall),
+                          clipBehavior: Clip.antiAlias,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: ProxyTile(
+                                  proxy,
+                                  // a row keeps its own proxy when the list re-sorts, so a pop plays only on arrival
+                                  key: ValueKey(proxy.tag),
+                                  selected: group.selected == proxy.tag,
+                                  // a pick goes through hundreds of proxies, a row or two change every second:
+                                  // their values change in place, nothing pops or loops
+                                  quiet: group.keepTopPicking,
+                                  // selecting one at rest loads it and tests it
+                                  onTap: () async {
+                                    remember(proxy.tag);
+                                    await ref
+                                        .read(proxiesOverviewNotifierProvider.notifier)
+                                        .changeProxy(group.tag, proxy.tag);
+                                  },
+                                ),
+                              ),
+                              if (canStar)
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  tooltip: isFavorite ? ui.removeFavorite : ui.addFavorite,
+                                  onPressed: () => toggleFavorite(proxy.tag),
+                                  icon: Icon(
+                                    isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
+                                    color: isFavorite ? RamanBrand.warning : theme.colorScheme.outline,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                       );
                     },
                   );
+                  Widget header(String text) => SliverToBoxAdapter(child: RamanSectionLabel(text));
+                  final q = query.value.trim().toLowerCase();
+                  bool matches(OutboundInfo e) =>
+                      e.tag.toLowerCase().contains(q) || e.nameWithDetour.toLowerCase().contains(q);
+                  final byTag = {for (final e in group.items) e.tag: e};
+                  final favoriteItems = group.items.where((e) => !e.isGroup && favorites.value.contains(e.tag)).toList();
+                  final recentItems = recent.value
+                      .where((tag) => !favorites.value.contains(tag))
+                      .map((tag) => byTag[tag])
+                      .whereType<OutboundInfo>()
+                      .where((e) => !e.isGroup)
+                      .toList();
+                  final search = SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                      child: TextField(
+                        controller: searchController,
+                        onChanged: (v) => query.value = v,
+                        textInputAction: TextInputAction.search,
+                        decoration: InputDecoration(
+                          hintText: ui.searchServers,
+                          prefixIcon: const Icon(Icons.search_rounded),
+                          isDense: true,
+                          suffixIcon: query.value.isEmpty
+                              ? null
+                              : IconButton(
+                                  icon: const Icon(Icons.close_rounded),
+                                  onPressed: () {
+                                    searchController.clear();
+                                    query.value = '';
+                                  },
+                                ),
+                        ),
+                      ),
+                    ),
+                  );
+                  if (q.isNotEmpty) {
+                    final found = group.items.where(matches).toList();
+                    return CustomScrollView(
+                      slivers: [
+                        search,
+                        if (found.isEmpty)
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.all(32),
+                              child: Text(ui.noMatch, textAlign: TextAlign.center),
+                            ),
+                          )
+                        else
+                          grid(found),
+                        const SliverPadding(padding: EdgeInsets.only(bottom: 140)),
+                      ],
+                    );
+                  }
                   // a big profile: how many of its proxies run, and what changes it
                   final keepTop = SliverToBoxAdapter(
                     child: KeepTopFooter(listed: listed, picking: group.keepTopPicking, proxies: group.items),
                   );
+                  final sections = favoriteItems.isNotEmpty || recentItems.isNotEmpty;
                   return CustomScrollView(
                     slivers: [
+                      search,
+                      if (favoriteItems.isNotEmpty) ...[header(ui.favorites), grid(favoriteItems)],
+                      if (recentItems.isNotEmpty) ...[header(ui.recent), grid(recentItems)],
+                      if (sections) header(ui.allServers),
                       // under the proxies that run; over the ones still being tested, none of which
                       // is kept yet
                       if (group.keepTopPicking) ...[

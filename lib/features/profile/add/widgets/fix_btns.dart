@@ -18,6 +18,8 @@ import 'package:hiddify/features/raman/finder/finder_strings.dart';
 import 'package:hiddify/features/raman/relay/relay_import.dart';
 import 'package:hiddify/features/raman/relay/relay_strings.dart';
 import 'package:hiddify/features/raman/telegram/telegram_proxies.dart';
+import 'package:hiddify/features/raman/ui/raman_home_widgets.dart';
+import 'package:hiddify/features/raman/ui/raman_ui_strings.dart';
 import 'package:hiddify/utils/utils.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -50,6 +52,10 @@ class FixBtns extends ConsumerWidget {
   /// in the first row). Android only, where those run.
   static bool get hasRamanRow => Platform.isAndroid;
   static const ramanRowHeight = 76.0;
+
+  /// Raman VPN 1.9: a caption over each row on Android ("Add a config", "Raman tools").
+  static const labelHeight = 30.0;
+  static double get labelsHeight => hasRamanRow ? 2 * labelHeight : 0;
 
   /// False on a device with no camera to scan a QR code with, such as a TV.
   final bool canScan;
@@ -146,11 +152,18 @@ class FixBtns extends ConsumerWidget {
     final relay = ref.watch(relayStringsProvider);
     final tg = ref.watch(telegramStringsProvider);
     final finder = ref.watch(finderStringsProvider);
+    final ui = ref.watch(ramanUiStringsProvider);
+    Widget label(String text) => SizedBox(
+      height: labelHeight,
+      child: RamanSectionLabel(text, padding: const EdgeInsetsDirectional.fromSTEB(20, 6, 20, 4)),
+    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        label(ui.addImport),
         buttons,
         const Gap(AddProfileModalConst.fixBtnsGap),
+        label(ui.addRamanTools),
         IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
