@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:hiddify/core/notification/in_app_notification_controller.dart';
 import 'package:hiddify/core/router/go_router/go_router_notifier.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
+import 'package:hiddify/features/raman/finder/clean_ip_page.dart';
 import 'package:hiddify/features/raman/finder/finder_controller.dart';
 import 'package:hiddify/features/raman/finder/finder_core.dart';
 import 'package:hiddify/features/raman/finder/finder_strings.dart';
@@ -62,6 +63,20 @@ class ConfigFinderPage extends ConsumerWidget {
                 ),
                 const Gap(8),
                 LinearProgressIndicator(value: st.total == 0 || st.phase == FinderPhase.saving ? null : st.done / st.total),
+                if (st.phase == FinderPhase.fetching) ...[
+                  const Gap(4),
+                  Text(s.route(st.route), style: theme.textTheme.bodySmall),
+                ],
+                if (st.slow) ...[
+                  const Gap(4),
+                  Row(
+                    children: [
+                      const Icon(Icons.cell_tower_rounded, size: 16),
+                      const Gap(6),
+                      Expanded(child: Text(s.slowNote, style: theme.textTheme.bodySmall)),
+                    ],
+                  ),
+                ],
                 if (st.phase == FinderPhase.testing) ...[
                   const Gap(4),
                   Text(s.tested(st.passed, st.done), style: theme.textTheme.bodySmall),
@@ -151,6 +166,24 @@ class ConfigFinderPage extends ConsumerWidget {
                 ],
               ),
               if (c.autoHours > 0) Text(s.autoHint, style: theme.textTheme.bodySmall),
+              const Gap(8),
+              OutlinedButton.icon(
+                onPressed: () => showCleanIpPage(context),
+                icon: const Icon(Icons.radar_rounded),
+                label: Text(s.cleanButton),
+              ),
+              const Gap(16),
+              Text(s.shutdownSources, style: theme.textTheme.titleMedium),
+              Text(s.shutdownHint, style: theme.textTheme.bodySmall),
+              for (final src in shutdownFinderSources)
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  value: !off.contains(src.url),
+                  onChanged: st.running ? null : (v) => c.setBuiltinOn(src.url, v),
+                  title: Text(src.label, textDirection: TextDirection.ltr),
+                  subtitle: _sourceStatus(s, st, src.url, off.contains(src.url)),
+                ),
               const Gap(16),
               Text(s.builtin, style: theme.textTheme.titleMedium),
               for (final src in builtinFinderSources)
@@ -186,6 +219,8 @@ class ConfigFinderPage extends ConsumerWidget {
                   ),
                 ),
               const Gap(16),
+              Text(s.rankNote, style: theme.textTheme.bodySmall),
+              const Gap(4),
               Text(s.method, style: theme.textTheme.bodySmall),
             ],
           );

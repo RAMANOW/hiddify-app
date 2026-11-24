@@ -87,6 +87,9 @@ object DnsTunnelCore {
     private val progress = Regex("WD_PROGRESS phase=(\\S+) percent=(\\d+)")
     private val hostRe = Regex("^[A-Za-z0-9.-]{3,253}$")
     private val keyRe = Regex("^[A-Za-z0-9+/=_-]{16,256}$")
+    // 1.9: MasterDnsVPN / StormDNS / CottenDNS keys are free text in some channels' links
+    // ("…--->@channel"); any printable ASCII except space, quote and backslash (TOML-safe)
+    private val textKeyRe = Regex("^[!#-\\[\\]-~]{16,256}$")
     private val hexKeyRe = Regex("^[0-9A-Fa-f]{64}$")
     private val v4Re = Regex("^\\d{1,3}(\\.\\d{1,3}){3}(:\\d{1,5})?$")
     private val v6PortRe = Regex("^\\[[0-9A-Fa-f:.]+\\](:\\d{1,5})?$")
@@ -196,7 +199,7 @@ object DnsTunnelCore {
         }
         if (engine == "masterdns") {
             val key = server.optString("encryption_key").trim()
-            if (!keyRe.matches(key)) throw IllegalArgumentException("bad encryption_key")
+            if (!textKeyRe.matches(key)) throw IllegalArgumentException("bad encryption_key")
             val method = server.optInt("encryption_method", 5).coerceIn(0, 5)
             if (resolvers.isEmpty()) throw IllegalArgumentException("no resolvers")
             // MasterDnsVPN's own client_config.toml keys; everything else keeps the client's defaults
@@ -220,7 +223,7 @@ object DnsTunnelCore {
         }
         if (engine == "cotten") {
             val key = server.optString("encryption_key").trim()
-            if (!keyRe.matches(key)) throw IllegalArgumentException("bad encryption_key")
+            if (!textKeyRe.matches(key)) throw IllegalArgumentException("bad encryption_key")
             val method = server.optInt("encryption_method", 5).coerceIn(0, 5)
             if (resolvers.isEmpty()) throw IllegalArgumentException("no resolvers")
             val logs = File(dir, "logs")

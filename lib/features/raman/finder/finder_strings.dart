@@ -102,6 +102,89 @@ class FinderStrings {
     "Test: a TCP connect and TLS handshake to each config's server, from this network (not through the VPN). Once chosen, Raman's own delay test picks the best. hy2/tuic (UDP) are not tested and not kept.",
     'تاقیکردنەوە: پەیوەندیی TCP و دەستدانی TLS بۆ ڕاژەکاری هەر کانفیگێک، لەم تۆڕەوە (نەک لە ڕێی VPN). دوای هەڵبژاردن، تاقیکردنەوەی دواکەوتنی ڕامان خۆی باشترینەکە هەڵدەبژێرێت. hy2/tuic (UDP) تاقی ناکرێنەوە و هەڵناگیرێن.',
   );
+  // ---- 1.9 ----
+  String get slowNote => _t(
+    'از پشت تونل DNS، کُند است؛ فقط کانال‌های کانفیگِ قطعی (هر کدوم یک صفحه) و دو فایل کوچک خونده می‌شن.',
+    'Behind the DNS tunnel, it is slow; only the shutdown-config channels (one page each) and two small files are read.',
+    'لە پشت تونێلی DNS، خاوە؛ تەنها کەناڵەکانی کانفیگی بڕان (هەریەکە یەک لاپەڕە) و دوو فایلی بچووک دەخوێندرێنەوە.',
+  );
+  String get viaCore => _t('از راه پورت محلیِ رامان', 'through Raman\'s local port', 'لە ڕێی پۆرتی ناوخۆیی ڕامان');
+  String get viaDns => _t('از راه تونل DNS', 'through the DNS tunnel', 'لە ڕێی تونێلی DNS');
+  String get viaDirect => _t('مستقیم', 'directly', 'ڕاستەوخۆ');
+  String route(String r) => switch (r) {
+    'core' => viaCore,
+    'dns' => viaDns,
+    _ => viaDirect,
+  };
+  String get shutdownSources => _t('کانال‌های کانفیگِ قطعی', 'Shutdown-config channels', 'کەناڵەکانی کانفیگی بڕان');
+  String get shutdownHint => _t(
+    'کانال‌هایی که در قطعیِ اسفند ۱۴۰۴ تا خرداد ۱۴۰۵ کانفیگ DNS و کانفیگِ مخصوصِ نت ملی گذاشتن. لینک‌های DNS به تب «DNS قطعی» می‌رن و بقیه به پروفایل «کانفیگ‌یاب».',
+    'Channels that posted DNS-tunnel configs and national-internet configs during the Feb–May 2026 shutdown. DNS links go to the Shutdown DNS tab, the rest to the «کانفیگ‌یاب» profile.',
+    'ئەو کەناڵانەی لە بڕانی ئینتەرنێتی شوبات تا ئایار کانفیگی DNS و کانفیگی تایبەت بە نێتی نیشتمانییان دانا. لینکەکانی DNS دەچن بۆ «DNSی بڕان» و ئەوانی تر بۆ پرۆفایلی «کانفیگ‌یاب».',
+  );
+  String get rankNote => _t(
+    'ترتیب: اول REALITY، بعد XHTTP، بعد بقیهٔ TLS، آخر هم بدون TLS.',
+    'Order: REALITY first, then XHTTP, then other TLS, plain last.',
+    'ڕیزبەندی: یەکەم REALITY، دواتر XHTTP، دواتر TLSی تر، کۆتایی بێ TLS.',
+  );
+
+  // clean IP scanner
+  String get cleanButton => _t('اسکنِ IP تمیز (CDN)', 'Clean IP scan (CDN)', 'پشکنینی IPی پاک (CDN)');
+  String get cleanTitle => _t('IP تمیز برای کانفیگ CDN', 'Clean IP for a CDN config', 'IPی پاک بۆ کانفیگی CDN');
+  String get cleanIntro => _t(
+    'یک کانفیگِ پشتِ CDN (TLS با دامنه) بده. رامان می‌فهمه کدوم CDN سرویسش می‌ده، IPهای همون CDN رو از فهرستی که خودِ شرکت منتشر کرده با SNIِ کانفیگ امتحان می‌کنه و یک «کپی» از کانفیگ با بهترین IP در پروفایل «IP تمیز» می‌سازه. کانفیگِ اصلی دست نمی‌خوره. کلودفلر عمداً اسکن نمی‌شه (از مهر ۱۴۰۵ از ایران کُند شده).',
+    'Give a config that runs behind a CDN (TLS with a domain). Raman finds which CDN serves it, tries edge IPs of that CDN from the list the company itself publishes with the config\'s SNI, and writes a copy of the config with the best IP into the «IP تمیز» profile. The original is not changed. Cloudflare is deliberately not scanned (throttled from Iran since Oct 2026).',
+    'کانفیگێکی پشت CDN (TLS بە دۆمەین) بدە. ڕامان دەزانێت کام CDN خزمەتی دەکات، IPەکانی هەمان CDN لە ئەو لیستەی کە کۆمپانیاکە خۆی بڵاوی کردووەتەوە بە SNIی کانفیگەکە تاقی دەکاتەوە و «کۆپییەک» لە کانفیگەکە بە باشترین IP لە پرۆفایلی «IP تمیز» دروست دەکات. کانفیگە سەرەکییەکە دەستی لێ نادرێت. Cloudflare بە ئەنقەست ناپشکنرێت.',
+  );
+  String get cleanLink => _t('لینکِ کانفیگ (vless / vmess / trojan)', 'Config link (vless / vmess / trojan)', 'لینکی کانفیگ (vless / vmess / trojan)');
+  String get cleanCheck => _t('بررسی کانفیگ', 'Check the config', 'پشکنینی کانفیگ');
+  String cleanBadConfig(String why) => switch (why) {
+    'reality' => _t('REALITY به یک سرورِ مشخص وصل می‌شه، نه CDN؛ IP تمیز براش معنی نداره.', 'REALITY talks to one server, not a CDN; a clean IP means nothing for it.', 'REALITY بە یەک ڕاژەکار پەیوەست دەبێت، نەک CDN.'),
+    'notls' => _t('فقط کانفیگ‌های TLS اسکن می‌شن.', 'Only TLS configs can be scanned.', 'تەنها کانفیگەکانی TLS دەپشکنرێن.'),
+    'udp' => _t('کانفیگ‌های UDP/QUIC اسکن نمی‌شن.', 'UDP/QUIC configs can not be scanned.', 'کانفیگەکانی UDP/QUIC ناپشکنرێن.'),
+    'nosni' => _t('این کانفیگ SNIِ دامنه‌دار نداره.', 'This config has no domain SNI.', 'ئەم کانفیگە SNIی دۆمەینی نییە.'),
+    _ => _t('این لینک خونده نشد.', 'This link could not be read.', 'ئەم لینکە نەخوێندرایەوە.'),
+  };
+  String cleanDetected(String cdn) => _t('این دامنه روی $cdn است.', 'This domain is on $cdn.', 'ئەم دۆمەینە لەسەر $cdn ـە.');
+  String get cleanIsCloudflare => _t(
+    'این دامنه پشتِ کلودفلره؛ اسکنِ کلودفلر عمداً خاموشه. اگه مطمئنی همین دامنه روی CDNِ دیگه‌ای هم هست، از فهرست انتخابش کن.',
+    'This domain is behind Cloudflare; Cloudflare scanning is deliberately off. If you know the domain is also on another CDN, pick it from the list.',
+    'ئەم دۆمەینە لە پشت Cloudflareـە؛ پشکنینی Cloudflare بە ئەنقەست کوژاوەیە. ئەگەر دڵنیایت لەسەر CDNێکی تریشە، لە لیستەکە هەڵیبژێرە.',
+  );
+  String get cleanUnknownCdn => _t(
+    'CDNِ این دامنه شناخته نشد (یا DNS جواب نداد). اگه می‌دونی کدومه، از فهرست انتخابش کن.',
+    'The CDN of this domain was not recognised (or DNS did not answer). Pick it from the list if you know it.',
+    'CDNی ئەم دۆمەینە نەناسرایەوە. ئەگەر دەزانیت کامەیە، لە لیستەکە هەڵیبژێرە.',
+  );
+  String get cleanProvider => _t('CDN', 'CDN', 'CDN');
+  String get cleanPick => _t('انتخاب', 'Pick', 'هەڵبژاردن');
+  String get cleanCount => _t('تعداد IP برای امتحان', 'IPs to try', 'ژمارەی IP بۆ تاقیکردنەوە');
+  String get cleanSnapshot => _t(
+    '* فهرستِ زنده خونده نشد؛ از نسخهٔ ذخیره‌شدهٔ فهرستِ همین شرکت (آذر ۱۴۰۵) استفاده می‌شه.',
+    '* The live list could not be read; the saved copy of the provider\'s own list (Nov 2026) is used.',
+    '* لیستی زیندوو نەخوێندرایەوە؛ کۆپییە پاشەکەوتکراوەکەی لیستی هەمان کۆمپانیا بەکاردێت.',
+  );
+  String get cleanNoList => _t('فهرستِ IPهای این CDN خونده نشد.', 'The IP list of this CDN could not be read.', 'لیستی IPەکانی ئەم CDNـە نەخوێندرایەوە.');
+  String get cleanScan => _t('اسکن', 'Scan', 'پشکنین');
+  String get cleanNone => _t(
+    'هیچ IPی با SNIِ این کانفیگ جواب نداد. تعداد رو بیشتر کن یا CDNِ دیگه رو امتحان کن.',
+    'No IP answered with this config\'s SNI. Try more IPs or another CDN.',
+    'هیچ IPێک بە SNIی ئەم کانفیگە وەڵامی نەدایەوە.',
+  );
+  String cleanFound(int n) => _t('$n IP جواب دادن (سریع‌ترین بالا).', '$n IPs answered (fastest first).', '$n IP وەڵامیان دایەوە.');
+  String get cleanApplyBest => _t('ساختِ کپی با بهترین IP', 'Make a copy with the best IP', 'کۆپی بە باشترین IP');
+  String get cleanApply => _t('ساختِ کپی با این IP', 'Make a copy with this IP', 'کۆپی بەم IPیە');
+  String get cleanApplyHint => _t(
+    'کپی در پروفایل «IP تمیز» ذخیره می‌شه؛ کانفیگِ اصلی همون‌طور می‌مونه.',
+    'The copy is saved in the «IP تمیز» profile; the original stays as it is.',
+    'کۆپییەکە لە پرۆفایلی «IP تمیز» پاشەکەوت دەکرێت؛ کانفیگە سەرەکییەکە وەک خۆی دەمێنێتەوە.',
+  );
+  String cleanApplied(String ip) => _t('کپی با $ip در «IP تمیز» ذخیره شد', 'Copy with $ip saved in «IP تمیز»', 'کۆپی بە $ip لە «IP تمیز» پاشەکەوت کرا');
+  String get cleanMethod => _t(
+    'روش: اتصال TCP و دست‌دادنِ TLS با SNIِ کانفیگ به هر IP، از همین شبکه؛ گواهی باید برای همون دامنه معتبر باشه. منابعِ IP: فهرست‌های عمومیِ Fastly، Gcore، Akamai، Amazon CloudFront و Bunny CDN.',
+    'Method: a TCP connect and a TLS handshake with the config\'s SNI to each IP, from this network; the certificate must be valid for that domain. IP sources: the public lists of Fastly, Gcore, Akamai, Amazon CloudFront and Bunny CDN.',
+    'ڕێگا: پەیوەندیی TCP و دەستدانی TLS بە SNIی کانفیگەکە بۆ هەر IPێک، لەم تۆڕەوە؛ بڕوانامەکە دەبێت بۆ هەمان دۆمەین دروست بێت. سەرچاوەکان: لیستە گشتییەکانی Fastly، Gcore، Akamai، Amazon CloudFront و Bunny CDN.',
+  );
 }
 
 final finderStringsProvider = Provider<FinderStrings>((ref) => FinderStrings(ref.watch(localePreferencesProvider)));

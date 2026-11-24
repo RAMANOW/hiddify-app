@@ -1,4 +1,26 @@
-**Raman VPN (رامان VPN) 1.8.3** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial. The Google Relay uses mhrv-rs (therealaleph) / MasterHttpRelayVPN (masterking32), MIT. The shutdown DNS tunnel uses Soar (Lantern team, Apache-2.0), CottenDNS (TaJirax, MIT; from StormDNS by NullRoute1970 and MasterDnsVPN by Amin Mahmoudi), dnstt (David Fifield, public domain / CC0), Slipstream (EndPositive, Apache-2.0) and MasterDnsVPN (Amin Mahmoudi, MIT).
+**Raman VPN (رامان VPN) 1.9.0** for Android — open source, licensed under the Hiddify Extended GPL v3 (see LICENSE.md). Non-commercial. The Google Relay uses mhrv-rs (therealaleph) / MasterHttpRelayVPN (masterking32), MIT. The shutdown DNS tunnel uses Soar (Lantern team, Apache-2.0), CottenDNS (TaJirax, MIT; from StormDNS by NullRoute1970 and MasterDnsVPN by Amin Mahmoudi), dnstt (David Fifield, public domain / CC0), Slipstream (EndPositive, Apache-2.0) and MasterDnsVPN (Amin Mahmoudi, MIT).
+
+### تازه‌های ۱.۹ (کانفیگ‌یابِ هوشمندتر، IP تمیز، حافظهٔ شبکه، رفتن به DNS قطعی)
+- **کانفیگ‌یاب** حالا اول REALITY، بعد XHTTP، بعد بقیهٔ TLS رو بالا می‌ذاره (هستهٔ رامان XHTTP رو پشتیبانی می‌کنه؛ XHTTP روی h3 مثل hy2/tuic کنار گذاشته می‌شه).
+- **کانال‌های کانفیگِ قطعی**: شش کانال عمومی که در قطعیِ اسفند ۱۴۰۴ تا خرداد ۱۴۰۵ کانفیگ DNS و کانفیگِ مخصوصِ نت ملی گذاشتن، اول خونده می‌شن (هر کدوم قابلِ خاموش کردن). لینک‌های DNS (حالا stormdns:// هم) به «DNS قطعی» می‌رن و بقیه به پروفایل «کانفیگ‌یاب».
+- وقتی «DNS قطعی» روشنه، کانفیگ‌یاب فهرست‌ها رو **از پشتِ تونل DNS** می‌گیره (کم‌حجم: هر کانال یک صفحه + دو فایل کوچک) و می‌نویسه «از پشت تونل DNS، کُند است».
+- **اسکنِ IP تمیز** برای کانفیگ‌های پشتِ CDN (دکمه در صفحهٔ کانفیگ‌یاب): IPهای Fastly، Gcore، Akamai، CloudFront و Bunny رو از فهرستِ رسمیِ خودِ شرکت‌ها با SNIِ کانفیگ امتحان می‌کنه و یک **کپی** با بهترین IP در پروفایل «IP تمیز» می‌سازه. کلودفلر عمداً اسکن نمی‌شه. کانفیگِ اصلی دست نمی‌خوره.
+- **حافظهٔ شبکه** (ابزارهای رامان ← ایران): یادش می‌مونه روی هر وای‌فای / اپراتور کدوم پروفایل وصل شد و وقتی شبکه عوض شد پیشنهاد می‌ده: «این شبکه قبلاً با X وصل شد». خودش چیزی رو عوض نمی‌کنه. اسمِ وای‌فای بدونِ دسترسیِ موقعیت خونده نمی‌شه (رامان این دسترسی رو نمی‌خواد).
+- **رفتن به DNS قطعی وقتی فقط نت ملی هست** (زبانهٔ DNS قطعی، **پیش‌فرض خاموش**): اگه روشنش کنی و حدود ۴۵ ثانیه اینترنتِ جهانی از راهِ VPN نرسه ولی سایت‌های داخلی باز بشن، یک بار با کانفیگِ انتخاب‌شدهٔ همون زبانه به DNS قطعی می‌ره. به کدِ اتصال دست نزده.
+
+### نوێیەکانی ١.٩
+- کانفیگ‌یاب: یەکەم REALITY، دواتر XHTTP، دواتر TLSی تر؛ کەناڵەکانی کانفیگی بڕان؛ لە پشت تونێلی DNS دەخوێنێتەوە کاتێک DNSی بڕان کارایە.
+- پشکنینی IPی پاک بۆ کانفیگی CDN (بێ Cloudflare)، کۆپییەک لە پرۆفایلی «IP تمیز».
+- بیرگەی تۆڕ: پێشنیاری ئەو پرۆفایلەی لەسەر ئەم تۆڕە کاری کرد.
+- چوونی خۆکار بۆ DNSی بڕان کاتێک تەنها نێتی نیشتمانی هەیە (بە شێوەی بنەڕەت کوژاوەیە).
+
+### New in 1.9.0
+- **Config finder** ranks REALITY first, then XHTTP (the bundled core supports it; XHTTP over h3 is skipped like hy2/tuic), then other TLS.
+- **Shutdown-config channels**: six public channels that posted DNS-tunnel and national-internet configs in the Feb–May 2026 shutdown are read first (each can be turned off). DNS links (now also stormdns://) go to the Shutdown DNS tab, v2ray links to the «کانفیگ‌یاب» profile.
+- While a Shutdown DNS engine runs, the finder reads through it (only those channels, one page each, and two small files) and says it is slow.
+- **Clean-IP scanner** for CDN configs: edge IPs of Fastly, Gcore, Akamai, CloudFront and Bunny from the providers' own lists, tested with the config's SNI; writes a copy with the best IP into a «IP تمیز» profile. Cloudflare is never scanned; originals are untouched.
+- **Per-network memory**: suggests the profile that worked on this Wi‑Fi / operator before (never switches by itself).
+- **Opt-in fallback** (off by default) to Shutdown DNS when only the national internet works. The connection code is unchanged.
 
 ### تازه‌های ۱.۸.۳ (کانفیگ‌یاب)
 - دکمهٔ تازهٔ **کانفیگ‌یاب** در ردیف دوم صفحهٔ افزودن پروفایل (کنار «کانفیگ DNS»، «کانفیگ رله» و «پروکسی تلگرام»).

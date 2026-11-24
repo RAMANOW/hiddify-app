@@ -86,20 +86,25 @@ class DnsTunnelConfig {
   String get key => '${engine.name}|${domain.toLowerCase()}|$_secret';
 }
 
-/// base64url JSON links (whitedns profile shape)
-final _linkRe = RegExp(r'(soar|cottendns|masterdns)://([A-Za-z0-9_\-+/=]{16,})', caseSensitive: false);
+/// base64url JSON links (whitedns profile shape). 1.9: stormdns:// (StormDNS, a MasterDnsVPN fork
+/// with the same config: domain + encryption key + method) is read as a MasterDnsVPN config.
+final _linkRe = RegExp(r'(soar|cottendns|masterdns|stormdns)://([A-Za-z0-9_\-+/=]{16,})', caseSensitive: false);
 
 /// URL-shaped links (1.8.2): dnstt://, slipstream:// and dnst:// (net2share/dnst-url-spec, both forms)
 final _urlLinkRe = RegExp(r'''(dnstt|dnst|slipstream)://[^\s"'<>`]+''', caseSensitive: false);
 
 /// Every scheme the tab takes (for the add profile sheet's routing).
 final dnsLinkSchemeRe = RegExp(
-  r'''(?:soar|cottendns|masterdns)://[A-Za-z0-9_\-+/=]*|(?:dnstt|dnst|slipstream)://[^\s"'<>`]*''',
+  r'''(?:soar|cottendns|masterdns|stormdns)://[A-Za-z0-9_\-+/=]*|(?:dnstt|dnst|slipstream)://[^\s"'<>`]*''',
   caseSensitive: false,
 );
 
 final _host = RegExp(r'^[A-Za-z0-9.-]{3,253}$');
 final _secretRe = RegExp(r'^[A-Za-z0-9+/=_-]{16,256}$');
+
+/// 1.9: MasterDnsVPN / StormDNS / CottenDNS encryption keys are free text in some channels' links
+/// ("…--->@channel"): any printable ASCII but space, quote and backslash (safe in the TOML file).
+final _textSecretRe = RegExp(r'^[!#-\[\]-~]{16,256}$');
 final _hexKey = RegExp(r'^[0-9A-Fa-f]{64}$');
 final _resolverEntry = RegExp(r'^(\d{1,3}(\.\d{1,3}){3}(:\d{1,5})?|\[[0-9A-Fa-f:.]+\](:\d{1,5})?|[0-9A-Fa-f.]*:[0-9A-Fa-f:.]*)$');
 final _dnsttResolver = RegExp(r'^(https://[A-Za-z0-9.\-\[\]:]+(/\S*)?|tls://[A-Za-z0-9.-]+(:\d{1,5})?|(udp://)?[0-9A-Fa-f.:\[\]]{2,60})$');
@@ -126,7 +131,7 @@ DnsTunnelConfig? parseDnsLink(String link) {
     if (profile == null) return null;
     final engine = switch (scheme) {
       'soar' => DnsEngine.soar,
-      'masterdns' => DnsEngine.masterdns,
+      'masterdns' || 'stormdns' => DnsEngine.masterdns,
       _ => DnsEngine.cotten,
     };
     return _checked(DnsTunnelConfig._('$scheme://${m.group(2)}', engine, profile));
@@ -145,9 +150,10 @@ DnsTunnelConfig? _checked(DnsTunnelConfig c) {
     case DnsEngine.slipstream:
       break;
     case DnsEngine.soar:
+      if (!_secretRe.hasMatch(c._secret.trim())) return null;
     case DnsEngine.cotten:
     case DnsEngine.masterdns:
-      if (!_secretRe.hasMatch(c._secret.trim())) return null;
+      if (!_textSecretRe.hasMatch(c._secret.trim())) return null;
   }
   return c;
 }
@@ -334,8 +340,10 @@ String htmlToText(String html) {
 List<DnsTunnelConfig> extractDnsConfigs(String text) {
   final seen = <String>{};
   final out = <DnsTunnelConfig>[];
-  // the tag-stripped text first: a link inside HTML has &amp; for its &
-  for (final source in [htmlToText(text), text]) {
+  // the tag-stripped text first: a link inside HTML has &amp; for its &. 1.9: links posted with
+  // no space between them (…fQstormdns://…) are split first: a scheme name is made of base64
+  // letters and would otherwise be read as the end of the link before it
+  for (final source in [htmlToText(text), text].map(splitGluedDnsLinks)) {
     for (final m in [..._linkRe.allMatches(source), ..._urlLinkRe.allMatches(source)]) {
       final c = parseDnsLink(m.group(0)!);
       if (c != null && seen.add(c.key)) out.add(c);
@@ -346,6 +354,11 @@ List<DnsTunnelConfig> extractDnsConfigs(String text) {
   }
   return out;
 }
+
+final _gluedRe = RegExp(r'(?<=[A-Za-z0-9_\-+/=])(soar|cottendns|masterdns|stormdns)://', caseSensitive: false);
+
+/// [text] with a space put before every base64-JSON DNS link that follows another one directly.
+String splitGluedDnsLinks(String text) => text.replaceAllMapped(_gluedRe, (m) => ' ${m.group(0)}');
 
 /// The older-posts cursor of a t.me/s page (`?before=N`), the smallest one on the page.
 int? telegramBefore(String html) {

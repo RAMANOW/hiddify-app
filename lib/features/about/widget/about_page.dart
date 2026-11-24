@@ -195,6 +195,23 @@ class AboutPage extends HookConsumerWidget {
                   await UriUtils.tryLaunch(Uri.parse("https://github.com/masterking32/MasterDnsVPN"));
                 },
               ),
+              // 1.9.0 changelog line and neutral credits for what the new tools read
+              const ListTile(
+                dense: true,
+                title: Text("Raman VPN 1.9.0"),
+                subtitle: Text(
+                  "Config finder ranks REALITY, then XHTTP, then other TLS; reads its lists through the DNS tunnel when one runs; "
+                  "shutdown-config Telegram channels; clean-IP scanner for CDN configs (Fastly, Gcore, Akamai, CloudFront, Bunny — never Cloudflare); "
+                  "per-network memory; opt-in fallback to Shutdown DNS when only the national internet works.",
+                ),
+              ),
+              const ListTile(
+                dense: true,
+                title: Text(
+                  "Clean-IP scanner: the public IP lists published by Fastly, Gcore, Akamai, Amazon CloudFront and Bunny CDN. "
+                  "Config finder: public GitHub lists and public Telegram channel previews, read when you ask; Raman VPN is not affiliated with any of them.",
+                ),
+              ),
             ]),
           ),
         ],

@@ -7,6 +7,8 @@ import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/features/raman/anti_leak.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_controller.dart';
 import 'package:hiddify/features/raman/finder/finder_controller.dart';
+import 'package:hiddify/features/raman/netwatch/iran_access_watcher.dart';
+import 'package:hiddify/features/raman/netwatch/network_memory.dart';
 import 'package:hiddify/features/raman/relay/relay_controller.dart';
 import 'package:hiddify/features/raman/raman_strings.dart';
 import 'package:hiddify/features/raman/shield/shield_controller.dart';
@@ -59,6 +61,10 @@ class HomePage extends HookConsumerWidget {
     // Raman VPN 1.8.3: «کانفیگ‌یاب» auto refresh (off unless the user set it)
     useEffect(() {
       ref.read(finderControllerProvider).startAutoRefresh();
+      // Raman VPN 1.9: per-network memory (suggestions only) and the opt-in "Iran Access" DNS
+      // fallback; both only watch the connection, they do not change it by themselves
+      ref.read(networkMemoryProvider).start();
+      ref.read(iranAccessWatcherProvider).start();
       return null;
     }, const []);
 

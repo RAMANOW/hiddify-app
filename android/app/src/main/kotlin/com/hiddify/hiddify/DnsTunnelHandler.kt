@@ -67,6 +67,8 @@ class DnsTunnelHandler : FlutterPlugin, MethodChannel.MethodCallHandler {
                 background(result) { DnsTunnelCore.test(ctx, spec) }
             }
             "cancelTest" -> background(result) { DnsTunnelCore.cancelTest(); true }
+            // Raman VPN 1.9: which network the phone is on (per-network memory), read-only
+            "networkId" -> background(result) { NetworkId.current(ctx) }
             else -> result.notImplemented()
         }
     }

@@ -12,6 +12,8 @@ import 'package:hiddify/features/raman/dnstunnel/dns_links.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_manual_dialog.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_controller.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_strings.dart';
+import 'package:hiddify/features/raman/netwatch/iran_access_watcher.dart';
+import 'package:hiddify/features/raman/netwatch/net_watch_strings.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 const _green = Color(0xFF16A34A);
@@ -263,6 +265,15 @@ class DnsTunnelTab extends HookConsumerWidget {
           ),
         ),
         body(s.whileOn),
+        // Raman VPN 1.9: opt-in "Iran Access" fallback (a separate watcher, off by default)
+        SwitchListTile(
+          secondary: const Icon(Icons.swap_horiz_rounded),
+          title: Text(ref.watch(netWatchStringsProvider).fallbackTitle),
+          subtitle: Text(ref.watch(netWatchStringsProvider).fallbackSubtitle),
+          isThreeLine: true,
+          value: ref.watch(FallbackPrefs.enabled),
+          onChanged: (v) => ref.read(FallbackPrefs.enabled.notifier).update(v),
+        ),
         const Divider(),
         section(s.configs, Icons.list_alt_rounded),
         body(s.saveNow),

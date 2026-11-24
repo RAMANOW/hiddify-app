@@ -12,10 +12,18 @@ import 'package:hiddify/features/raman/dnstunnel/dns_links.dart';
 /// A public place free configs are posted: a raw subscription file or a Telegram channel's web
 /// preview (`t.me/s/<channel>`).
 class FinderSource {
-  const FinderSource(this.url, this.label);
+  const FinderSource(this.url, this.label, {this.shutdown = false, this.small = false});
 
   final String url;
   final String label;
+
+  /// 1.9: a channel that posted shutdown configs (DNS-tunnel links, v2ray on whitelisted routes)
+  /// during the Feb–May 2026 shutdown; read first, and the only channels read from behind the DNS
+  /// tunnel.
+  final bool shutdown;
+
+  /// 1.9: a small raw file (under ~70 KB), cheap enough to read from behind the DNS tunnel.
+  final bool small;
 
   bool get isTelegram => telegramChannelOf(url) != null;
 }
@@ -27,14 +35,52 @@ const builtinFinderSources = <FinderSource>[
     'https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub1.txt',
     'GitHub · MatinGhanbari',
   ),
-  FinderSource('https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/Eternity.txt', 'GitHub · mahdibland'),
+  FinderSource(
+    'https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/Eternity.txt',
+    'GitHub · mahdibland',
+    small: true,
+  ),
   FinderSource('https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector/main/sub/mix', 'GitHub · MhdiTaheri'),
-  FinderSource('https://raw.githubusercontent.com/roosterkid/openproxylist/main/V2RAY_RAW.txt', 'GitHub · roosterkid'),
+  FinderSource(
+    'https://raw.githubusercontent.com/roosterkid/openproxylist/main/V2RAY_RAW.txt',
+    'GitHub · roosterkid',
+    small: true,
+  ),
   FinderSource('https://t.me/s/V2ray_Alpha', 'Telegram · V2ray_Alpha'),
   FinderSource('https://t.me/s/FreakConfig', 'Telegram · FreakConfig'),
   FinderSource('https://t.me/s/v2rayNG_Matsuri', 'Telegram · v2rayNG_Matsuri'),
   FinderSource('https://t.me/s/ConfigsHUB', 'Telegram · ConfigsHUB'),
   FinderSource('https://t.me/s/Outline_Vpn', 'Telegram · Outline_Vpn'),
+];
+
+/// 1.9: public channels that posted shutdown configs in the Feb–May 2026 shutdown and still had
+/// such links in their web preview on 2026-11-24 (DNS-tunnel links: soar / cottendns / masterdns /
+/// stormdns; v2ray configs "for the national internet"). Only the channel names are kept here,
+/// nothing of their posts; the user can turn each one off.
+const shutdownFinderSources = <FinderSource>[
+  FinderSource('https://t.me/s/whitedns', 'Telegram · whitedns', shutdown: true),
+  FinderSource('https://t.me/s/ConfigWireguard', 'Telegram · ConfigWireguard', shutdown: true),
+  FinderSource('https://t.me/s/vpnfolder', 'Telegram · vpnfolder', shutdown: true),
+  FinderSource('https://t.me/s/Masir_Sefid', 'Telegram · Masir_Sefid', shutdown: true),
+  FinderSource('https://t.me/s/v2raypooliran', 'Telegram · v2raypooliran', shutdown: true),
+  FinderSource('https://t.me/s/tanhanet', 'Telegram · tanhanet', shutdown: true),
+];
+
+/// Every built-in source, shutdown channels first.
+const allBuiltinFinderSources = <FinderSource>[...shutdownFinderSources, ...builtinFinderSources];
+
+/// How much is read from behind the DNS tunnel (a few kB/s): the shutdown channels, one page
+/// each, and at most two small raw files.
+const finderSlowMaxRaw = 2;
+const finderSlowPageBytes = 300 << 10;
+const finderSlowRawBytes = 128 << 10;
+
+/// The sources read from behind the DNS tunnel, in order: shutdown channels, then up to
+/// [finderSlowMaxRaw] small raw files, then the user's own Telegram channels.
+List<FinderSource> slowFinderSources(List<FinderSource> active) => [
+  ...active.where((s) => s.shutdown),
+  ...active.where((s) => s.small && !s.isTelegram).take(finderSlowMaxRaw),
+  ...active.where((s) => !s.shutdown && !s.small && s.isTelegram && !builtinFinderSources.any((b) => b.url == s.url)),
 ];
 
 final _channelRe = RegExp(r'^(?:https?://)?(?:www\.)?(?:t|telegram)\.me/(?:s/)?([A-Za-z][A-Za-z0-9_]{3,31})/?(?:\?.*)?$', caseSensitive: false);
@@ -109,6 +155,8 @@ class FinderEndpoint {
     required this.sni,
     required this.udp,
     required this.key,
+    this.security = '',
+    this.transport = '',
   });
 
   final String link;
@@ -125,6 +173,51 @@ class FinderEndpoint {
 
   /// The link without its name, for dedupe.
   final String key;
+
+  /// 1.9: 'reality', 'tls' or '' (none), and the transport ('tcp', 'ws', 'grpc', 'xhttp', …).
+  final String security;
+  final String transport;
+
+  bool get isReality => security == 'reality';
+  bool get isXhttp => transport == 'xhttp';
+}
+
+/// 1.9: the core in this build reads XHTTP links. Checked for hiddify-core 5.9.15 (the official
+/// core this app ships): its sing-box (hiddify-sing-box v1.13.0 base) has transport/v2rayxhttp, and
+/// its link parser ray2sing (63c82f8c, 2026-02-10) maps `type=xhttp` to the XHTTP transport
+/// (common.go `case "xhttp"`); libhiddify-core.so of 1.8.3 has the v2rayxhttp symbols. XHTTP with
+/// ALPN h3 runs over QUIC (UDP) and is treated like the other UDP configs. Set this to false for a
+/// core without XHTTP and the finder drops XHTTP links instead of keeping configs it can not run.
+const coreSupportsXhttp = true;
+
+/// 1.9 ranking tier, lower first: REALITY (vless+reality, ~75 % success in Iran, Nov 2026), then
+/// XHTTP over TLS (~66 %), then other TLS, then plain TCP (a CDN edge or any open port answers a
+/// TCP connect, so it proves the least).
+int finderTier(FinderEndpoint e) {
+  if (e.isReality) return 0;
+  if (e.isXhttp && e.tls) return 1;
+  if (e.tls) return 2;
+  return 3;
+}
+
+/// Orders the configs that answered by tier, then by delay, at most [perHost] per server, and
+/// keeps [keep] of them.
+List<(FinderEndpoint, int)> rankFinderResults(List<(FinderEndpoint, int)> ok, int keep, {int perHost = 2}) {
+  final sorted = ok.toList()
+    ..sort((a, b) {
+      final t = finderTier(a.$1).compareTo(finderTier(b.$1));
+      return t != 0 ? t : a.$2.compareTo(b.$2);
+    });
+  final count = <String, int>{};
+  final out = <(FinderEndpoint, int)>[];
+  for (final p in sorted) {
+    final h = '${p.$1.host}:${p.$1.port}';
+    if ((count[h] ?? 0) >= perHost) continue;
+    count[h] = (count[h] ?? 0) + 1;
+    out.add(p);
+    if (out.length >= keep) break;
+  }
+  return out;
 }
 
 String _stripBrackets(String h) => h.startsWith('[') && h.endsWith(']') ? h.substring(1, h.length - 1) : h;
@@ -162,6 +255,8 @@ FinderEndpoint? parseFinderLink(String raw) {
         final tlsField = '${json['tls'] ?? ''}'.toLowerCase();
         final sni = '${json['sni'] ?? ''}'.trim().isNotEmpty ? '${json['sni']}'.trim() : '${json['host'] ?? ''}'.trim();
         final copy = Map<String, dynamic>.from(json)..remove('ps');
+        final alpn = '${json['alpn'] ?? ''}'.toLowerCase();
+        if (net == 'xhttp' && !coreSupportsXhttp) return null;
         return FinderEndpoint(
           link: link,
           scheme: scheme,
@@ -169,7 +264,9 @@ FinderEndpoint? parseFinderLink(String raw) {
           port: port,
           tls: tlsField == 'tls' || tlsField == 'reality',
           sni: sni.isEmpty ? host : sni.split(',').first,
-          udp: net == 'kcp' || net == 'quic',
+          udp: net == 'kcp' || net == 'quic' || (net == 'xhttp' && alpn.contains('h3')),
+          security: tlsField == 'reality' ? 'reality' : (tlsField == 'tls' ? 'tls' : ''),
+          transport: net.isEmpty ? 'tcp' : net,
           key: 'vmess|${jsonEncode(Map.fromEntries(copy.entries.toList()..sort((a, b) => a.key.compareTo(b.key))))}',
         );
       case 'ss':
@@ -202,7 +299,14 @@ FinderEndpoint? parseFinderLink(String raw) {
         final type = (q['type'] ?? '').toLowerCase();
         final sni = (q['sni'] ?? q['servername'] ?? q['peer'] ?? '').trim();
         final host2 = (q['host'] ?? '').trim();
-        final isUdp = scheme == 'hy2' || scheme == 'hysteria2' || scheme == 'tuic' || type == 'quic' || type == 'kcp';
+        final alpn = (q['alpn'] ?? '').toLowerCase();
+        if (type == 'xhttp' && !coreSupportsXhttp) return null;
+        final isUdp = scheme == 'hy2' ||
+            scheme == 'hysteria2' ||
+            scheme == 'tuic' ||
+            type == 'quic' ||
+            type == 'kcp' ||
+            (type == 'xhttp' && alpn.contains('h3'));
         final s = sni.isNotEmpty ? sni : (host2.isNotEmpty ? host2.split(',').first : host);
         return FinderEndpoint(
           link: link,
@@ -212,6 +316,8 @@ FinderEndpoint? parseFinderLink(String raw) {
           tls: security == 'tls' || security == 'reality' || security == 'xtls',
           sni: s,
           udp: isUdp,
+          security: security == 'reality' ? 'reality' : (security == 'tls' || security == 'xtls' ? 'tls' : ''),
+          transport: type.isEmpty ? 'tcp' : type,
           key: '$scheme|${uri.userInfo}@$host:$port|${(q.entries.toList()..sort((a, b) => a.key.compareTo(b.key))).map((e) => '${e.key}=${e.value}').join('&')}',
         );
       default:
@@ -298,18 +404,142 @@ Future<List<R>> runPool<T, R>(
   return results.cast<R>();
 }
 
-/// Reads one source (two pages of a Telegram channel) through 127.0.0.1:[proxyPort] when given.
-/// At most [maxBytes] of each page are read.
+/// 1.9: a SOCKS5 CONNECT (no login) to [host]:[port] through 127.0.0.1:[socksPort] (the DNS
+/// tunnel engines' local port). The returned socket has the handshake done and no listener left
+/// on it, so it can be handed to [SecureSocket.secure].
+Future<Socket> socks5Connect(int socksPort, String host, int port, {Duration timeout = const Duration(seconds: 30)}) async {
+  final s = await Socket.connect('127.0.0.1', socksPort, timeout: timeout);
+  final buf = <int>[];
+  var want = 0;
+  Completer<void>? waiter;
+  void wake([Object? error]) {
+    final w = waiter;
+    if (w == null) return;
+    waiter = null;
+    error == null ? w.complete() : w.completeError(error);
+  }
+
+  final sub = s.listen(
+    (d) {
+      buf.addAll(d);
+      if (buf.length >= want) wake();
+    },
+    onError: (Object e) => wake(e),
+    onDone: () => wake(const SocketException('SOCKS server closed the connection')),
+    cancelOnError: true,
+  );
+  Future<List<int>> read(int n) async {
+    if (buf.length < n) {
+      want = n;
+      waiter = Completer<void>();
+      await waiter!.future.timeout(timeout);
+    }
+    final out = buf.sublist(0, n);
+    buf.removeRange(0, n);
+    return out;
+  }
+
+  try {
+    s.add(const [5, 1, 0]);
+    final m = await read(2);
+    if (m[0] != 5 || m[1] != 0) throw const SocketException('SOCKS: no auth method accepted');
+    final h = utf8.encode(host);
+    if (h.length > 255) throw const SocketException('SOCKS: host name too long');
+    s.add([5, 1, 0, 3, h.length, ...h, port >> 8, port & 255]);
+    final r = await read(4);
+    if (r[1] != 0) throw SocketException('SOCKS: connect refused (${r[1]})');
+    final skip = switch (r[3]) {
+      1 => 4,
+      4 => 16,
+      _ => (await read(1))[0],
+    };
+    await read(skip + 2);
+    if (buf.isNotEmpty) throw const SocketException('SOCKS: unexpected data');
+    sub.pause();
+    return s;
+  } catch (_) {
+    await sub.cancel();
+    s.destroy();
+    rethrow;
+  }
+}
+
+/// How a page is read: through the core's local HTTP/mixed port, through a DNS tunnel engine's
+/// SOCKS5 port (https only), or directly.
+class FinderRoute {
+  const FinderRoute.direct() : httpProxyPort = null, socksPort = null;
+  const FinderRoute.core(int port) : httpProxyPort = port, socksPort = null;
+  const FinderRoute.socks(int port) : httpProxyPort = null, socksPort = port;
+
+  final int? httpProxyPort;
+  final int? socksPort;
+
+  String get name => httpProxyPort != null ? 'core' : (socksPort != null ? 'dns' : 'direct');
+}
+
+/// An HttpClient that goes by [route] (1.9).
+HttpClient finderHttpClient(FinderRoute route, Duration connectTimeout) {
+  final client = HttpClient()
+    ..connectionTimeout = connectTimeout
+    ..userAgent = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36';
+  final httpPort = route.httpProxyPort;
+  final socksPort = route.socksPort;
+  if (httpPort != null) {
+    client.findProxy = (_) => 'PROXY 127.0.0.1:$httpPort';
+  } else if (socksPort != null) {
+    client.findProxy = (_) => 'DIRECT';
+    client.connectionFactory = (uri, proxyHost, proxyPort) async {
+      if (uri.scheme != 'https') throw const SocketException('only https through SOCKS');
+      final task = () async {
+        final raw = await socks5Connect(socksPort, uri.host, uri.hasPort ? uri.port : 443, timeout: connectTimeout);
+        return SecureSocket.secure(raw, host: uri.host).timeout(connectTimeout);
+      }();
+      return ConnectionTask.fromSocket<Socket>(task, () {});
+    };
+  }
+  return client;
+}
+
+/// The body of [url] as bytes (at most [maxBytes]), by [route].
+Future<Uint8List> fetchFinderBytes(
+  String url, {
+  FinderRoute route = const FinderRoute.direct(),
+  Duration timeout = const Duration(seconds: 20),
+  Duration connectTimeout = const Duration(seconds: 10),
+  int maxBytes = 4 << 20,
+}) async {
+  final client = finderHttpClient(route, connectTimeout);
+  try {
+    return await () async {
+      final req = await client.getUrl(Uri.parse(url));
+      final res = await req.close();
+      if (res.statusCode >= 400) {
+        await res.drain<void>();
+        throw HttpException('HTTP ${res.statusCode}');
+      }
+      final bytes = BytesBuilder(copy: false);
+      await for (final chunk in res) {
+        bytes.add(chunk);
+        if (bytes.length >= maxBytes) break;
+      }
+      return bytes.takeBytes();
+    }().timeout(timeout);
+  } finally {
+    client.close(force: true);
+  }
+}
+
+/// Reads one source ([telegramPages] pages of a Telegram channel) by [route]. At most [maxBytes]
+/// of each page are read (after gzip; pages are asked for gzipped).
 Future<String> fetchFinderSource(
   String url, {
-  int? proxyPort,
+  FinderRoute route = const FinderRoute.direct(),
   Duration timeout = const Duration(seconds: 20),
+  Duration connectTimeout = const Duration(seconds: 10),
   int maxBytes = 3 << 20,
+  int telegramPages = 2,
 }) async {
-  final client = HttpClient()
-    ..connectionTimeout = const Duration(seconds: 10)
-    ..userAgent = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36';
-  if (proxyPort != null) client.findProxy = (_) => 'PROXY 127.0.0.1:$proxyPort';
+  final client = finderHttpClient(route, connectTimeout);
   Future<String> page(String u) async {
     final req = await client.getUrl(Uri.parse(u));
     final res = await req.close();
@@ -333,7 +563,7 @@ Future<String> fetchFinderSource(
       final first = await page(base);
       if (!first.contains('tgme_')) throw const HttpException('not a Telegram page');
       final before = telegramBefore(first);
-      if (before == null) return first;
+      if (before == null || telegramPages < 2) return first;
       try {
         // older posts first, so the newest stay at the end of the text
         return '${await page('$base?before=$before')}\n$first';

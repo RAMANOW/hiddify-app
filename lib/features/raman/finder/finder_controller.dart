@@ -62,6 +62,8 @@ class FinderState {
     this.bestMs,
     this.dnsAdded = 0,
     this.error,
+    this.route = 'direct',
+    this.slow = false,
   });
 
   final FinderPhase phase;
@@ -77,6 +79,11 @@ class FinderState {
   /// 'fetch' (no source answered), 'none' (nothing passed), 'save', or null.
   final String? error;
 
+  /// 1.9: how the lists were read first: 'core' (the core's local port), 'dns' (a DNS tunnel
+  /// engine's SOCKS5 port) or 'direct'; [slow] while the DNS tunnel runs (fewer, smaller pages).
+  final String route;
+  final bool slow;
+
   bool get running => phase == FinderPhase.fetching || phase == FinderPhase.testing || phase == FinderPhase.saving;
 
   FinderState copyWith({
@@ -90,6 +97,8 @@ class FinderState {
     int? bestMs,
     int? dnsAdded,
     String? error,
+    String? route,
+    bool? slow,
   }) => FinderState(
     phase: phase ?? this.phase,
     done: done ?? this.done,
@@ -101,6 +110,8 @@ class FinderState {
     bestMs: bestMs ?? this.bestMs,
     dnsAdded: dnsAdded ?? this.dnsAdded,
     error: error ?? this.error,
+    route: route ?? this.route,
+    slow: slow ?? this.slow,
   );
 }
 
@@ -163,7 +174,7 @@ class FinderController with InfraLogger {
     final url = normalizeFinderSource(input);
     if (url == null) return false;
     final list = userSources.toList();
-    if (!list.contains(url) && !builtinFinderSources.any((s) => s.url == url)) list.add(url);
+    if (!list.contains(url) && !allBuiltinFinderSources.any((s) => s.url == url)) list.add(url);
     await _setList(FinderPrefs.sources, list);
     return true;
   }
@@ -209,7 +220,7 @@ class FinderController with InfraLogger {
   }
 
   List<FinderSource> get activeSources => [
-    ...builtinFinderSources.where((s) => !disabledBuiltins.contains(s.url)),
+    ...allBuiltinFinderSources.where((s) => !disabledBuiltins.contains(s.url)),
     for (final u in userSources) FinderSource(u, telegramChannelOf(u) != null ? 'Telegram · ${telegramChannelOf(u)}' : Uri.parse(u).host),
   ];
 
@@ -246,18 +257,47 @@ class FinderController with InfraLogger {
     }
   }
 
+  /// 1.9: the local SOCKS5 port of a running DNS tunnel engine, or null. The DNS tab's engine
+  /// listens on 18096 (Soar / CottenDNS), 18098 (dnstt), 18100 (Slipstream) or 18102
+  /// (MasterDnsVPN); the port of the engine in use is checked first.
+  Future<int?> _dnsTunnelPort() async {
+    final dns = _ref.read(dnsTunnelControllerProvider);
+    final ports = <int>{if (dns.inUse) dns.socksPort, for (final e in DnsEngine.values) e.port};
+    for (final p in ports) {
+      if (await _portOpen(p)) return p;
+    }
+    return null;
+  }
+
   /// One full search. Safe to call while connected: it only reads pages, opens test sockets from
   /// the app (outside its own VPN) and writes the «کانفیگ‌یاب» profile.
+  ///
+  /// The lists are read through, in this order: the core's local port when it listens, a running
+  /// DNS tunnel engine's SOCKS5 port, then directly. While a DNS tunnel engine runs (1.9) only the
+  /// shutdown channels (one page each) and two small raw files are read, with longer timeouts.
   Future<void> run() async {
     if (state.value.running) return;
     _cancel = false;
-    final sources = activeSources;
-    state.value = FinderState(phase: FinderPhase.fetching, total: sources.length);
 
     // the core's local port (open when the local proxy is on) reads blocked sites through the
-    // connection; otherwise the pages are read directly
+    // connection; a DNS tunnel engine's SOCKS5 port next; otherwise the pages are read directly
     final port = _ref.read(ConfigOptions.mixedPort);
-    final proxyPort = await _portOpen(port) ? port : null;
+    final corePort = await _portOpen(port) ? port : null;
+    final dnsPort = await _dnsTunnelPort();
+    final slow = dnsPort != null;
+    final routes = <FinderRoute>[
+      if (corePort != null) FinderRoute.core(corePort),
+      if (dnsPort != null) FinderRoute.socks(dnsPort),
+      const FinderRoute.direct(),
+    ];
+    final sources = slow ? slowFinderSources(activeSources) : activeSources;
+    state.value = FinderState(
+      phase: FinderPhase.fetching,
+      total: sources.length,
+      route: routes.first.name,
+      slow: slow,
+    );
+    if (slow) loggy.info('config finder: behind the DNS tunnel (port $dnsPort), ${sources.length} small sources');
 
     final results = <String, FinderSourceResult>{};
     final perSource = List<List<FinderEndpoint>>.filled(sources.length, const []);
@@ -269,9 +309,17 @@ class FinderController with InfraLogger {
         final s = sources[i];
         String? body;
         String? error;
-        for (final p in [if (proxyPort != null) proxyPort, null]) {
+        for (final r in routes) {
+          if (_cancel) break;
           try {
-            body = await fetchFinderSource(s.url, proxyPort: p);
+            body = await fetchFinderSource(
+              s.url,
+              route: r,
+              timeout: slow ? const Duration(seconds: 120) : const Duration(seconds: 20),
+              connectTimeout: slow ? const Duration(seconds: 45) : const Duration(seconds: 10),
+              maxBytes: slow ? (s.isTelegram ? finderSlowPageBytes : finderSlowRawBytes) : 3 << 20,
+              telegramPages: slow ? 1 : 2,
+            );
             break;
           } catch (e) {
             error = e.toString();
@@ -292,7 +340,7 @@ class FinderController with InfraLogger {
         fetched++;
         state.value = state.value.copyWith(done: fetched, sources: Map.of(results));
       },
-      concurrency: 4,
+      concurrency: slow ? 2 : 4,
       cancelled: () => _cancel,
     );
     if (_cancel) return _stopped();
@@ -319,7 +367,12 @@ class FinderController with InfraLogger {
     final unique = [
       for (final l in perSource) [for (final e in l) if (!e.udp && seen.add(e.key)) e],
     ];
-    final candidates = interleave(unique, finderMaxCandidates);
+    // 1.9: inside each source, REALITY and XHTTP are tested first (the sort is stable, so the
+    // source's own order, newest first for a channel, stays inside each tier)
+    final byTier = [
+      for (final l in unique) [for (var t = 0; t < 4; t++) ...l.where((e) => finderTier(e) == t)],
+    ];
+    final candidates = interleave(byTier, finderMaxCandidates);
     state.value = state.value.copyWith(
       phase: FinderPhase.testing,
       done: 0,
@@ -349,22 +402,15 @@ class FinderController with InfraLogger {
       state.value = state.value.copyWith(phase: FinderPhase.done, passed: 0, error: 'none');
       return;
     }
-    // a TLS handshake says more than an open port (a CDN edge always accepts TCP), so plain TCP
-    // configs come after TLS ones of a similar delay; at most two per server
-    int score((FinderEndpoint, int) p) => p.$2 + (p.$1.tls ? 0 : 300);
-    ok.sort((a, b) => score(a).compareTo(score(b)));
-    final perHost = <String, int>{};
-    final best = <(FinderEndpoint, int)>[];
-    for (final p in ok) {
-      final h = '${p.$1.host}:${p.$1.port}';
-      if ((perHost[h] ?? 0) >= 2) continue;
-      perHost[h] = (perHost[h] ?? 0) + 1;
-      best.add(p);
-      if (best.length >= keep) break;
-    }
+    // 1.9: REALITY first, then XHTTP over TLS, then other TLS, then plain TCP (a CDN edge always
+    // accepts TCP); by delay inside each; at most two per server
+    final best = rankFinderResults(ok, keep);
     final links = [
       for (var i = 0; i < best.length; i++)
-        renameFinderLink(best[i].$1.link, '${i + 1} · ${best[i].$1.scheme} · ${best[i].$2}ms'),
+        renameFinderLink(
+          best[i].$1.link,
+          '${i + 1} · ${best[i].$1.isReality ? 'reality' : (best[i].$1.isXhttp ? 'xhttp' : best[i].$1.scheme)} · ${best[i].$2}ms',
+        ),
     ];
     final bestMs = best.map((p) => p.$2).reduce((a, b) => a < b ? a : b);
 

@@ -10,6 +10,7 @@ import 'package:hiddify/features/raman/leak_test.dart';
 import 'package:hiddify/features/raman/shield/shield_controller.dart';
 import 'package:hiddify/features/raman/iran_defaults.dart';
 import 'package:hiddify/features/raman/network_checker.dart';
+import 'package:hiddify/features/raman/netwatch/network_memory_tile.dart';
 import 'package:hiddify/features/raman/raman_strings.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_strings.dart';
 import 'package:hiddify/features/raman/dnstunnel/dns_tunnel_tab.dart';
@@ -315,6 +316,8 @@ class _IranTab extends ConsumerWidget {
           onChanged: (v) =>
               ref.read(ConfigOptions.ipv6Mode.notifier).update(v ? IPv6Mode.ipv4Only : IPv6Mode.preferIPv4),
         ),
+        // Raman VPN 1.9: per-network memory (suggestions only)
+        const NetworkMemoryTile(),
         ListTile(
           leading: const Icon(Icons.translate_rounded),
           title: Text(s.language),
