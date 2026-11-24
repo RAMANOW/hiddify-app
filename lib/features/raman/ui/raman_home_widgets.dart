@@ -98,18 +98,22 @@ class RamanLiveStatsRow extends ConsumerWidget {
         return s == null ? (0, 0) : (s.downlink.toInt(), s.uplink.toInt());
       }),
     );
+    // a narrow phone or a large font: the row shrinks as a whole instead of overflowing
     return SizedBox(
       height: height,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _SpeedPill(icon: Icons.south_rounded, value: down.speed(), label: ui.download),
-          const Gap(8),
-          _SpeedPill(icon: Icons.north_rounded, value: up.speed(), label: ui.upload),
-          const Gap(8),
-          // the existing ping pill: a tap tests the ping again, a long press the upload speed
-          const ActiveProxyDelayIndicator(),
-        ],
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _SpeedPill(icon: Icons.south_rounded, value: down.speed(), label: ui.download),
+            const Gap(8),
+            _SpeedPill(icon: Icons.north_rounded, value: up.speed(), label: ui.upload),
+            const Gap(8),
+            // the existing ping pill: a tap tests the ping again, a long press the upload speed
+            const ActiveProxyDelayIndicator(),
+          ],
+        ),
       ),
     );
   }
